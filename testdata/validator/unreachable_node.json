@@ -1,0 +1,21 @@
+{
+  "schema_version": "1",
+  "name": "unreachable-node",
+  "budgets": { "max_wall_seconds": 60, "max_tokens": 1000 },
+  "nodes": [
+    {
+      "id": "entry",
+      "type": "agent",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" }
+    },
+    {
+      "id": "stranded",
+      "type": "agent",
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" }
+    }
+  ],
+  "edges": []
+}

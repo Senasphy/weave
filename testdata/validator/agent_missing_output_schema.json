@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "name": "agent-missing-output-schema",
+  "budgets": { "max_wall_seconds": 60, "max_tokens": 1000 },
+  "nodes": [
+    {
+      "id": "entry",
+      "type": "agent",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock" }
+    }
+  ],
+  "edges": []
+}

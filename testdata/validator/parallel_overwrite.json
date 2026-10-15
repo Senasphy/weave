@@ -1,0 +1,39 @@
+{
+  "schema_version": "1",
+  "name": "parallel-overwrite",
+  "state": {
+    "shared_key": { "type": "string", "reducer": "overwrite" }
+  },
+  "budgets": { "max_wall_seconds": 60, "max_tokens": 1000 },
+  "nodes": [
+    {
+      "id": "entry",
+      "type": "fan_out",
+      "is_entry": true
+    },
+    {
+      "id": "branch_1",
+      "type": "agent",
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" },
+      "writes": ["shared_key"]
+    },
+    {
+      "id": "branch_2",
+      "type": "agent",
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" },
+      "writes": ["shared_key"]
+    },
+    {
+      "id": "join_node",
+      "type": "join"
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "entry", "to": "branch_1", "kind": "always" },
+    { "id": "e2", "from": "entry", "to": "branch_2", "kind": "always" },
+    { "id": "e3", "from": "branch_1", "to": "join_node", "kind": "always" },
+    { "id": "e4", "from": "branch_2", "to": "join_node", "kind": "always" }
+  ]
+}

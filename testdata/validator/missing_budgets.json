@@ -1,0 +1,14 @@
+{
+  "schema_version": "1",
+  "name": "missing-budgets",
+  "nodes": [
+    {
+      "id": "node_a",
+      "type": "agent",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" }
+    }
+  ],
+  "edges": []
+}

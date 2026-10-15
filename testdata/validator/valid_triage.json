@@ -1,0 +1,88 @@
+{
+  "schema_version": "1",
+  "name": "support-triage",
+  "state": {
+    "ticket": { "type": "object", "reducer": "overwrite" },
+    "findings": { "type": "array", "reducer": "append" }
+  },
+  "budgets": {
+    "max_steps": 50,
+    "max_tokens": 200000,
+    "max_cost_usd": 2.0,
+    "max_wall_seconds": 900
+  },
+  "nodes": [
+    {
+      "id": "classify",
+      "type": "agent",
+      "label": "Classifier",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock-llm", "temperature": 0 },
+      "system_prompt": "You are a support classification agent.",
+      "tools": ["kb_search"],
+      "output_schema": { "type": "object", "properties": { "category": { "type": "string" }, "amount": { "type": "number" } }, "required": ["category"] },
+      "reads": ["ticket"],
+      "writes": ["findings"]
+    },
+    {
+      "id": "route",
+      "type": "router",
+      "label": "Router"
+    },
+    {
+      "id": "approve",
+      "type": "gate",
+      "label": "Approval Gate",
+      "prompt": "Approve refund over $100?",
+      "allow_edit": true,
+      "timeout_seconds": 86400,
+      "on_timeout": "fail"
+    },
+    {
+      "id": "refund_exec",
+      "type": "agent",
+      "label": "Refund Executor",
+      "model": { "provider": "mock", "name": "mock-llm", "temperature": 0 },
+      "system_prompt": "Process refund for approved ticket.",
+      "tools": ["stripe_refund"],
+      "permissions": { "side_effects": true },
+      "output_schema": { "type": "object", "properties": { "status": { "type": "string" } } }
+    },
+    {
+      "id": "standard_reply",
+      "type": "agent",
+      "label": "Standard Reply",
+      "model": { "provider": "mock", "name": "mock-llm", "temperature": 0 },
+      "system_prompt": "Send automated reply.",
+      "output_schema": { "type": "object", "properties": { "status": { "type": "string" } } }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "from": "classify",
+      "to": "route",
+      "kind": "always"
+    },
+    {
+      "id": "e2",
+      "from": "route",
+      "to": "approve",
+      "kind": "when",
+      "expr": "out.amount > 100",
+      "priority": 1
+    },
+    {
+      "id": "e3",
+      "from": "route",
+      "to": "standard_reply",
+      "kind": "default"
+    },
+    {
+      "id": "e4",
+      "from": "approve",
+      "to": "refund_exec",
+      "kind": "on_success"
+    }
+  ]
+}

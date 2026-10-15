@@ -1,0 +1,17 @@
+{
+  "schema_version": "1",
+  "name": "side-effect-without-gate",
+  "budgets": { "max_wall_seconds": 60, "max_tokens": 1000 },
+  "nodes": [
+    {
+      "id": "entry",
+      "type": "agent",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock" },
+      "tools": ["dangerous_tool"],
+      "permissions": { "side_effects": true },
+      "output_schema": { "type": "object" }
+    }
+  ],
+  "edges": []
+}

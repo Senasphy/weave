@@ -1,0 +1,24 @@
+{
+  "schema_version": "1",
+  "name": "unbounded-cycle",
+  "budgets": { "max_wall_seconds": 60, "max_tokens": 1000 },
+  "nodes": [
+    {
+      "id": "node_a",
+      "type": "agent",
+      "is_entry": true,
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" }
+    },
+    {
+      "id": "node_b",
+      "type": "agent",
+      "model": { "provider": "mock", "name": "mock" },
+      "output_schema": { "type": "object" }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "node_a", "to": "node_b", "kind": "always" },
+    { "id": "e2", "from": "node_b", "to": "node_a", "kind": "always" }
+  ]
+}
