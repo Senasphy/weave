@@ -1,0 +1,19 @@
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/weave ./cmd/weave
+
+FROM alpine:3.20
+RUN apk add --no-cache ca-certificates
+WORKDIR /app
+COPY --from=builder /app/bin/weave /usr/local/bin/weave
+COPY --from=builder /app/migrations /app/migrations
+COPY --from=builder /app/examples /app/examples
+
+EXPOSE 8080
+ENTRYPOINT ["weave"]
+CMD ["all", "--port", "8080"]
