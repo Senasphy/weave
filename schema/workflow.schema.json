@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://weave.dev/schema/v1/workflow.json",
+  "title": "WeaveWorkflowGraph",
+  "description": "Authoritative definition of a Weave workflow graph.",
+  "type": "object",
+  "required": ["schema_version", "name", "nodes", "edges"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "reducer"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "object", "array"]
+          },
+          "schema": {
+            "type": "object"
+          },
+          "reducer": {
+            "type": "string",
+            "enum": ["overwrite", "append", "merge", "error_on_conflict"]
+          },
+          "default": {}
+        }
+      }
+    },
+    "defaults": {
+      "type": "object",
+      "properties": {
+        "budgets": { "$ref": "#/$defs/Budgets" },
+        "retry": { "$ref": "#/$defs/RetryPolicy" }
+      }
+    },
+    "budgets": { "$ref": "#/$defs/Budgets" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/Node" }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/Edge" }
+    }
+  },
+  "$defs": {
+    "Budgets": {
+      "type": "object",
+      "properties": {
+        "max_steps": { "type": "integer", "minimum": 1, "maximum": 500 },
+        "max_tokens": { "type": "integer", "minimum": 1, "maximum": 5000000 },
+        "max_cost_usd": { "type": "number", "minimum": 0.0001, "maximum": 100.0 },
+        "max_wall_seconds": { "type": "integer", "minimum": 1, "maximum": 86400 },
+        "max_turns": { "type": "integer", "minimum": 1, "maximum": 50 }
+      }
+    },
+    "RetryPolicy": {
+      "type": "object",
+      "properties": {
+        "max_attempts": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "backoff": { "type": "string", "enum": ["constant", "linear", "exponential"] },
+        "initial_interval_seconds": { "type": "number", "minimum": 0.1, "maximum": 60 },
+        "retry_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["rate_limit", "timeout", "invalid_output", "tool_error", "server_error"]
+          }
+        }
+      }
+    },
+    "Position": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" }
+      }
+    },
+    "Permissions": {
+      "type": "object",
+      "properties": {
+        "network": { "type": "boolean", "default": false },
+        "side_effects": { "type": "boolean", "default": false }
+      }
+    },
+    "ModelConfig": {
+      "type": "object",
+      "required": ["provider", "name"],
+      "properties": {
+        "provider": { "type": "string", "enum": ["openai", "anthropic", "gemini", "mock"] },
+        "name": { "type": "string", "minLength": 1 },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2.0, "default": 0 },
+        "max_tokens": { "type": "integer", "minimum": 1, "maximum": 131072 }
+      }
+    },
+    "Node": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["agent", "gate", "router", "fan_out", "join"]
+        },
+        "label": { "type": "string", "maxLength": 128 },
+        "position": { "$ref": "#/$defs/Position" },
+        "is_entry": { "type": "boolean" },
+
+        "model": { "$ref": "#/$defs/ModelConfig" },
+        "system_prompt": { "type": "string" },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "input_schema": { "type": "object" },
+        "output_schema": { "type": "object" },
+        "reads": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "writes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "budgets": { "$ref": "#/$defs/Budgets" },
+        "retry": { "$ref": "#/$defs/RetryPolicy" },
+        "permissions": { "$ref": "#/$defs/Permissions" },
+
+        "prompt": { "type": "string" },
+        "allow_edit": { "type": "boolean" },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 604800 },
+        "on_timeout": { "type": "string", "enum": ["fail", "reject"] },
+
+        "router_mode": { "type": "string", "enum": ["first_matching", "all_matching"], "default": "first_matching" },
+
+        "join_policy": { "type": "string", "enum": ["wait_all", "fail_fast", "allow_partial"], "default": "wait_all" }
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "required": ["id", "from", "to", "kind"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_-]+$"
+        },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "kind": {
+          "type": "string",
+          "enum": ["always", "on_success", "on_failure", "when", "default"]
+        },
+        "expr": { "type": "string" },
+        "priority": { "type": "integer", "minimum": 0 },
+        "max_traversals": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "map": {
+          "type": "object",
+          "properties": {
+            "to_input": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
