@@ -1,0 +1,527 @@
+openapi: 3.1.0
+info:
+  title: Weave API
+  description: Visual Multi-Agent Orchestration & Durable Execution API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+    description: Local development server
+paths:
+  /workflows:
+    get:
+      summary: List workflows
+      operationId: listWorkflows
+      responses:
+        '200':
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workflow'
+    post:
+      summary: Create a new workflow
+      operationId: createWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowRequest'
+      responses:
+        '201':
+          description: Workflow created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+
+  /workflows/{id}:
+    get:
+      summary: Get workflow by ID
+      operationId: getWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /workflows/{id}/draft:
+    get:
+      summary: Get workflow draft graph
+      operationId: getWorkflowDraft
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Draft graph
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      summary: Update workflow draft graph
+      operationId: updateWorkflowDraft
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Draft updated successfully
+
+  /workflows/{id}/validate:
+    post:
+      summary: Validate workflow draft graph
+      operationId: validateWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Validation diagnostics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  semantic_hash:
+                    type: string
+                  diagnostics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Diagnostic'
+
+  /workflows/{id}/publish:
+    post:
+      summary: Publish workflow draft as a new immutable version
+      operationId: publishWorkflow
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Version published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowVersion'
+        '422':
+          description: Validation errors blocked publishing
+
+  /workflows/{id}/versions:
+    get:
+      summary: List published versions
+      operationId: listWorkflowVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkflowVersion'
+
+  /workflows/{id}/versions/{n}:
+    get:
+      summary: Get a specific published version
+      operationId: getWorkflowVersion
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: n
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Version details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowVersion'
+
+  /workflows/{id}/versions/{n}/runs:
+    post:
+      summary: Trigger a run of a published version
+      operationId: createRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: n
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRunRequest'
+      responses:
+        '201':
+          description: Run created and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+
+  /runs:
+    get:
+      summary: List runs
+      operationId: listRuns
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Run'
+
+  /runs/{id}:
+    get:
+      summary: Get run details
+      operationId: getRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Run details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+
+  /runs/{id}/events:
+    get:
+      summary: Get run event log
+      operationId: getRunEvents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: after_seq
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Array of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RunEvent'
+
+  /runs/{id}/stream:
+    get:
+      summary: Stream run events in real time (SSE)
+      operationId: streamRunEvents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Server-sent event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /runs/{id}/cancel:
+    post:
+      summary: Cancel an in-flight run
+      operationId: cancelRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Run cancelled
+
+  /runs/{id}/replay:
+    post:
+      summary: Replay a run
+      operationId: replayRun
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum: [recorded, live_from_step]
+                  default: recorded
+      responses:
+        '200':
+          description: Run replayed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+
+  /gates:
+    get:
+      summary: List pending human review gates
+      operationId: listGates
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            default: waiting
+      responses:
+        '200':
+          description: List of gates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gate'
+
+  /gates/{id}/resolve:
+    post:
+      summary: Resolve human gate (approve/reject/edit)
+      operationId: resolveGate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResolveGateRequest'
+      responses:
+        '200':
+          description: Gate resolved successfully
+        '409':
+          description: Gate was already resolved (Conflict)
+
+  /models:
+    get:
+      summary: List available model prices
+      operationId: listModels
+      responses:
+        '200':
+          description: List of models and prices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelPrice'
+
+components:
+  schemas:
+    Workflow:
+      type: object
+      required: [id, workspace_id, name, created_at, updated_at]
+      properties:
+        id: { type: string }
+        workspace_id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CreateWorkflowRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+        initial_graph: { type: object }
+
+    WorkflowVersion:
+      type: object
+      required: [id, workflow_id, version_number, graph, semantic_hash, status, created_at]
+      properties:
+        id: { type: string }
+        workflow_id: { type: string }
+        version_number: { type: integer }
+        graph: { type: object }
+        semantic_hash: { type: string }
+        status: { type: string }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+
+    CreateRunRequest:
+      type: object
+      properties:
+        input: { type: object }
+        budget_overrides: { type: object }
+        mock: { type: boolean }
+
+    Run:
+      type: object
+      required: [id, status, created_at]
+      properties:
+        id: { type: string }
+        workspace_id: { type: string }
+        version_id: { type: string }
+        status: { type: string }
+        input: { type: object }
+        output: { type: object }
+        error: { type: string }
+        budgets: { type: object }
+        usage: { type: object }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time }
+        created_at: { type: string, format: date-time }
+
+    RunEvent:
+      type: object
+      required: [id, run_id, seq, timestamp, type, payload]
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        seq: { type: integer }
+        timestamp: { type: string, format: date-time }
+        type: { type: string }
+        step_id: { type: string }
+        node_id: { type: string }
+        payload: { type: object }
+
+    Gate:
+      type: object
+      required: [id, run_id, prompt, status, expires_at]
+      properties:
+        id: { type: string }
+        run_id: { type: string }
+        step_id: { type: string }
+        node_id: { type: string }
+        prompt: { type: string }
+        status: { type: string }
+        expires_at: { type: string, format: date-time }
+
+    ResolveGateRequest:
+      type: object
+      required: [resolution]
+      properties:
+        resolution:
+          type: string
+          enum: [approve, reject, edit]
+        actor: { type: string }
+        payload: { type: object }
+
+    ModelPrice:
+      type: object
+      required: [provider, model, input_per_mtok, output_per_mtok]
+      properties:
+        provider: { type: string }
+        model: { type: string }
+        input_per_mtok: { type: number }
+        output_per_mtok: { type: number }
+
+    Diagnostic:
+      type: object
+      required: [severity, code, message]
+      properties:
+        severity: { type: string, enum: [error, warning] }
+        code: { type: string }
+        message: { type: string }
+        node_id: { type: string }
+        edge_id: { type: string }
+        json_pointer: { type: string }
+
+  responses:
+    NotFound:
+      description: Entity not found
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type: { type: string }
+              title: { type: string }
+              status: { type: integer }
+              detail: { type: string }
+              code: { type: string }
