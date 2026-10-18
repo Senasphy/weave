@@ -1,0 +1,69 @@
+{
+  "schema_version": "1",
+  "name": "bounded-loop-debugger",
+  "description": "Code generation & verification loop with bounded max_traversals ensuring runaway loops are impossible.",
+  "state": {
+    "code": { "type": "string", "reducer": "overwrite" },
+    "test_results": { "type": "object", "reducer": "overwrite" }
+  },
+  "budgets": {
+    "max_steps": 20,
+    "max_tokens": 100000,
+    "max_cost_usd": 1.0,
+    "max_wall_seconds": 300
+  },
+  "nodes": [
+    {
+      "id": "code_generator",
+      "type": "agent",
+      "label": "Code Generator Agent",
+      "is_entry": true,
+      "position": { "x": 120, "y": 180 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Generate or fix Python code according to requirements and error traces.",
+      "writes": ["code"],
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "explanation": { "type": "string" }
+        }
+      }
+    },
+    {
+      "id": "test_runner",
+      "type": "agent",
+      "label": "Test Execution Agent",
+      "position": { "x": 480, "y": 180 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Run test suite against generated code.",
+      "reads": ["code"],
+      "writes": ["test_results"],
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "passed": { "type": "boolean" },
+          "error": { "type": "string" }
+        }
+      }
+    },
+    {
+      "id": "publish_artifact",
+      "type": "agent",
+      "label": "Artifact Publisher",
+      "position": { "x": 820, "y": 180 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Publish verified code to repository.",
+      "reads": ["code"],
+      "output_schema": {
+        "type": "object",
+        "properties": { "status": { "type": "string" } }
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e_gen_test", "from": "code_generator", "to": "test_runner", "kind": "always" },
+    { "id": "e_test_loop", "from": "test_runner", "to": "code_generator", "kind": "when", "expr": "!out.passed", "max_traversals": 3 },
+    { "id": "e_test_pub", "from": "test_runner", "to": "publish_artifact", "kind": "when", "expr": "out.passed" }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": "1",
+  "name": "parallel-research-pipeline",
+  "description": "Parallel research workflow demonstrating bounded Fan-out, concurrent branch execution, Join barrier, and state merge reducer.",
+  "state": {
+    "topic": { "type": "string", "reducer": "overwrite" },
+    "collected_citations": { "type": "array", "reducer": "append" }
+  },
+  "budgets": {
+    "max_steps": 25,
+    "max_tokens": 100000,
+    "max_cost_usd": 1.5,
+    "max_wall_seconds": 300
+  },
+  "nodes": [
+    {
+      "id": "entry_dispatch",
+      "type": "fan_out",
+      "label": "Research Fan-Out",
+      "is_entry": true,
+      "position": { "x": 100, "y": 200 }
+    },
+    {
+      "id": "web_searcher",
+      "type": "agent",
+      "label": "Web Search Agent",
+      "position": { "x": 400, "y": 80 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Search web sources for topic overview.",
+      "writes": ["collected_citations"],
+      "output_schema": { "type": "object", "properties": { "source": { "type": "string" } } }
+    },
+    {
+      "id": "kb_searcher",
+      "type": "agent",
+      "label": "Internal KB Agent",
+      "position": { "x": 400, "y": 200 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Query internal knowledge base for internal documentation.",
+      "tools": ["kb_search"],
+      "writes": ["collected_citations"],
+      "output_schema": { "type": "object", "properties": { "source": { "type": "string" } } }
+    },
+    {
+      "id": "academic_searcher",
+      "type": "agent",
+      "label": "Academic Papers Agent",
+      "position": { "x": 400, "y": 320 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Scan research papers for peer-reviewed citations.",
+      "writes": ["collected_citations"],
+      "output_schema": { "type": "object", "properties": { "source": { "type": "string" } } }
+    },
+    {
+      "id": "join_barrier",
+      "type": "join",
+      "label": "Join Barrier (Wait All)",
+      "position": { "x": 750, "y": 200 },
+      "join_policy": "wait_all"
+    },
+    {
+      "id": "synthesizer",
+      "type": "agent",
+      "label": "Research Synthesizer",
+      "position": { "x": 1020, "y": 200 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Synthesize all merged citations from shared state into a cohesive executive summary.",
+      "reads": ["collected_citations"],
+      "output_schema": { "type": "object", "properties": { "summary": { "type": "string" } } }
+    }
+  ],
+  "edges": [
+    { "id": "e_web", "from": "entry_dispatch", "to": "web_searcher", "kind": "always" },
+    { "id": "e_kb", "from": "entry_dispatch", "to": "kb_searcher", "kind": "always" },
+    { "id": "e_acad", "from": "entry_dispatch", "to": "academic_searcher", "kind": "always" },
+    { "id": "e_j1", "from": "web_searcher", "to": "join_barrier", "kind": "always" },
+    { "id": "e_j2", "from": "kb_searcher", "to": "join_barrier", "kind": "always" },
+    { "id": "e_j3", "from": "academic_searcher", "to": "join_barrier", "kind": "always" },
+    { "id": "e_synth", "from": "join_barrier", "to": "synthesizer", "kind": "always" }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema_version": "1",
+  "name": "customer-support-triage",
+  "description": "Realistic 4-agent triage system with classification, routing, high-value human approval gate, and refund execution.",
+  "state": {
+    "ticket": { "type": "object", "reducer": "overwrite" },
+    "customer_tier": { "type": "string", "reducer": "overwrite" },
+    "findings": { "type": "array", "reducer": "append" }
+  },
+  "budgets": {
+    "max_steps": 50,
+    "max_tokens": 200000,
+    "max_cost_usd": 2.0,
+    "max_wall_seconds": 900
+  },
+  "nodes": [
+    {
+      "id": "classifier",
+      "type": "agent",
+      "label": "Triage Classifier",
+      "is_entry": true,
+      "position": { "x": 100, "y": 150 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Analyze incoming customer ticket, determine sentiment and category (refund vs standard). Extract requested amount.",
+      "tools": ["kb_search"],
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string" },
+          "amount": { "type": "number" }
+        },
+        "required": ["category"]
+      },
+      "writes": ["findings"]
+    },
+    {
+      "id": "router",
+      "type": "router",
+      "label": "Value Router",
+      "position": { "x": 420, "y": 160 },
+      "router_mode": "first_matching"
+    },
+    {
+      "id": "approval_gate",
+      "type": "gate",
+      "label": "Manager Approval Gate",
+      "position": { "x": 720, "y": 80 },
+      "prompt": "Customer requested refund over $100. Approve, reject, or adjust amount?",
+      "allow_edit": true,
+      "timeout_seconds": 86400,
+      "on_timeout": "fail"
+    },
+    {
+      "id": "refund_executor",
+      "type": "agent",
+      "label": "Refund Executor Agent",
+      "position": { "x": 1050, "y": 80 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Process the approved refund transaction via Stripe tool.",
+      "tools": ["stripe_refund"],
+      "permissions": { "side_effects": true },
+      "output_schema": {
+        "type": "object",
+        "properties": { "status": { "type": "string" } }
+      }
+    },
+    {
+      "id": "standard_reply",
+      "type": "agent",
+      "label": "Standard Responder Agent",
+      "position": { "x": 720, "y": 280 },
+      "model": { "provider": "mock", "name": "mock-llm" },
+      "system_prompt": "Send polite automated response addressing general inquiries.",
+      "output_schema": {
+        "type": "object",
+        "properties": { "status": { "type": "string" } }
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e1", "from": "classifier", "to": "router", "kind": "always" },
+    { "id": "e2", "from": "router", "to": "approval_gate", "kind": "when", "expr": "out.amount > 100", "priority": 1 },
+    { "id": "e3", "from": "router", "to": "standard_reply", "kind": "default" },
+    { "id": "e4", "from": "approval_gate", "to": "refund_executor", "kind": "on_success" }
+  ]
+}
