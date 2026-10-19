@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-cloud-50: #fafaf8;
+  --color-cloud-100: #ecebe5;
+  --color-cloud-200: #dad8ce;
+  --color-cloud-300: #c2bfaf;
+  --color-cloud-400: #aaa38d;
+  --color-cloud-500: #988f77;
+  --color-cloud-700: #746a5a;
+  --color-cloud-800: #60574c;
+  --color-cloud-900: #4e4840;
+  --color-cloud-950: #292521;
+
+  --color-umber-400: #8f827a;
+  --color-umber-500: #736761;
+  --color-umber-600: #524742;
+  --color-umber-700: #3b2d28;
+  --color-umber-800: #201613;
+  --color-umber-900: #130d0b;
+
+  --color-charcoal: #130d0b;
+  --color-mid-brown: #524742;
+  --color-off-white: #fafaf8;
+
+  --color-lilac-300: #bdb4f8;
+  --color-lilac-400: #a392f3;
+  --color-lilac-500: #8566ec;
+
+  --color-blue-100: #dbf0f2;
+  --color-blue-200: #a3d7de;
+
+  --site-rail-max: 1280px;
+  --site-rail-pad: 24px;
+}
+
+.dark {
+  --color-cloud-50: #fafaf8;
+  --color-off-white: #fafaf8;
+}
+
+html {
+  font-family: "Host Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-cloud-50);
+  color: var(--color-umber-800);
+}
+
+.dark body {
+  background-color: var(--color-umber-900);
+  color: var(--color-cloud-50);
+}
+
+/* Zaro folder clip path */
+.clip-folder-tab {
+  clip-path: polygon(0% 0%, 68% 0%, 82% 14%, 100% 14%, 100% 100%, 0% 100%);
+}
+
+.clip-dossier-tab {
+  clip-path: polygon(0px 0px, 320px 0px, 370px 52px, 100% 52px, 100% 100%, 0px 100%);
+}
+
+@media (max-width: 640px) {
+  .clip-dossier-tab {
+    clip-path: polygon(0px 0px, 200px 0px, 236px 42px, 100% 42px, 100% 100%, 0px 100%);
+  }
+}
+
+/* Hairline technical borders */
+.border-hairline {
+  border-width: 0.5px;
+}
+
+/* Technical CAD Grid Pattern */
+.cad-grid {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(78, 72, 64, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(78, 72, 64, 0.15) 1px, transparent 1px);
+}
+
+.dark .cad-grid {
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(218, 216, 206, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(218, 216, 206, 0.08) 1px, transparent 1px);
+}
