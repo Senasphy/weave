@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -85,10 +86,11 @@ func (s *Server) handleGetWorkflowDraft(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if len(wf.DraftGraph) > 0 {
+	if len(wf.DraftGraph) > 0 && string(wf.DraftGraph) != "{}" && string(wf.DraftGraph) != "null" {
 		_, _ = w.Write(wf.DraftGraph)
 	} else {
-		_, _ = w.Write([]byte("{}"))
+		defJSON := fmt.Sprintf(`{"schema_version":"1","name":%q,"nodes":[],"edges":[]}`, wf.Name)
+		_, _ = w.Write([]byte(defJSON))
 	}
 }
 

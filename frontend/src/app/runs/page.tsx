@@ -188,7 +188,6 @@ export default function RunsPage() {
               <StatusBadge
                 status={runningCount > 0 ? 'running' : 'idle'}
                 label={runningCount > 0 ? `${runningCount} active` : 'Idle'}
-                pulse={runningCount > 0}
               />
             </div>
             <div className="mt-4">
@@ -209,7 +208,6 @@ export default function RunsPage() {
               <StatusBadge
                 status={waitingCount > 0 ? 'waiting_human' : 'idle'}
                 label={waitingCount > 0 ? `${waitingCount} pending` : 'All clear'}
-                pulse={false}
               />
             </div>
             <div className="mt-4">
@@ -230,7 +228,6 @@ export default function RunsPage() {
               <StatusBadge
                 status={succeededCount > 0 ? 'succeeded' : 'idle'}
                 label={succeededCount > 0 ? `${succeededCount} completed` : '0 completed'}
-                pulse={false}
               />
             </div>
             <div className="mt-4">
@@ -299,7 +296,7 @@ export default function RunsPage() {
 
         {/* 4. Runs Table View */}
         {isLoading ? (
-          <div className="rounded border border-border bg-white p-6 space-y-4 animate-pulse">
+          <div className="rounded border border-border bg-white p-6 space-y-4">
             <div className="h-4 bg-slate-100 rounded w-1/4" />
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (

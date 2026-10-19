@@ -93,7 +93,7 @@ export function OutlineView() {
       </div>
 
       {/* Nodes list */}
-      {graph.nodes.length === 0 ? (
+      {(graph?.nodes || []).length === 0 ? (
         <div className="rounded border border-dashed border-border bg-white p-12 text-center">
           <p className="text-xs text-muted-foreground">
             Workflow graph has no nodes. Use the palette toolbar above to add your first agent.
@@ -101,10 +101,10 @@ export function OutlineView() {
         </div>
       ) : (
         <div className="space-y-2.5">
-          {graph.nodes.map((node, index) => {
+          {(graph?.nodes || []).map((node, index) => {
             const visual = getNodeVisual(node.type);
             const isSelected = selectedNodeId === node.id;
-            const outgoing = graph.edges.filter((e) => e.from === node.id);
+            const outgoing = (graph?.edges || []).filter((e) => e.from === node.id);
 
             return (
               <div
@@ -187,8 +187,8 @@ export function OutlineView() {
                     </span>
                   ) : (
                     <div className="space-y-1">
-                      {outgoing.map((edge) => {
-                        const targetNode = graph.nodes.find((n) => n.id === edge.to);
+                      {(outgoing || []).map((edge) => {
+                        const targetNode = (graph?.nodes || []).find((n) => n.id === edge.to);
                         return (
                           <div
                             key={edge.id}

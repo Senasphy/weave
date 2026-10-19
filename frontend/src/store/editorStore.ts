@@ -72,10 +72,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   future: [],
 
   initGraph: (workflowId, name, initialGraph) => {
+    const safeGraph: WorkflowGraph = {
+      schema_version: initialGraph?.schema_version || '1',
+      name: initialGraph?.name || name || 'untitled',
+      nodes: Array.isArray(initialGraph?.nodes) ? initialGraph.nodes : [],
+      edges: Array.isArray(initialGraph?.edges) ? initialGraph.edges : [],
+      description: initialGraph?.description,
+      state: initialGraph?.state,
+      defaults: initialGraph?.defaults,
+      budgets: initialGraph?.budgets,
+    };
     set({
       workflowId,
       workflowName: name,
-      graph: initialGraph,
+      graph: safeGraph,
       selectedNodeId: null,
       selectedEdgeId: null,
       isDirty: false,
@@ -86,8 +96,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   onNodesChange: (changes) => {
     const current = get();
+    const currentNodes = Array.isArray(current.graph?.nodes) ? current.graph.nodes : [];
     // Convert GraphNodes to flow nodes representation
-    const flowNodes: FlowNode[] = current.graph.nodes.map((n) => ({
+    const flowNodes: FlowNode[] = currentNodes.map((n) => ({
       id: n.id,
       type: n.type,
       position: n.position || { x: 0, y: 0 },
@@ -96,9 +107,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     const updatedFlowNodes = applyNodeChanges(changes, flowNodes);
     const updatedGraphNodes = updatedFlowNodes.map((fn) => {
-      const orig = current.graph.nodes.find((n) => n.id === fn.id)!;
+      const orig = currentNodes.find((n) => n.id === fn.id);
       return {
-        ...orig,
+        ...(orig || { id: fn.id, type: 'agent' as const, label: 'Node' }),
         position: fn.position,
       };
     });
@@ -111,7 +122,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   onEdgesChange: (changes) => {
     const current = get();
-    const flowEdges: FlowEdge[] = current.graph.edges.map((e) => ({
+    const currentEdges = Array.isArray(current.graph?.edges) ? current.graph.edges : [];
+    const flowEdges: FlowEdge[] = currentEdges.map((e) => ({
       id: e.id,
       source: e.from,
       target: e.to,
@@ -121,11 +133,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     const updatedFlowEdges = applyEdgeChanges(changes, flowEdges);
     const updatedGraphEdges = updatedFlowEdges.map((fe) => {
-      const orig = current.graph.edges.find((e) => e.id === fe.id) || {
+      const orig = currentEdges.find((e) => e.id === fe.id) || {
         id: fe.id,
         from: fe.source,
         to: fe.target,
-        kind: 'always',
+        kind: 'always' as const,
       };
       return orig;
     });
@@ -207,7 +219,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   updateNode: (id, patch) => {
     const current = get();
-    const updated = current.graph.nodes.map((n) => (n.id === id ? { ...n, ...patch } : n));
+    const currentNodes = Array.isArray(current.graph?.nodes) ? current.graph.nodes : [];
+    const updated = currentNodes.map((n) => (n.id === id ? { ...n, ...patch } : n));
     set({
       graph: { ...current.graph, nodes: updated },
       isDirty: true,
@@ -216,13 +229,15 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   deleteNode: (id) => {
     const current = get();
+    const currentNodes = Array.isArray(current.graph?.nodes) ? current.graph.nodes : [];
+    const currentEdges = Array.isArray(current.graph?.edges) ? current.graph.edges : [];
     set({
-      past: [...current.past, { nodes: current.graph.nodes, edges: current.graph.edges }],
+      past: [...current.past, { nodes: currentNodes, edges: currentEdges }],
       future: [],
       graph: {
         ...current.graph,
-        nodes: current.graph.nodes.filter((n) => n.id !== id),
-        edges: current.graph.edges.filter((e) => e.from !== id && e.to !== id),
+        nodes: currentNodes.filter((n) => n.id !== id),
+        edges: currentEdges.filter((e) => e.from !== id && e.to !== id),
       },
       selectedNodeId: current.selectedNodeId === id ? null : current.selectedNodeId,
       isDirty: true,
@@ -231,7 +246,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   updateEdge: (id, patch) => {
     const current = get();
-    const updated = current.graph.edges.map((e) => (e.id === id ? { ...e, ...patch } : e));
+    const currentEdges = Array.isArray(current.graph?.edges) ? current.graph.edges : [];
+    const updated = currentEdges.map((e) => (e.id === id ? { ...e, ...patch } : e));
     set({
       graph: { ...current.graph, edges: updated },
       isDirty: true,
@@ -240,12 +256,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   deleteEdge: (id) => {
     const current = get();
+    const currentNodes = Array.isArray(current.graph?.nodes) ? current.graph.nodes : [];
+    const currentEdges = Array.isArray(current.graph?.edges) ? current.graph.edges : [];
     set({
-      past: [...current.past, { nodes: current.graph.nodes, edges: current.graph.edges }],
+      past: [...current.past, { nodes: currentNodes, edges: currentEdges }],
       future: [],
       graph: {
         ...current.graph,
-        edges: current.graph.edges.filter((e) => e.id !== id),
+        edges: currentEdges.filter((e) => e.id !== id),
       },
       selectedEdgeId: current.selectedEdgeId === id ? null : current.selectedEdgeId,
       isDirty: true,

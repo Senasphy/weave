@@ -168,7 +168,7 @@ export default function GatesPage() {
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="rounded bg-white border border-border p-4 flex items-center justify-between animate-pulse"
+                  className="rounded bg-white border border-border p-4 flex items-center justify-between"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-7 h-7 rounded bg-slate-100" />

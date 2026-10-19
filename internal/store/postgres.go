@@ -322,7 +322,13 @@ func (p *PostgresStore) CreateWorkflow(ctx context.Context, workspaceID, name, d
 	if initialDraft != nil {
 		draftJSON, _ = json.Marshal(initialDraft)
 	} else {
-		draftJSON = []byte("{}")
+		defaultGraph := graph.WorkflowGraph{
+			SchemaVersion: "1",
+			Name:          name,
+			Nodes:         []graph.Node{},
+			Edges:         []graph.Edge{},
+		}
+		draftJSON, _ = json.Marshal(defaultGraph)
 	}
 
 	var rec WorkflowRecord

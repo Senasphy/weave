@@ -318,7 +318,6 @@ export default function WorkflowsPage() {
               <StatusBadge
                 status={activeRunsCount > 0 ? 'running' : 'idle'}
                 label={activeRunsCount > 0 ? `${activeRunsCount} active` : 'Idle'}
-                pulse={activeRunsCount > 0}
               />
             </div>
             <div className="mt-4">
@@ -340,7 +339,6 @@ export default function WorkflowsPage() {
               <StatusBadge
                 status={failedRunsCount > 0 ? 'failed' : 'idle'}
                 label={failedRunsCount > 0 ? `${failedRunsCount} failed` : '0 issues'}
-                pulse={false}
               />
             </div>
             <div className="mt-4">
@@ -362,7 +360,6 @@ export default function WorkflowsPage() {
               <StatusBadge
                 status={pendingGatesCount > 0 ? 'waiting_human' : 'idle'}
                 label={pendingGatesCount > 0 ? `${pendingGatesCount} pending` : 'All clear'}
-                pulse={false}
               />
             </div>
             <div className="mt-4">

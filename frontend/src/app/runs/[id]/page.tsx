@@ -418,16 +418,13 @@ export default function RunViewerPage() {
             </div>
 
             {run?.status === 'running' ? (
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-sky-700">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500" />
-                </span>
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-zinc-900">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
                 <span>Live Stream</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-zinc-500">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                 <span>Recorded Stream</span>
               </div>
             )}

@@ -284,7 +284,7 @@ export function InspectorPanel() {
                 {/* Model Configuration */}
                 <div className="py-4 space-y-3">
                   <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3 text-indigo-400" />
+                    <Cpu className="w-3 h-3 text-zinc-500" />
                     <span>Model Config</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">

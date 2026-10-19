@@ -56,8 +56,8 @@ export default function WorkflowEditorPage() {
   });
 
   useEffect(() => {
-    if (workflow && draftGraph && (draftGraph as any).name) {
-      initGraph(workflow.id, workflow.name, draftGraph);
+    if (workflow) {
+      initGraph(workflow.id, workflow.name, draftGraph || ({} as any));
     }
   }, [workflow, draftGraph, initGraph]);
 
@@ -74,17 +74,19 @@ export default function WorkflowEditorPage() {
 
   // Convert graph nodes to React Flow nodes
   const flowNodes: FlowNode[] = useMemo(() => {
-    return graph.nodes.map((n) => ({
+    const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+    return nodes.map((n) => ({
       id: n.id,
       type: n.type,
       position: n.position || { x: 100, y: 100 },
       data: n as any,
     }));
-  }, [graph.nodes]);
+  }, [graph?.nodes]);
 
   // Convert graph edges to React Flow edges with refined styles
   const flowEdges: FlowEdge[] = useMemo(() => {
-    return graph.edges.map((e) => ({
+    const edges = Array.isArray(graph?.edges) ? graph.edges : [];
+    return edges.map((e) => ({
       id: e.id,
       source: e.from,
       target: e.to,
@@ -106,7 +108,7 @@ export default function WorkflowEditorPage() {
       labelBgBorderRadius: 6,
       data: e as any,
     }));
-  }, [graph.edges]);
+  }, [graph?.edges]);
 
   const hasSelection = Boolean(selectedNodeId || selectedEdgeId);
 

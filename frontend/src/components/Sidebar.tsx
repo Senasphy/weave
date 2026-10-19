@@ -195,11 +195,8 @@ export function Sidebar({
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Runs</span>
                     {activeRunsCount > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded border border-sky-200/80 bg-sky-50 text-sky-700">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-sky-500" />
-                        </span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-1.5 py-0.5 rounded border border-zinc-300 bg-zinc-100 text-zinc-900 font-mono">
+                        <span className="inline-flex rounded-full h-1.5 w-1.5 bg-zinc-800" />
                         {activeRunsCount}
                       </span>
                     ) : (

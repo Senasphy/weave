@@ -35,23 +35,20 @@ export function StatusBadge({
   status = 'idle',
   label,
   size = 'xs',
-  pulse = true,
   className,
 }: StatusBadgeProps) {
   const norm = (status || '').toLowerCase().trim();
 
   let bgClass = 'bg-slate-50 text-slate-700 border-slate-200';
   let dotClass = 'bg-slate-400';
-  let isAnimated = false;
   let defaultLabel: string = status || 'Unknown';
 
   switch (norm) {
     case 'running':
     case 'active':
     case 'in_progress':
-      bgClass = 'bg-sky-50 text-sky-700 border-sky-200/80';
-      dotClass = 'bg-sky-500';
-      isAnimated = pulse;
+      bgClass = 'bg-zinc-100 text-zinc-900 border-zinc-300 font-medium';
+      dotClass = 'bg-zinc-800';
       defaultLabel = norm === 'active' ? 'Active' : 'Running';
       break;
 
@@ -119,15 +116,7 @@ export function StatusBadge({
       )}
     >
       <span className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
-        {isAnimated && (
-          <span
-            className={cn(
-              'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75',
-              dotClass
-            )}
-          />
-        )}
-        <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', dotClass)} />
+        <span className={cn('inline-flex h-1.5 w-1.5 rounded-full', dotClass)} />
       </span>
       <span>{displayText}</span>
     </span>

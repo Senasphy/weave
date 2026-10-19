@@ -26,7 +26,7 @@ export const RouterNode = memo(({ data, selected }: NodeProps) => {
       )}
     >
       {/* Top accent bar */}
-      <div className="h-0.5 rounded-t bg-cyan-600" />
+      <div className="h-0.5 rounded-t bg-slate-800" />
 
       {/* Target handle */}
       <Handle
@@ -34,7 +34,7 @@ export const RouterNode = memo(({ data, selected }: NodeProps) => {
         position={Position.Left}
         id="target"
         aria-label="Input handle"
-        className="!w-2 !h-2 !bg-cyan-600 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
+        className="!w-2 !h-2 !bg-slate-800 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
       />
 
       {/* Header */}
@@ -73,7 +73,7 @@ export const RouterNode = memo(({ data, selected }: NodeProps) => {
         position={Position.Right}
         id="source"
         aria-label="Output handle"
-        className="!w-2 !h-2 !bg-cyan-600 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
+        className="!w-2 !h-2 !bg-slate-800 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
       />
     </motion.div>
   );
