@@ -60,14 +60,14 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center min-h-[520px]">
           {/* Copy Column */}
           <div className="lg:col-span-6 flex flex-col justify-center">
-            <h1 className="font-display font-medium text-[42px] sm:text-[62px] lg:text-[76px] leading-[0.98] tracking-[-0.03em] text-umber-800 dark:text-cloud-50">
-              <span className="block">Reliable AI</span>
-              <span className="block">workflows</span>
-              <span className="block text-mid-brown dark:text-cloud-300">are here.</span>
+            <h1 className="font-display font-medium text-[42px] sm:text-[60px] lg:text-[72px] leading-[1.0] tracking-[-0.03em] text-umber-800 dark:text-cloud-50">
+              <span className="block">Build AI workflows</span>
+              <span className="block">that don't crash</span>
+              <span className="block text-mid-brown dark:text-cloud-300">or blow your budget.</span>
             </h1>
 
-            <p className="mt-6 max-w-[460px] text-[16px] sm:text-[18px] leading-[1.55] tracking-[0.01em] text-mid-brown dark:text-cloud-300">
-              One current, attributable runtime for how your agents actually execute. Backed by PostgreSQL, governed by hard spending caps, and built to survive any restart.
+            <p className="mt-6 max-w-[480px] text-[16px] sm:text-[18px] leading-[1.55] tracking-[0.01em] text-mid-brown dark:text-cloud-300">
+              Connect AI models, internal tools, and human approvals into reliable production workflows. Every step saves to PostgreSQL, runaway loops get stopped by hard spending limits, and sensitive actions pause safely for human sign-off.
             </p>
 
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -80,10 +80,10 @@ export function HeroSection() {
               </a>
 
               <a
-                href="#knowledge"
+                href="#use-cases"
                 className="inline-flex h-12 items-center justify-center rounded-[4px] border border-umber-400 bg-transparent px-6 text-[15px] font-medium tracking-[0.01em] text-umber-800 hover:border-current hover:bg-current/5 dark:border-cloud-100/40 dark:text-cloud-100 transition-colors"
               >
-                See how it works
+                Who uses Weave?
               </a>
             </div>
           </div>
@@ -95,10 +95,10 @@ export function HeroSection() {
               <div className="flex items-center justify-between border-b border-dashed border-cloud-300 dark:border-cloud-50/20 pb-3 mb-5 font-mono text-[11px] text-mid-brown dark:text-cloud-300">
                 <span className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-status-live animate-pulse" />
-                  <span>RUNTIME: ACTIVE_LEASE</span>
+                  <span>LIVE DEMO RUN</span>
                 </span>
-                <span>DB: POSTGRES_15 &bull; CEL ENGINE</span>
-                <span className="text-umber-800 dark:text-cloud-100 font-semibold">$0.0134 / $0.500 CAP</span>
+                <span>SAVED TO POSTGRESQL</span>
+                <span className="text-umber-800 dark:text-cloud-100 font-semibold">$0.0134 / $0.500 SPEND CAP</span>
               </div>
 
               {/* Step Scrubber Line */}

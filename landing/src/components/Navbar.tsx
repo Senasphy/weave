@@ -34,28 +34,28 @@ export function Navbar() {
           {/* Center Links */}
           <nav className="hidden lg:flex items-center gap-1">
             <Link
+              href="#use-cases"
+              className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
+            >
+              Who It's For
+            </Link>
+            <Link
               href="#problem"
               className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
             >
               The Problem
             </Link>
             <Link
-              href="#knowledge"
+              href="#comparison"
               className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
             >
-              Durable State
-            </Link>
-            <Link
-              href="#roi"
-              className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
-            >
-              Compounding ROI
+              Comparison
             </Link>
             <Link
               href="#security"
               className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
             >
-              Security
+              Safety &amp; Costs
             </Link>
             <Link
               href="#workflows"
@@ -99,6 +99,13 @@ export function Navbar() {
         {mobileOpen && (
           <div className="mt-2 rounded-[8px] border border-cloud-200 bg-cloud-50 p-4 shadow-md dark:border-cloud-50/15 dark:bg-umber-900 lg:hidden flex flex-col gap-2">
             <Link
+              href="#use-cases"
+              onClick={() => setMobileOpen(false)}
+              className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
+            >
+              Who It's For
+            </Link>
+            <Link
               href="#problem"
               onClick={() => setMobileOpen(false)}
               className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
@@ -106,25 +113,18 @@ export function Navbar() {
               The Problem
             </Link>
             <Link
-              href="#knowledge"
+              href="#comparison"
               onClick={() => setMobileOpen(false)}
               className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
             >
-              Durable State
-            </Link>
-            <Link
-              href="#roi"
-              onClick={() => setMobileOpen(false)}
-              className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
-            >
-              Compounding ROI
+              Comparison
             </Link>
             <Link
               href="#security"
               onClick={() => setMobileOpen(false)}
               className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
             >
-              Security
+              Safety &amp; Costs
             </Link>
             <Link
               href="#workflows"

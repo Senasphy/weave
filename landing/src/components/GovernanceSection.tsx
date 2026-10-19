@@ -30,14 +30,14 @@ export function GovernanceSection() {
               {/* Left Column */}
               <div className="flex flex-col items-start justify-center">
                 <h2 className="max-w-[620px] font-display text-[32px] sm:text-[44px] lg:text-[54px] leading-[1.08] tracking-[-0.025em] text-cloud-50">
-                  <span className="block text-cloud-50">Governed from the</span>
+                  <span className="block text-cloud-50">Safety &amp; cost limits</span>
                   <span className="block text-cloud-300">
-                    layer where workflows execute.
+                    built right into the engine.
                   </span>
                 </h2>
 
                 <p className="mt-6 max-w-[480px] text-[15px] sm:text-[17px] leading-[1.55] tracking-[0.01em] text-cloud-300">
-                  Weave protects the tools, API keys, database leases, and spending caps your workflows depend on from one shared Go kernel. Access is scoped, prompts are redacted, and every important action leaves an append-only audit trail.
+                  Weave protects your API keys, database, and budget at the execution level. Sensitive tokens are automatically scrubbed from event logs, internal networks are safeguarded, and hard spend caps halt runaway loops before your card gets charged.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -47,7 +47,7 @@ export function GovernanceSection() {
                     rel="noreferrer"
                     className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[2px] bg-blue-200 px-4 text-[14px] font-medium tracking-[0.01em] text-umber-800 hover:bg-blue-100 transition-colors"
                   >
-                    <span>Explore Security Specs</span>
+                    <span>Read Engine Documentation</span>
                     <ArrowRight className="size-[13px]" />
                   </a>
                 </div>
@@ -60,7 +60,7 @@ export function GovernanceSection() {
 
                 <div className="relative space-y-4">
                   <div className="border-b border-cloud-900 pb-3 flex justify-between text-cloud-300 font-medium">
-                    <span>KERNEL MODULE</span>
+                    <span>SAFETY ENGINE</span>
                     <span className="text-status-live">STATUS: ENFORCING</span>
                   </div>
 
@@ -72,31 +72,31 @@ export function GovernanceSection() {
                       Scrubbing strings against pattern: &#36;&#123;secret:NAME&#125;
                     </div>
                     <div className="text-[11px] text-status-live font-medium">
-                      Result: 0 secrets leaked to run_events
+                      Result: Zero API keys or secrets leaked to logs
                     </div>
                   </div>
 
                   <div className="border border-cloud-900 p-3 bg-cloud-900/40 text-cloud-300 space-y-1">
                     <div className="text-cloud-50 font-medium text-[12px]">
-                      02 Hard Spending Ceilings
+                      02 Hard Spending Caps
                     </div>
                     <div className="text-[11px] text-cloud-300">
-                      Token &amp; Cost ceiling: max_cost_usd = 0.50
+                      Maximum budget per run: max_cost_usd = $0.50
                     </div>
                     <div className="text-[11px] text-status-live font-medium">
-                      Result: Immediate execution halt if threshold exceeded
+                      Result: Immediate halt if cost exceeds threshold
                     </div>
                   </div>
 
                   <div className="border border-cloud-900 p-3 bg-cloud-900/40 text-cloud-300 space-y-1">
                     <div className="text-cloud-50 font-medium text-[12px]">
-                      03 SSRF &amp; Network Defense
+                      03 Internal Network Defense
                     </div>
                     <div className="text-[11px] text-cloud-300">
-                      CIDR Blocklist: 127.0.0.1/8, 169.254.169.254
+                      Blocklist: localhost (127.0.0.1) &amp; AWS metadata (169.254.169.254)
                     </div>
                     <div className="text-[11px] text-status-live font-medium">
-                      Result: Local loopback tool calls blocked
+                      Result: Models blocked from reaching private company networks
                     </div>
                   </div>
                 </div>

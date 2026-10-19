@@ -1,126 +1,114 @@
 "use client";
 
 import React from "react";
+import { Check, X, Minus } from "lucide-react";
+
+const comparisons = [
+  {
+    feature: "Crash recovery",
+    script: "Lost on restart; must re-run all steps",
+    heavy: "Requires custom Redis/DB setup",
+    temporal: "Durable, but code-only",
+    weave: "Automatic; resumes last step from PostgreSQL",
+    weaveHighlight: true,
+  },
+  {
+    feature: "Hard spending caps",
+    script: "None; runs until API quota depleted",
+    heavy: "Soft logging; no engine-level halt",
+    temporal: "Requires building custom token meters",
+    weave: "Hard limits on tokens, seconds & exact USD spend",
+    weaveHighlight: true,
+  },
+  {
+    feature: "Human approvals",
+    script: "Blocks thread or drops state",
+    heavy: "Complex custom state transitions",
+    temporal: "Supported via custom signals",
+    weave: "Built-in; 0 CPU resources while waiting",
+    weaveHighlight: true,
+  },
+  {
+    feature: "Visual canvas & JSON",
+    script: "None; code only",
+    heavy: "Code-centric, hard for PMs to audit",
+    temporal: "Developer dashboards only",
+    weave: "Interactive canvas editor + clean JSON in Git",
+    weaveHighlight: true,
+  },
+  {
+    feature: "Zero-cost local testing",
+    script: "Must pay for real LLM API calls",
+    heavy: "Requires mocking libraries",
+    temporal: "Mocking external services manually",
+    weave: "Built-in deterministic mock provider",
+    weaveHighlight: true,
+  },
+  {
+    feature: "Deployment simplicity",
+    script: "Unmanaged script processes",
+    heavy: "Heavy Python runtime & dependencies",
+    temporal: "Complex multi-cluster setup",
+    weave: "Single Go binary (API + Worker)",
+    weaveHighlight: true,
+  },
+];
 
 export function ComparisonLedger() {
   return (
-    <section id="knowledge" className="py-20 md:py-28 border-b border-cloud-200 dark:border-cloud-50/10 bg-cloud-50 dark:bg-umber-900">
+    <section id="comparison" className="py-20 md:py-28 border-b border-cloud-200 dark:border-cloud-50/10 bg-cloud-50 dark:bg-umber-900">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
         {/* Header */}
         <div className="max-w-[780px]">
-          <h2 className="font-display text-[28px] md:text-[42px] leading-[1.06] tracking-[-0.025em] text-umber-800 dark:text-cloud-50">
-            A fragile script tells you what crashed.{" "}
-            <span className="text-mid-brown dark:text-cloud-300">
-              Weave tells you what is true.
-            </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-mono uppercase tracking-wider text-mid-brown dark:text-cloud-300 border border-cloud-300 dark:border-cloud-50/20 rounded-full mb-4">
+            Clear Advantages
+          </span>
+          <h2 className="font-display text-[32px] sm:text-[44px] lg:text-[52px] leading-[1.08] tracking-[-0.025em] text-umber-800 dark:text-cloud-50">
+            How Weave compares to other solutions.
           </h2>
-          <p className="mt-5 max-w-[620px] text-[15px] md:text-[16px] leading-[1.55] text-mid-brown dark:text-cloud-300">
-            Your workflow state lives committed to PostgreSQL after every step. Recovery is free, state updates are instant, and every decision names the schema that validated it.
+          <p className="mt-4 text-[16px] sm:text-[17px] leading-[1.6] text-mid-brown dark:text-cloud-300">
+            You don't need a heavy framework that breaks in production or a generic orchestrator that knows nothing about AI. Here is what makes Weave different.
           </p>
         </div>
 
-        {/* Side-by-side Architectural Ledger */}
-        <div className="mt-12 md:mt-16 rounded-none border border-cloud-200 p-3 dark:border-cloud-50/10">
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {/* Left Card: Ad-Hoc Scripts */}
-            <article className="flex flex-col gap-6 overflow-clip rounded-none p-6 md:p-8 bg-cloud-100 dark:bg-umber-800">
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="inline-flex h-5 shrink-0 items-center justify-center border-[0.5px] border-cloud-500 px-2 font-display text-[12px] font-medium leading-[1.6] tracking-[0.005em] dark:border-cloud-300/40 rounded-full text-cloud-700 dark:text-cloud-300">
-                    Ad-Hoc Scripts
-                  </h3>
-                  <span className="inline-flex h-5 shrink-0 items-center justify-center gap-1 border-[0.5px] border-cloud-500 px-2 font-display text-[12px] font-medium leading-[1.6] tracking-[0.005em] dark:border-cloud-300/40 rounded-[2px] text-cloud-700 dark:text-cloud-300">
-                    <span className="size-1.5 rounded-full bg-orange-500" />
-                    Fragile
-                  </span>
-                </div>
+        {/* Comparison Table */}
+        <div className="mt-12 overflow-x-auto">
+          <div className="min-w-[800px] border border-cloud-200 dark:border-cloud-50/15 bg-cloud-100 dark:bg-umber-800">
+            {/* Table Header */}
+            <div className="grid grid-cols-5 p-5 border-b border-cloud-200 dark:border-cloud-50/15 font-mono text-[12px] uppercase text-mid-brown dark:text-cloud-300 font-medium">
+              <div className="col-span-1">Capability</div>
+              <div className="col-span-1">Ad-Hoc Scripts</div>
+              <div className="col-span-1">LangChain / CrewAI</div>
+              <div className="col-span-1">Temporal / Inngest</div>
+              <div className="col-span-1 text-status-live font-bold">Weave Engine</div>
+            </div>
 
-                <div>
-                  <p className="font-display text-[24px] font-medium leading-[1.2] text-charcoal dark:text-cloud-50">
-                    A script runs in ephemeral memory.
-                  </p>
-                  <p className="mt-1 text-[14.5px] leading-[1.6] text-mid-brown dark:text-cloud-300">
-                    Accurate only until a connection resets or a container reboots.
-                  </p>
-                </div>
-              </div>
-
-              {/* Technical Indicator Metric */}
-              <div className="rounded-[4px] border border-cloud-200 bg-cloud-50/80 p-5 dark:border-cloud-50/10 dark:bg-umber-900/60 mt-auto">
-                <div className="flex items-center justify-between border-b border-cloud-200 dark:border-cloud-50/10 pb-3 mb-3">
-                  <span className="font-sans text-[14px] text-charcoal dark:text-cloud-50">
-                    Survives worker restart:
-                  </span>
-                  <span className="inline-flex items-center justify-center font-display font-medium border border-dashed border-cloud-500 text-cloud-700 dark:border-cloud-300/40 dark:text-cloud-300 px-3 py-1 text-[18px] rounded-[2px]">
-                    0%
-                  </span>
-                </div>
-                <div className="space-y-1.5 font-mono text-[11px] text-cloud-700 dark:text-cloud-400">
-                  <div className="flex justify-between">
-                    <span>Financial spend cap:</span>
-                    <span className="text-orange-500">Unbounded ($$$)</span>
+            {/* Table Rows */}
+            <div className="divide-y divide-cloud-200 dark:divide-cloud-50/10">
+              {comparisons.map((row) => (
+                <div
+                  key={row.feature}
+                  className="grid grid-cols-5 p-5 items-center text-[13.5px] leading-snug hover:bg-cloud-50/50 dark:hover:bg-umber-700/50 transition-colors"
+                >
+                  <div className="col-span-1 font-medium text-umber-800 dark:text-cloud-50 font-display">
+                    {row.feature}
                   </div>
-                  <div className="flex justify-between">
-                    <span>Human review pause:</span>
-                    <span className="text-orange-500">Blocks CPU thread</span>
+                  <div className="col-span-1 text-mid-brown dark:text-cloud-300 pr-4">
+                    {row.script}
                   </div>
-                  <div className="flex justify-between">
-                    <span>Condition safety:</span>
-                    <span className="text-orange-500">Unsafe eval()</span>
+                  <div className="col-span-1 text-mid-brown dark:text-cloud-300 pr-4">
+                    {row.heavy}
+                  </div>
+                  <div className="col-span-1 text-mid-brown dark:text-cloud-300 pr-4">
+                    {row.temporal}
+                  </div>
+                  <div className="col-span-1 text-umber-800 dark:text-cloud-50 font-medium flex items-start gap-1.5 pr-2">
+                    <Check className="size-4 text-status-live shrink-0 mt-0.5" />
+                    <span>{row.weave}</span>
                   </div>
                 </div>
-              </div>
-            </article>
-
-            {/* Right Card: Weave Engine */}
-            <article className="flex flex-col gap-6 overflow-clip rounded-none p-6 md:p-8 bg-cloud-100 dark:bg-umber-800">
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="inline-flex h-5 shrink-0 items-center justify-center border-[0.5px] border-cloud-500 px-2 font-display text-[12px] font-medium leading-[1.6] tracking-[0.005em] dark:border-cloud-300/40 rounded-full text-cloud-700 dark:text-cloud-300">
-                    Weave Engine
-                  </h3>
-                  <span className="inline-flex h-5 shrink-0 items-center justify-center gap-1 border-[0.5px] border-cloud-500 px-2 font-display text-[12px] font-medium leading-[1.6] tracking-[0.005em] dark:border-cloud-300/40 rounded-[2px] text-cloud-700 dark:text-cloud-300">
-                    <span className="size-1.5 rounded-full bg-status-live" />
-                    Durable
-                  </span>
-                </div>
-
-                <div>
-                  <p className="font-display text-[24px] font-medium leading-[1.2] text-charcoal dark:text-cloud-50">
-                    Weave commits state step by step.
-                  </p>
-                  <p className="mt-1 text-[14.5px] leading-[1.6] text-mid-brown dark:text-cloud-300">
-                    Resumes from the exact last completed node without re-running models.
-                  </p>
-                </div>
-              </div>
-
-              {/* Technical Indicator Metric */}
-              <div className="rounded-[4px] border border-cloud-200 bg-cloud-50/80 p-5 dark:border-cloud-50/10 dark:bg-umber-900/60 mt-auto">
-                <div className="flex items-center justify-between border-b border-cloud-200 dark:border-cloud-50/10 pb-3 mb-3">
-                  <span className="font-sans text-[14px] text-charcoal dark:text-cloud-50">
-                    Survives worker restart:
-                  </span>
-                  <span className="inline-flex items-center justify-center font-display font-medium border border-dashed border-status-live text-status-live px-3 py-1 text-[18px] rounded-[2px]">
-                    100%
-                  </span>
-                </div>
-                <div className="space-y-1.5 font-mono text-[11px] text-cloud-700 dark:text-cloud-400">
-                  <div className="flex justify-between">
-                    <span>Financial spend cap:</span>
-                    <span className="text-status-live">Hard Engine Limit</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Human review pause:</span>
-                    <span className="text-status-live">Zero Thread Cost</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Condition safety:</span>
-                    <span className="text-status-live">Google CEL Sandbox</span>
-                  </div>
-                </div>
-              </div>
-            </article>
+              ))}
+            </div>
           </div>
         </div>
       </div>

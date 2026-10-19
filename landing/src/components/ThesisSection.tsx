@@ -5,24 +5,24 @@ import React from "react";
 const problemCards = [
   {
     num: "01",
-    folderTitle: "The Python Script.",
-    headline: "Solved the prototype.\nNot production durability.",
-    description: "It made API calls runnable from a terminal. But runs hold state in volatile memory. A worker reboot or connection drop discards hours of upstream reasoning, forcing costly restarts.",
-    tags: ["Celery", "LangChain", "FastAPI"],
+    folderTitle: "The In-Memory Script",
+    headline: "Great for a quick demo.\nBrittle in production.",
+    description: "Calling models from a Python script works fine until a worker restarts or a network call times out. All state vanishes from memory, forcing you to pay to re-run expensive prompts from scratch.",
+    tags: ["Lost Progress", "Duplicated Side-Effects", "No Checkpoints"],
   },
   {
     num: "02",
-    folderTitle: "The Unbounded Loop.",
-    headline: "Solved agent autonomy.\nCreated financial landmines.",
-    description: "Autonomous tool loops sound magical in demos until a subtle prompt hallucination or recursion trap burns $400 in API tokens in under three minutes while your team sleeps.",
-    tags: ["AutoGPT", "ReAct Loops", "Raw SDKs"],
+    folderTitle: "The Unbounded Loop",
+    headline: "Uncontrolled autonomy.\nUnbounded API bills.",
+    description: "Autonomous tool loops sound great until a slightly ambiguous prompt sends the agent into a retry cycle. Without hard dollar caps, it can burn through hundreds of dollars while your team sleeps.",
+    tags: ["Runaway Loops", "Surprise Bills", "No Spend Limits"],
   },
   {
     num: "03",
-    folderTitle: "The Automation Gap.",
-    headline: "Solved speed.\nSacrificed operational safety.",
-    description: "High-stakes operations — issuing refunds, deleting records, emailing clients — should never execute without human sign-off. Traditional scripts either block expensive threads for days or drop state entirely.",
-    tags: ["Webhooks", "Ad-Hoc Crons", "Poll Loops"],
+    folderTitle: "The Missing Human",
+    headline: "Critical actions.\nZero oversight.",
+    description: "High-stakes tasks like issuing refunds, deleting records, or sending emails shouldn't happen automatically. Traditional scripts can't safely wait for human approval without freezing server threads.",
+    tags: ["Blocked Threads", "Compliance Risk", "No Audit Log"],
   },
 ];
 
