@@ -230,8 +230,8 @@ func getDBURL() string {
 	return url
 }
 
-func runServer(args []string) {
-	fs := flag.NewFlagSet("serve", flag.ExitOnError)
+func parsePort(args []string, flagName string) int {
+	fs := flag.NewFlagSet(flagName, flag.ExitOnError)
 	defaultPort := 8080
 	if envPort := os.Getenv("PORT"); envPort != "" {
 		if p, err := strconv.Atoi(envPort); err == nil {
@@ -240,17 +240,10 @@ func runServer(args []string) {
 	}
 	port := fs.Int("port", defaultPort, "Port for the HTTP server")
 	_ = fs.Parse(args)
+	return *port
+}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	st, err := store.NewPostgresStore(ctx, getDBURL())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Postgres connection error: %v\n", err)
-		os.Exit(1)
-	}
-	defer st.Close()
-
+func startServer(ctx context.Context, st *store.PostgresStore, port int) {
 	llmProvider := llm.NewMultiProvider()
 	toolRunner := tools.NewDefaultToolRunner("")
 	clock := engine.RealClock{}
@@ -265,7 +258,7 @@ func runServer(args []string) {
 	srv := api.NewServer(eng, st)
 	srv.StartTimeoutScheduler(ctx, 30*time.Second)
 
-	addr := fmt.Sprintf(":%d", *port)
+	addr := fmt.Sprintf(":%d", port)
 	httpServer := &http.Server{
 		Addr:    addr,
 		Handler: srv.Router(),
@@ -289,29 +282,16 @@ func runServer(args []string) {
 	fmt.Println("Server stopped cleanly.")
 }
 
-func runWorker(args []string) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	st, err := store.NewPostgresStore(ctx, getDBURL())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Worker DB connection error: %v\n", err)
-		os.Exit(1)
-	}
-	defer st.Close()
-
+func startWorkerLoop(ctx context.Context, st *store.PostgresStore) {
 	workerID := fmt.Sprintf("worker-%d", time.Now().UnixNano())
 	fmt.Printf("Starting Weave background worker (%s)...\n", workerID)
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-sigChan:
+		case <-ctx.Done():
 			fmt.Println("Worker shutting down...")
 			return
 		case <-ticker.C:
@@ -328,7 +308,58 @@ func runWorker(args []string) {
 	}
 }
 
+func runServer(args []string) {
+	port := parsePort(args, "serve")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	st, err := store.NewPostgresStore(ctx, getDBURL())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Postgres connection error: %v\n", err)
+		os.Exit(1)
+	}
+	defer st.Close()
+
+	startServer(ctx, st, port)
+}
+
+func runWorker(args []string) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	st, err := store.NewPostgresStore(ctx, getDBURL())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Worker DB connection error: %v\n", err)
+		os.Exit(1)
+	}
+	defer st.Close()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-sigChan
+		cancel()
+	}()
+
+	startWorkerLoop(ctx, st)
+}
+
 func runAll(args []string) {
-	go runWorker(args)
-	runServer(args)
+	port := parsePort(args, "all")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	st, err := store.NewPostgresStore(ctx, getDBURL())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "DB connection error: %v\n", err)
+		os.Exit(1)
+	}
+	defer st.Close()
+
+	// Share single PostgresStore pool with background worker
+	go startWorkerLoop(ctx, st)
+
+	// Run server with the same store
+	startServer(ctx, st, port)
 }
