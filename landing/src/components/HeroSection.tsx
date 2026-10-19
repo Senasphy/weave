@@ -66,14 +66,14 @@ export function HeroSection() {
               <span className="block text-mid-brown dark:text-cloud-300">or blow your budget.</span>
             </h1>
 
-            <p className="mt-6 max-w-[480px] text-[16px] sm:text-[18px] leading-[1.55] tracking-[0.01em] text-mid-brown dark:text-cloud-300">
-              Connect AI models, internal tools, and human approvals into reliable production workflows. Every step saves to PostgreSQL, runaway loops get stopped by hard spending limits, and sensitive actions pause safely for human sign-off.
+            <p className="mt-5 max-w-[460px] text-[16px] sm:text-[17px] leading-[1.5] text-mid-brown dark:text-cloud-300">
+              Reliable multi-agent orchestration with hard spending caps, PostgreSQL persistence, and built-in human approval gates.
             </p>
 
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="http://localhost:3000"
-                className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-6 text-[15px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-5 text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
               >
                 <span>Launch Visual Editor</span>
                 <ArrowRight className="size-[14px]" />
@@ -81,7 +81,7 @@ export function HeroSection() {
 
               <a
                 href="#use-cases"
-                className="inline-flex h-12 items-center justify-center rounded-[4px] border border-umber-400 bg-transparent px-6 text-[15px] font-medium tracking-[0.01em] text-umber-800 hover:border-current hover:bg-current/5 dark:border-cloud-100/40 dark:text-cloud-100 transition-colors"
+                className="inline-flex h-11 items-center justify-center rounded-[4px] border border-umber-400 bg-transparent px-5 text-[14px] font-medium tracking-[0.01em] text-umber-800 hover:border-current hover:bg-current/5 dark:border-cloud-100/40 dark:text-cloud-100 transition-colors"
               >
                 Who uses Weave?
               </a>
@@ -94,7 +94,7 @@ export function HeroSection() {
               {/* CAD coordinate top bar */}
               <div className="flex items-center justify-between border-b border-dashed border-cloud-300 dark:border-cloud-50/20 pb-3 mb-5 font-mono text-[11px] text-mid-brown dark:text-cloud-300">
                 <span className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-status-live animate-pulse" />
+                  <span className="size-2 rounded-full bg-status-live" />
                   <span>LIVE DEMO RUN</span>
                 </span>
                 <span>SAVED TO POSTGRESQL</span>

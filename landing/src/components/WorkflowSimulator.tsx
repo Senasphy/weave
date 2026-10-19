@@ -133,10 +133,7 @@ export function WorkflowSimulator() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-umber-800/10 dark:border-cloud-100/10 pb-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="relative flex size-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-live opacity-75"></span>
-              <span className="relative inline-flex rounded-full size-2.5 bg-status-live"></span>
-            </span>
+            <span className="inline-flex rounded-full size-2 bg-status-live"></span>
             <span className="text-[12px] font-mono font-medium text-umber-900 dark:text-cloud-100">
               {activeStepIndex === 2 && !gateApproved
                 ? "RUN SUSPENDED • WAITING_HUMAN"
@@ -223,7 +220,7 @@ export function WorkflowSimulator() {
                 {isPast ? (
                   <CheckCircle2 className="size-3 text-status-live" />
                 ) : isGateWaiting ? (
-                  <Clock className="size-3 text-amber-500 animate-pulse" />
+                  <Clock className="size-3 text-amber-500" />
                 ) : null}
               </div>
 
