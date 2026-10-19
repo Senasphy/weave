@@ -213,6 +213,18 @@ func runLocalWorkflow(args []string) {
 func getDBURL() string {
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
+		if os.Getenv("RENDER") != "" || os.Getenv("WEAVE_ENV") == "production" || os.Getenv("FLY_APP_NAME") != "" {
+			fmt.Fprintln(os.Stderr, "========================================================================")
+			fmt.Fprintln(os.Stderr, "FATAL ERROR: DATABASE_URL environment variable is missing!")
+			fmt.Fprintln(os.Stderr, "")
+			fmt.Fprintln(os.Stderr, "Please configure DATABASE_URL in your Render dashboard:")
+			fmt.Fprintln(os.Stderr, "Dashboard -> weave-backend -> Environment -> Add Environment Variable")
+			fmt.Fprintln(os.Stderr, "")
+			fmt.Fprintln(os.Stderr, "Paste your Neon database connection string:")
+			fmt.Fprintln(os.Stderr, "postgresql://user:password@ep-xyz.neon.tech/neondb?sslmode=require")
+			fmt.Fprintln(os.Stderr, "========================================================================")
+			os.Exit(1)
+		}
 		url = "postgres://postgres@localhost:5433/weave?sslmode=disable"
 	}
 	return url
