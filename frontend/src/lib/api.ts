@@ -9,7 +9,11 @@ import {
   Diagnostic,
 } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
+let rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim().replace(/\/+$/, '');
+if (rawBase && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
+  rawBase = `https://${rawBase}`;
+}
+export const API_BASE = rawBase.endsWith('/v1') ? rawBase : `${rawBase}/v1`;
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;

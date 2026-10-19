@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Dialog from '@radix-ui/react-dialog';
-import { api } from '@/lib/api';
+import { api, API_BASE } from '@/lib/api';
 import { RunRecord, RunEvent, GateRecord, RunStatus } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
 import { cn } from '@/lib/cn';
@@ -78,8 +78,7 @@ export default function RunViewerPage() {
 
   // Connect to SSE event stream
   useEffect(() => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/v1';
-    const sseUrl = `${apiBase}/runs/${runId}/stream`;
+    const sseUrl = `${API_BASE}/runs/${runId}/stream`;
     const eventSource = new EventSource(sseUrl);
 
     eventSource.onmessage = (e) => {

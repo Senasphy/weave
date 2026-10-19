@@ -1,0 +1,42 @@
+services:
+  # ============================================================
+  # 1. Weave Go Backend (API Server + Worker Engine)
+  # ============================================================
+  - type: web
+    name: weave-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile.backend
+    dockerCommand: weave all
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Set to your Neon DB connection string: postgresql://user:pass@ep-xyz.neon.tech/neondb?sslmode=require
+      - key: WEAVE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      # Optional: set default API keys if you want shared keys
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  # ============================================================
+  # 2. Weave Next.js Frontend (Visual Canvas & Dashboard)
+  # ============================================================
+  - type: web
+    name: weave-frontend
+    runtime: node
+    rootDir: frontend
+    plan: free
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: weave-backend
+          property: host

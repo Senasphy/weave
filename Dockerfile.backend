@@ -16,4 +16,4 @@ COPY --from=builder /app/examples /app/examples
 
 EXPOSE 8080
 ENTRYPOINT ["weave"]
-CMD ["all", "--port", "8080"]
+CMD ["all"]

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -219,7 +220,13 @@ func getDBURL() string {
 
 func runServer(args []string) {
 	fs := flag.NewFlagSet("serve", flag.ExitOnError)
-	port := fs.Int("port", 8080, "Port for the HTTP server")
+	defaultPort := 8080
+	if envPort := os.Getenv("PORT"); envPort != "" {
+		if p, err := strconv.Atoi(envPort); err == nil {
+			defaultPort = p
+		}
+	}
+	port := fs.Int("port", defaultPort, "Port for the HTTP server")
 	_ = fs.Parse(args)
 
 	ctx, cancel := context.WithCancel(context.Background())
