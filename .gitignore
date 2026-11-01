@@ -6,6 +6,7 @@ bin/
 
 # Development database and state
 .dev/
+.logs/
 tmp/
 
 # Node / Frontend / Docs / Landing

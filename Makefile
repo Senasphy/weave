@@ -1,6 +1,9 @@
-.PHONY: all build test dev lint clean run-backend run-frontend
+.PHONY: all build test dev lint clean run-backend run-frontend run-landing start
 
 all: test build
+
+start:
+	./start.sh
 
 build:
 	go build -o bin/weave ./cmd/weave
