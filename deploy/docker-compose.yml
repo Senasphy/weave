@@ -21,8 +21,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
     container_name: weave-backend
     restart: unless-stopped
     depends_on:
@@ -36,7 +36,7 @@ services:
 
   web:
     build:
-      context: ./frontend
+      context: ../web
       dockerfile: Dockerfile
     container_name: weave-web
     restart: unless-stopped

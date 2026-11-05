@@ -5,7 +5,7 @@ services:
   - type: web
     name: weave-backend
     runtime: docker
-    dockerfilePath: ./Dockerfile.backend
+    dockerfilePath: ./deploy/Dockerfile.backend
     dockerCommand: weave all
     plan: free
     healthCheckPath: /healthz
@@ -25,12 +25,12 @@ services:
         sync: false
 
   # ============================================================
-  # 2. Weave Next.js Frontend (Visual Canvas & Dashboard)
+  # 2. Weave Next.js Web App (Visual Canvas & Dashboard)
   # ============================================================
   - type: web
-    name: weave-frontend
+    name: weave-web
     runtime: node
-    rootDir: frontend
+    rootDir: web
     plan: free
     buildCommand: pnpm install && pnpm build
     startCommand: pnpm start
