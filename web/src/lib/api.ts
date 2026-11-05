@@ -15,14 +15,27 @@ if (rawBase && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')
 }
 export const API_BASE = rawBase.endsWith('/v1') ? rawBase : `${rawBase}/v1`;
 
+function getSessionToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)(?:__Secure-)?better-auth\.session_token=([^;]+)/);
+  if (match) return decodeURIComponent(match[1]);
+  return null;
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
-  const headers = {
+  const token = getSessionToken();
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options.headers as Record<string, string>) || {}),
   };
 
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, {
+    credentials: 'include',
+    ...options,
+    headers,
+  });
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({}));
     throw new Error(errorBody.detail || errorBody.message || `Request failed with status ${res.status}`);
@@ -31,6 +44,19 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  // Identity
+  getMe: () =>
+    request<{
+      authenticated: boolean;
+      user_id?: string;
+      user_name?: string;
+      user_email?: string;
+      active_organization_id?: string;
+      workspace_id: string;
+      workspace_name?: string;
+      expires_at?: string;
+    }>('/me'),
+
   // Workflows
   listWorkflows: () => request<WorkflowRecord[]>('/workflows'),
   getWorkflow: (id: string) => request<WorkflowRecord>(`/workflows/${id}`),
