@@ -139,3 +139,58 @@ func TestPostgresStore_Lifecycle(t *testing.T) {
 		t.Fatalf("expected conflict on second UpdateGate, got nil")
 	}
 }
+
+func TestPostgresStore_VerifySession(t *testing.T) {
+	ctx := context.Background()
+	dbURL := getTestDatabaseURL()
+	s, err := NewPostgresStore(ctx, dbURL)
+	if err != nil {
+		t.Skipf("Skipping Postgres test: %v", err)
+		return
+	}
+	defer s.Close()
+
+	// Insert test user and session directly into Better Auth tables
+	userID := "usr_" + uuid.New().String()
+	sessToken := "tok_" + uuid.New().String()
+	now := time.Now()
+
+	_, err = s.pool.Exec(ctx, `
+		INSERT INTO "user" (id, name, email, "emailVerified", "createdAt", "updatedAt")
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`, userID, "Test Engineer", "engineer@weave.test", true, now, now)
+	if err != nil {
+		t.Fatalf("failed to insert test user: %v", err)
+	}
+
+	_, err = s.pool.Exec(ctx, `
+		INSERT INTO session (id, "userId", token, "expiresAt", "createdAt", "updatedAt")
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`, "sess_"+uuid.New().String(), userID, sessToken, now.Add(24*time.Hour), now, now)
+	if err != nil {
+		t.Fatalf("failed to insert test session: %v", err)
+	}
+
+	sess, err := s.VerifySession(ctx, sessToken)
+	if err != nil {
+		t.Fatalf("VerifySession failed: %v", err)
+	}
+	if sess == nil {
+		t.Fatalf("expected active session, got nil")
+	}
+	if sess.UserID != userID || sess.UserEmail != "engineer@weave.test" {
+		t.Fatalf("session user mismatch: %+v", sess)
+	}
+	if sess.WorkspaceID == "" {
+		t.Fatalf("expected workspace ID to be resolved")
+	}
+
+	// Verify non-existent token returns nil, nil
+	nilSess, err := s.VerifySession(ctx, "nonexistent-token")
+	if err != nil {
+		t.Fatalf("VerifySession on nonexistent token failed: %v", err)
+	}
+	if nilSess != nil {
+		t.Fatalf("expected nil session for nonexistent token")
+	}
+}

@@ -48,6 +48,79 @@ func (p *PostgresStore) Close() {
 }
 
 // -------------------------------------------------------------
+// Authentication & Multi-Tenancy (Better Auth)
+// -------------------------------------------------------------
+
+// AuthSession represents an authenticated user session validated against Better Auth.
+type AuthSession struct {
+	UserID               string    `json:"user_id"`
+	UserName             string    `json:"user_name"`
+	UserEmail            string    `json:"user_email"`
+	ActiveOrganizationID string    `json:"active_organization_id,omitempty"`
+	WorkspaceID          string    `json:"workspace_id"`
+	WorkspaceName        string    `json:"workspace_name"`
+	ExpiresAt            time.Time `json:"expires_at"`
+}
+
+// VerifySession verifies a session token against the Better Auth session table and resolves the active workspace.
+func (p *PostgresStore) VerifySession(ctx context.Context, token string) (*AuthSession, error) {
+	if token == "" {
+		return nil, nil
+	}
+
+	query := `
+		SELECT s."userId", COALESCE(s."activeOrganizationId", ''), u.name, u.email, s."expiresAt",
+		       COALESCE(o.name, '')
+		FROM session s
+		JOIN "user" u ON u.id = s."userId"
+		LEFT JOIN organization o ON o.id = s."activeOrganizationId"
+		WHERE s.token = $1 AND s."expiresAt" > NOW()
+	`
+
+	var sess AuthSession
+	var orgName string
+	err := p.pool.QueryRow(ctx, query, token).Scan(
+		&sess.UserID,
+		&sess.ActiveOrganizationID,
+		&sess.UserName,
+		&sess.UserEmail,
+		&sess.ExpiresAt,
+		&orgName,
+	)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to verify session: %w", err)
+	}
+
+	// Deterministic UUIDv5 maps Better Auth IDs to valid Postgres UUID workspaces
+	if sess.ActiveOrganizationID != "" {
+		sess.WorkspaceID = uuid.NewSHA1(uuid.NameSpaceOID, []byte("org:"+sess.ActiveOrganizationID)).String()
+		if orgName != "" {
+			sess.WorkspaceName = orgName
+		} else {
+			sess.WorkspaceName = "Team Workspace"
+		}
+	} else {
+		sess.WorkspaceID = uuid.NewSHA1(uuid.NameSpaceOID, []byte("user:"+sess.UserID)).String()
+		if sess.UserName != "" {
+			sess.WorkspaceName = sess.UserName + " (Personal)"
+		} else {
+			sess.WorkspaceName = "Personal Workspace"
+		}
+	}
+
+	// Upsert workspace record so foreign key constraints are always satisfied
+	_, _ = p.pool.Exec(ctx,
+		`INSERT INTO workspaces (id, name) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`,
+		sess.WorkspaceID, sess.WorkspaceName,
+	)
+
+	return &sess, nil
+}
+
+// -------------------------------------------------------------
 // engine.Store Implementation
 // -------------------------------------------------------------
 

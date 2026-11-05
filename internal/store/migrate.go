@@ -11,6 +11,9 @@ import (
 //go:embed migrations/001_initial_schema.sql
 var initialSchemaSQL string
 
+//go:embed migrations/002_auth_schema.sql
+var authSchemaSQL string
+
 // RunMigrations executes initial database migrations with a distributed advisory lock.
 func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 	conn, err := pool.Acquire(ctx)
@@ -32,7 +35,11 @@ func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 	}
 
 	if _, err := tx.Exec(ctx, initialSchemaSQL); err != nil {
-		return fmt.Errorf("migration failed: %w", err)
+		return fmt.Errorf("initial schema migration failed: %w", err)
+	}
+
+	if _, err := tx.Exec(ctx, authSchemaSQL); err != nil {
+		return fmt.Errorf("auth schema migration failed: %w", err)
 	}
 
 	return tx.Commit(ctx)
