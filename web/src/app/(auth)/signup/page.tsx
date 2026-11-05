@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signUp, signIn, organization } from '@/lib/auth-client';
 import { WeaveLogo } from '@/components/WeaveLogo';
 import { Mail, Lock, User, Building2, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 
-export default function SignUpPage() {
+function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,7 +40,7 @@ export default function SignUpPage() {
         name,
         email,
         password,
-        callbackURL: '/',
+        callbackURL: callbackUrl,
       });
 
       if (res.error) {
@@ -64,7 +67,7 @@ export default function SignUpPage() {
         }
       }
 
-      router.push('/');
+      router.push(callbackUrl);
       router.refresh();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'An unexpected error occurred during registration.';
@@ -80,7 +83,7 @@ export default function SignUpPage() {
     try {
       await signIn.social({
         provider,
-        callbackURL: '/',
+        callbackURL: callbackUrl,
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : `Failed to initiate ${provider} registration.`;
@@ -264,7 +267,7 @@ export default function SignUpPage() {
           <p className="text-xs text-slate-500">
             Already have an account?{' '}
             <Link
-              href="/login"
+              href={callbackUrl !== '/' ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login'}
               className="font-semibold text-slate-900 hover:underline transition-colors"
             >
               Sign in
@@ -273,5 +276,19 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md p-6 flex justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        </div>
+      }
+    >
+      <SignUpForm />
+    </Suspense>
   );
 }

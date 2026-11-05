@@ -1,19 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from './Sidebar';
 import { CommandMenu } from './CommandMenu';
+import { WeaveLogo } from './WeaveLogo';
+import { useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/cn';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
+
+  const { data: session, isPending: isSessionPending } = useSession();
 
   // Auto-collapse sidebar on workflow canvas editor to maximize canvas space, but allow user to toggle
   const isWorkflowCanvas = pathname.startsWith('/workflows/');
   const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname.startsWith('/auth');
+
+  // Client-side authentication guard: redirect to login if session resolves to null on protected page
+  useEffect(() => {
+    if (!isSessionPending && !session && !isAuthPage) {
+      const loginUrl = pathname !== '/' ? `/login?callbackUrl=${encodeURIComponent(pathname)}` : '/login';
+      router.replace(loginUrl);
+    }
+  }, [isSessionPending, session, isAuthPage, pathname, router]);
 
   useEffect(() => {
     if (isWorkflowCanvas) {
@@ -41,6 +54,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </div>
     );
+  }
+
+  // Show subtle loading screen on protected routes while session is being verified
+  if (isSessionPending) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center gap-3 select-none">
+        <WeaveLogo className="h-8 w-auto animate-pulse" />
+        <div className="flex items-center gap-2 text-xs text-slate-400">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-ping" />
+          <span>Verifying workspace session...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, keep view blank while redirect takes effect
+  if (!session) {
+    return null;
   }
 
   return (

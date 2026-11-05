@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from '@/lib/auth-client';
 import { WeaveLogo } from '@/components/WeaveLogo';
 import { Mail, Lock, Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +32,13 @@ export default function LoginPage() {
       const res = await signIn.email({
         email,
         password,
-        callbackURL: '/',
+        callbackURL: callbackUrl,
       });
 
       if (res.error) {
         setErrorMessage(res.error.message || 'Invalid email or password.');
       } else {
-        router.push('/');
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch (err: unknown) {
@@ -53,7 +56,7 @@ export default function LoginPage() {
     try {
       await signIn.social({
         provider,
-        callbackURL: '/',
+        callbackURL: callbackUrl,
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : `Failed to initiate ${provider} authentication.`;
@@ -205,7 +208,7 @@ export default function LoginPage() {
           <p className="text-xs text-slate-500">
             Don&apos;t have an account?{' '}
             <Link
-              href="/signup"
+              href={callbackUrl !== '/' ? `/signup?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/signup'}
               className="font-semibold text-slate-900 hover:underline transition-colors"
             >
               Sign up
@@ -214,5 +217,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md p-6 flex justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
