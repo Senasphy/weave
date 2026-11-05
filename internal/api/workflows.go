@@ -15,6 +15,11 @@ import (
 const defaultWorkspaceID = "00000000-0000-0000-0000-000000000001"
 
 func (s *Server) getWorkspaceID(r *http.Request) string {
+	if sess, ok := r.Context().Value(authSessionContextKey).(*store.AuthSession); ok && sess != nil {
+		if sess.WorkspaceID != "" {
+			return sess.WorkspaceID
+		}
+	}
 	ws := r.Header.Get("X-Workspace-ID")
 	if ws != "" {
 		return ws

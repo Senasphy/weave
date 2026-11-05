@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +12,10 @@ import (
 	"weave/internal/engine"
 	"weave/internal/store"
 )
+
+type contextKey string
+
+const authSessionContextKey contextKey = "weave_auth_session"
 
 // Server coordinates HTTP handlers and engine operations.
 type Server struct {
@@ -41,13 +46,48 @@ func (s *Server) setupMiddleware() {
 	s.router.Use(middleware.Timeout(60 * time.Second))
 
 	s.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000", "*"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Last-Event-ID"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Last-Event-ID", "X-Workspace-ID"},
 		ExposedHeaders:   []string{"Link", "Last-Event-ID"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+
+	s.router.Use(s.authMiddleware)
+}
+
+func (s *Server) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := ""
+
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			token = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+
+		if token == "" {
+			if cookie, err := r.Cookie("better-auth.session_token"); err == nil && cookie.Value != "" {
+				token = cookie.Value
+			} else if cookie, err := r.Cookie("__Secure-better-auth.session_token"); err == nil && cookie.Value != "" {
+				token = cookie.Value
+			} else if cookie, err := r.Cookie("session_token"); err == nil && cookie.Value != "" {
+				token = cookie.Value
+			}
+		}
+
+		if token != "" && s.store != nil {
+			sess, err := s.store.VerifySession(r.Context(), token)
+			if err == nil && sess != nil {
+				ctx := context.WithValue(r.Context(), authSessionContextKey, sess)
+				next.ServeHTTP(w, r.WithContext(ctx))
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (s *Server) setupRoutes() {
@@ -58,6 +98,9 @@ func (s *Server) setupRoutes() {
 
 	// v1 API routes
 	s.router.Route("/v1", func(r chi.Router) {
+		// Identity and session inspection
+		r.Get("/me", s.handleMe)
+
 		// Workflows
 		r.Get("/workflows", s.handleListWorkflows)
 		r.Post("/workflows", s.handleCreateWorkflow)
@@ -97,6 +140,28 @@ func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleReadyz(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+}
+
+func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
+	sess, ok := r.Context().Value(authSessionContextKey).(*store.AuthSession)
+	if !ok || sess == nil {
+		WriteJSON(w, http.StatusOK, map[string]interface{}{
+			"authenticated": false,
+			"workspace_id":  defaultWorkspaceID,
+		})
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, map[string]interface{}{
+		"authenticated":          true,
+		"user_id":                sess.UserID,
+		"user_name":              sess.UserName,
+		"user_email":             sess.UserEmail,
+		"active_organization_id": sess.ActiveOrganizationID,
+		"workspace_id":           sess.WorkspaceID,
+		"workspace_name":         sess.WorkspaceName,
+		"expires_at":             sess.ExpiresAt,
+	})
 }
 
 func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {

@@ -213,3 +213,30 @@ func TestAPI_WorkflowLifecycle(t *testing.T) {
 		t.Fatalf("expected run events to be logged, got 0")
 	}
 }
+
+func TestAPI_AuthMe(t *testing.T) {
+	srv, _ := setupTestServer(t)
+	if srv == nil {
+		return
+	}
+
+	// 1. Unauthenticated request to /v1/me
+	req := httptest.NewRequest(http.MethodGet, "/v1/me", nil)
+	rec := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+
+	var res map[string]interface{}
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("failed to decode json: %v", err)
+	}
+	if res["authenticated"] != false {
+		t.Fatalf("expected unauthenticated, got %v", res["authenticated"])
+	}
+	if res["workspace_id"] != defaultWorkspaceID {
+		t.Fatalf("expected default workspace id, got %v", res["workspace_id"])
+	}
+}
