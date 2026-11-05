@@ -97,7 +97,7 @@ go run ./cmd/weave serve --port 8080
 
 ### 4. Start the Web UI
 ```bash
-cd frontend
+cd web
 pnpm install
 pnpm dev
 # Open http://localhost:3000 in your browser

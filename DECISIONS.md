@@ -3,11 +3,11 @@
 ## ADR-001: Graph JSON Schema as Single Source of Truth
 - **Status**: Accepted
 - **Context**: The graph definition must be shared between the visual editor (Next.js/TypeScript) and the execution engine (Go). Drift between the two causes silent failures.
-- **Decision**: Define authoritative JSON Schema at `schema/workflow.schema.json`. Use it for server-side validation (`santhosh-tekuri/jsonschema/v5`) and generate TypeScript interfaces for the frontend. The server validator is the sole authority on semantic validity; the client performs only cheap structural checks and displays server diagnostics.
+- **Decision**: Define authoritative JSON Schema at `schema/workflow.schema.json`. Use it for server-side validation (`santhosh-tekuri/jsonschema/v5`) and generate TypeScript interfaces for the web client. The server validator is the sole authority on semantic validity; the client performs only cheap structural checks and displays server diagnostics.
 
 ## ADR-002: OpenAPI 3.1 Spec-First Contract
 - **Status**: Accepted
-- **Context**: Need a strict, typed API contract between Go backend and Next.js frontend with zero duplicated hand-written types.
+- **Context**: Need a strict, typed API contract between Go backend and Next.js web app with zero duplicated hand-written types.
 - **Decision**: Define OpenAPI 3.1 at `api/openapi.yaml`. Generate TypeScript client and types using `openapi-typescript` and `openapi-fetch`. Keep the spec synchronized with the Go HTTP handlers.
 
 ## ADR-003: Pure Interface Engine Architecture
