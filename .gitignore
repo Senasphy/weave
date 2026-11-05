@@ -23,8 +23,13 @@ dist/
 # Environment files
 .env*.local
 
+# Local scripts
+start.sh
+
 # IDE / OS
 .DS_Store
 .idea/
 .vscode/
+*.tsbuildinfo
+
 
