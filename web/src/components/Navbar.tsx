@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 import { WeaveLogo } from '@/components/WeaveLogo';
 import { StatusBadge } from '@/components/StatusBadge';
+import { UserNav } from '@/components/auth/UserNav';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -86,6 +87,10 @@ export function Navbar() {
         </a>
 
         <StatusBadge status="active" label="System Active" pulse={false} />
+
+        <div className="h-4 w-px bg-border shrink-0" aria-hidden="true" />
+
+        <UserNav />
       </div>
     </header>
   );

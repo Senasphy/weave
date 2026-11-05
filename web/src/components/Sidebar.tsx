@@ -19,6 +19,7 @@ import { cn } from '@/lib/cn';
 import { WeaveLogo } from '@/components/WeaveLogo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useSession, useActiveOrganization } from '@/lib/auth-client';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -53,6 +54,14 @@ export function Sidebar({
 
   const activeRunsCount = runs.filter((r) => r.status === 'running').length;
   const pendingGatesCount = gates.length;
+
+  const { data: session } = useSession();
+  const { data: activeOrg } = useActiveOrganization();
+
+  const workspaceName =
+    activeOrg?.name ||
+    (session?.user ? `${session.user.name || 'Personal'} Workspace` : 'Weave Workspace');
+  const workspaceInitial = (workspaceName.charAt(0) || 'W').toUpperCase();
 
   return (
     <aside
@@ -308,24 +317,24 @@ export function Sidebar({
       {/* Bottom Footer: Workspace card */}
       <div className="p-3 border-t border-border bg-white">
         {collapsed ? (
-          <div className="flex justify-center" title="Weave">
+          <div className="flex justify-center" title={workspaceName}>
             <div className="w-8 h-8 rounded bg-slate-900 text-white font-semibold text-xs flex items-center justify-center">
-              W
+              {workspaceInitial}
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-between p-2 rounded bg-slate-50 hover:bg-slate-100 border border-border transition-colors cursor-pointer group">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-7 h-7 rounded bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
-                W
+                {workspaceInitial}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold text-slate-900 truncate">
-                  Weave Workspace
+                  {workspaceName}
                 </div>
                 <div className="text-[11px] text-slate-500 truncate flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  <span>v1.0 • Ready</span>
+                  <span>{activeOrg ? 'Team Org' : 'Workspace'} • Active</span>
                 </div>
               </div>
             </div>

@@ -13,6 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   // Auto-collapse sidebar on workflow canvas editor to maximize canvas space, but allow user to toggle
   const isWorkflowCanvas = pathname.startsWith('/workflows/');
+  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname.startsWith('/auth');
 
   useEffect(() => {
     if (isWorkflowCanvas) {
@@ -33,6 +34,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
