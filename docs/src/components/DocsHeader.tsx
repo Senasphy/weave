@@ -211,7 +211,7 @@ export function DocsHeader({ onToggleMobileMenu }: DocsHeaderProps) {
               className="hidden border-border text-xs font-medium text-foreground hover:bg-accent md:inline-flex"
               asChild
             >
-              <a href="http://localhost:3000" target="_blank" rel="noreferrer">
+              <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer">
                 Visual editor
                 <ExternalLink className="ml-1 h-3 w-3 opacity-60" />
               </a>

@@ -101,7 +101,16 @@ cd web
 pnpm install
 pnpm dev
 # Open http://localhost:3000 in your browser
+# Or access the hosted Studio at https://weave-orchestrator-main.vercel.app
 ```
+
+---
+
+## Live Deployments
+
+- **Studio Web Application**: [https://weave-orchestrator-main.vercel.app](https://weave-orchestrator-main.vercel.app)
+- **Documentation**: [https://weave-documentation.vercel.app](https://weave-documentation.vercel.app)
+- **Marketing & Overview**: [https://weave-orchestrator.vercel.app](https://weave-orchestrator.vercel.app)
 
 ---
 

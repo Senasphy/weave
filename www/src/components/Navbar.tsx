@@ -64,7 +64,7 @@ export function Navbar() {
               Workflows
             </Link>
             <a
-              href="http://localhost:3010"
+              href="https://weave-documentation.vercel.app"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center rounded-[8px] px-3.5 py-1.5 text-[14px] font-medium tracking-[0.01em] text-mid-brown hover:text-umber-800 dark:text-cloud-300 dark:hover:text-cloud-50 transition-colors"
@@ -77,7 +77,7 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <a
-              href="http://localhost:3000"
+              href="https://weave-orchestrator-main.vercel.app"
               className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-3.5 text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
             >
               <span>Launch Weave</span>
@@ -134,7 +134,7 @@ export function Navbar() {
               Workflows
             </Link>
             <a
-              href="http://localhost:3010"
+              href="https://weave-documentation.vercel.app"
               target="_blank"
               rel="noreferrer"
               className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"

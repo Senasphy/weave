@@ -177,7 +177,7 @@ export function CodeShowcaseSection() {
 
               <div className="text-center mt-6">
                 <a
-                  href="http://localhost:3000"
+                  href="https://weave-orchestrator-main.vercel.app"
                   className="inline-flex items-center gap-1.5 text-[13px] font-medium text-lilac-600 dark:text-lilac-400 hover:underline"
                 >
                   <span>Open interactive visual editor</span>

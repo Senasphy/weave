@@ -145,11 +145,11 @@ pnpm dev`}
             filename="Terminal"
           />
           <p>
-            Open{" "}
-            <a href="http://localhost:3000" target="_blank" rel="noreferrer">
-              http://localhost:3000
+            Launch the visual editor directly at{" "}
+            <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer">
+              weave-orchestrator-main.vercel.app
             </a>{" "}
-            to inspect graphs, trace runs, and resolve gates.
+            (or access your local dev instance) to inspect graphs, trace runs, and resolve gates.
           </p>
         </div>
       </section>

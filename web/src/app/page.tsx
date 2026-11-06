@@ -304,7 +304,7 @@ export default function WorkflowsPage() {
               </button>
 
               <a
-                href="http://localhost:3010"
+                href="https://weave-documentation.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

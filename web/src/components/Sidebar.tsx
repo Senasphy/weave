@@ -277,7 +277,7 @@ export function Sidebar({
 
               {/* Documentation External Link */}
               <a
-                href="http://localhost:3010"
+                href="https://weave-documentation.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(

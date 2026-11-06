@@ -21,7 +21,7 @@ export function FinalCtaSection() {
 
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <a
-              href="http://localhost:3000"
+              href="https://weave-orchestrator-main.vercel.app"
               className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-6 text-[15px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
             >
               <span>Launch Visual Editor</span>
@@ -29,7 +29,7 @@ export function FinalCtaSection() {
             </a>
 
             <a
-              href="http://localhost:3010"
+              href="https://weave-documentation.vercel.app"
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-12 items-center justify-center rounded-[4px] border border-umber-400 bg-transparent px-6 text-[15px] font-medium tracking-[0.01em] text-umber-800 hover:border-current hover:bg-current/5 dark:border-cloud-100/40 dark:text-cloud-100 transition-colors"

@@ -64,7 +64,7 @@ export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {
       { id: 'nav-runs', title: 'Execution Runs', subtitle: 'Live run traces and logs', category: 'Navigation' as const, href: '/runs', icon: Play },
       { id: 'nav-gates', title: 'Human Gates Inbox', subtitle: 'Pending approvals', category: 'Navigation' as const, href: '/gates', icon: ShieldAlert },
       { id: 'nav-settings', title: 'Settings & Tools', subtitle: 'System config and tool definitions', category: 'Navigation' as const, href: '/settings', icon: Settings },
-      { id: 'nav-docs', title: 'Documentation', subtitle: 'Architecture guide and specs', category: 'Navigation' as const, href: 'http://localhost:3010', icon: BookOpen },
+      { id: 'nav-docs', title: 'Documentation', subtitle: 'Architecture guide and specs', category: 'Navigation' as const, href: 'https://weave-documentation.vercel.app', icon: BookOpen },
     ];
 
     navItems.forEach((n) => {

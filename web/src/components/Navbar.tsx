@@ -75,7 +75,7 @@ export function Navbar() {
       {/* Right side: Docs Link & System Status indicator */}
       <div className="flex items-center gap-3">
         <a
-          href="http://localhost:3010"
+          href="https://weave-documentation.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
           className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent hover:border-border transition-colors"

@@ -14,7 +14,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [https://weave-documentation.vercel.app](https://weave-documentation.vercel.app) (or your local dev server at `http://localhost:3010`) with your browser to see the documentation site.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

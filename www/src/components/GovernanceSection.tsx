@@ -42,7 +42,7 @@ export function GovernanceSection() {
 
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   <a
-                    href="http://localhost:3010/engine#event-sourcing"
+                    href="https://weave-documentation.vercel.app/engine#event-sourcing"
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[2px] bg-blue-200 px-4 text-[14px] font-medium tracking-[0.01em] text-umber-800 hover:bg-blue-100 transition-colors"

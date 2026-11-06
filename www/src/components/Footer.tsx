@@ -57,17 +57,17 @@ export function Footer() {
             </div>
             <ul className="space-y-2.5 text-[14px] text-cloud-300">
               <li>
-                <a href="http://localhost:3000" className="hover:text-cloud-50 transition-colors">
+                <a href="https://weave-orchestrator-main.vercel.app" className="hover:text-cloud-50 transition-colors">
                   Visual Canvas
                 </a>
               </li>
               <li>
-                <a href="http://localhost:3000/runs" className="hover:text-cloud-50 transition-colors">
+                <a href="https://weave-orchestrator-main.vercel.app/runs" className="hover:text-cloud-50 transition-colors">
                   Live Run Viewer
                 </a>
               </li>
               <li>
-                <a href="http://localhost:3000/gates" className="hover:text-cloud-50 transition-colors">
+                <a href="https://weave-orchestrator-main.vercel.app/gates" className="hover:text-cloud-50 transition-colors">
                   Human Approvals
                 </a>
               </li>
@@ -81,12 +81,12 @@ export function Footer() {
             </div>
             <ul className="space-y-2.5 text-[14px] text-cloud-300">
               <li>
-                <a href="http://localhost:3010/getting-started" target="_blank" rel="noreferrer" className="hover:text-cloud-50 transition-colors">
+                <a href="https://weave-documentation.vercel.app/getting-started" target="_blank" rel="noreferrer" className="hover:text-cloud-50 transition-colors">
                   Quickstart Guide
                 </a>
               </li>
               <li>
-                <a href="http://localhost:3010/api-reference" target="_blank" rel="noreferrer" className="hover:text-cloud-50 transition-colors">
+                <a href="https://weave-documentation.vercel.app/api-reference" target="_blank" rel="noreferrer" className="hover:text-cloud-50 transition-colors">
                   OpenAPI Spec
                 </a>
               </li>

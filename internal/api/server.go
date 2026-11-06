@@ -46,7 +46,13 @@ func (s *Server) setupMiddleware() {
 	s.router.Use(middleware.Timeout(60 * time.Second))
 
 	s.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+		AllowedOrigins: []string{
+			"https://weave-orchestrator-main.vercel.app",
+			"https://weave-orchestrator.vercel.app",
+			"https://weave-documentation.vercel.app",
+			"http://localhost:3000",
+			"http://127.0.0.1:3000",
+		},
 		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Last-Event-ID", "X-Workspace-ID"},

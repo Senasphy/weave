@@ -72,7 +72,7 @@ export function HeroSection() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
-                href="http://localhost:3000"
+                href="https://weave-orchestrator-main.vercel.app"
                 className="inline-flex h-11 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-5 text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
               >
                 <span>Launch Visual Editor</span>
