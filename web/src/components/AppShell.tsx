@@ -50,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (isAuthPage) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center">
+      <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center">
         {children}
       </div>
     );
@@ -59,10 +59,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Show subtle loading screen on protected routes while session is being verified
   if (isSessionPending) {
     return (
-      <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center gap-3 select-none">
+      <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center gap-3 select-none">
         <WeaveLogo className="h-8 w-auto animate-pulse" />
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-ping" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
           <span>Verifying workspace session...</span>
         </div>
       </div>

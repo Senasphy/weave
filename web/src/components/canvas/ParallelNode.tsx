@@ -20,14 +20,14 @@ export const ParallelNode = memo(({ data, selected }: NodeProps) => {
       role="region"
       aria-label={`${isFanOut ? 'Fan-out' : 'Join'} Node: ${node.label || node.id}`}
       className={cn(
-        'group relative w-[220px] rounded bg-white border select-none transition-colors',
+        'group relative w-[240px] rounded-2xl bg-card border select-none transition-all duration-200 overflow-hidden shadow-lg',
         selected
-          ? 'border-slate-900 ring-1 ring-slate-900'
-          : 'border-border hover:border-slate-400'
+          ? 'border-purple-500/80 ring-2 ring-purple-500/40 shadow-[0_0_24px_rgba(168,85,247,0.3)]'
+          : 'border-border hover:border-white/20'
       )}
     >
       {/* Top accent bar */}
-      <div className="h-0.5 rounded-t bg-purple-600" />
+      <div className="h-1 bg-gradient-to-r from-purple-500 to-purple-400" />
 
       {/* Target handle */}
       <Handle
@@ -35,28 +35,28 @@ export const ParallelNode = memo(({ data, selected }: NodeProps) => {
         position={Position.Left}
         id="target"
         aria-label="Input handle"
-        className="!w-2 !h-2 !bg-purple-600 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
+        className="!w-2.5 !h-2.5 !bg-purple-400 !border-2 !border-[#090a0d] !rounded-full transition-all hover:!scale-125"
       />
 
       {/* Header */}
-      <div className="px-3 py-2 border-b border-border flex items-center justify-between bg-slate-50/70">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-5 h-5 rounded border border-slate-200 bg-white text-slate-700 flex items-center justify-center shrink-0">
-            {isFanOut ? <Network className="w-3 h-3" /> : <GitMerge className="w-3 h-3" />}
+      <div className="px-3.5 py-2.5 border-b border-border/80 flex items-center justify-between bg-white/[0.02]">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-6 h-6 rounded-lg border border-purple-500/30 bg-purple-500/15 text-purple-400 flex items-center justify-center shrink-0 shadow-sm">
+            {isFanOut ? <Network className="w-3.5 h-3.5" /> : <GitMerge className="w-3.5 h-3.5" />}
           </div>
-          <span className="text-xs font-semibold text-slate-900 truncate max-w-[100px]">
+          <span className="text-xs font-semibold text-foreground truncate max-w-[110px]">
             {node.label || (isFanOut ? 'Fan-out' : 'Join')}
           </span>
         </div>
 
         {/* Node Type badge */}
-        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 shrink-0 font-medium">
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-secondary border border-border text-muted-foreground shrink-0 font-medium">
           {isFanOut ? 'fan_out' : 'join'}
         </span>
       </div>
 
       {/* Body */}
-      <div className="p-2.5 text-[11px] text-slate-500 font-sans leading-relaxed">
+      <div className="p-3 text-[11px] text-muted-foreground font-sans leading-relaxed">
         {isFanOut
           ? 'Distributes payload concurrently across parallel execution branches.'
           : 'Synchronizes and joins completed parallel branch states.'}
@@ -68,7 +68,7 @@ export const ParallelNode = memo(({ data, selected }: NodeProps) => {
         position={Position.Right}
         id="source"
         aria-label="Output handle"
-        className="!w-2 !h-2 !bg-purple-600 !border-2 !border-white !rounded-full transition-transform hover:!scale-125"
+        className="!w-2.5 !h-2.5 !bg-purple-400 !border-2 !border-[#090a0d] !rounded-full transition-all hover:!scale-125"
       />
     </motion.div>
   );

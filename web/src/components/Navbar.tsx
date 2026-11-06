@@ -53,7 +53,7 @@ export function Navbar() {
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'relative px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 select-none outline-none',
+                  'relative px-3 py-1.5 rounded-xl text-xs font-medium transition-colors flex items-center gap-2 select-none outline-none',
                   isActive
                     ? 'text-foreground font-semibold bg-accent/80'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
@@ -78,7 +78,7 @@ export function Navbar() {
           href="http://localhost:3010"
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-slate-100 border border-transparent hover:border-border transition-colors"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent border border-transparent hover:border-border transition-colors"
           title="Open Weave Documentation"
         >
           <BookOpen className="w-3.5 h-3.5 text-muted-foreground" />

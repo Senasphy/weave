@@ -19,7 +19,6 @@ import {
   Layers,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   ShieldAlert,
   ChevronRight,
   FileText,
@@ -27,7 +26,6 @@ import {
   Check,
   X,
   ArrowLeft,
-  Radio,
 } from 'lucide-react';
 
 export default function RunViewerPage() {
@@ -48,25 +46,22 @@ export default function RunViewerPage() {
   const [now, setNow] = useState<number>(Date.now());
 
   // Fetch initial run record
-  const { data: run, refetch: refetchRun } = useQuery({
+  const { data: run } = useQuery<RunRecord>({
     queryKey: ['run', runId],
     queryFn: () => api.getRun(runId),
+    refetchInterval: (query) => {
+      const current = query.state.data;
+      return current?.status === 'running' || current?.status === 'waiting_human' ? 2000 : false;
+    },
   });
 
-  // Fetch initial events
-  const { data: initialEvents = [] } = useQuery({
-    queryKey: ['run-events', runId],
-    queryFn: () => api.getRunEvents(runId, 0),
+  // Fetch active gates to find gateId if in waiting_human state
+  const { data: gates = [] } = useQuery<GateRecord[]>({
+    queryKey: ['gates'],
+    queryFn: api.listGates,
+    enabled: run?.status === 'waiting_human',
+    refetchInterval: 2000,
   });
-
-  useEffect(() => {
-    if (initialEvents.length > 0) {
-      setEvents(initialEvents);
-      if (selectedEventSeq === null) {
-        setSelectedEventSeq(initialEvents[initialEvents.length - 1].seq);
-      }
-    }
-  }, [initialEvents, selectedEventSeq]);
 
   // Tick elapsed time while run is active
   useEffect(() => {
@@ -76,19 +71,18 @@ export default function RunViewerPage() {
     }
   }, [run?.status]);
 
-  // Connect to SSE event stream
+  // Connect to Server-Sent Events (SSE) for live streaming events
   useEffect(() => {
-    const sseUrl = `${API_BASE}/runs/${runId}/stream`;
+    const sseUrl = `${API_BASE}/runs/${runId}/events`;
     const eventSource = new EventSource(sseUrl);
 
     eventSource.onmessage = (e) => {
       try {
-        const ev: RunEvent = JSON.parse(e.data);
+        const parsed = JSON.parse(e.data) as RunEvent;
         setEvents((prev) => {
-          if (prev.some((item) => item.seq === ev.seq)) return prev;
-          return [...prev, ev];
+          if (prev.some((item) => item.seq === parsed.seq)) return prev;
+          return [...prev, parsed].sort((a, b) => a.seq - b.seq);
         });
-        refetchRun();
       } catch (err) {
         console.error('Failed to parse SSE event:', err);
       }
@@ -101,52 +95,69 @@ export default function RunViewerPage() {
     return () => {
       eventSource.close();
     };
-  }, [runId, refetchRun]);
+  }, [runId]);
 
+  // Cancel execution mutation
   const cancelMutation = useMutation({
     mutationFn: () => api.cancelRun(runId),
     onSuccess: () => {
-      refetchRun();
+      queryClient.invalidateQueries({ queryKey: ['run', runId] });
+      queryClient.invalidateQueries({ queryKey: ['runs'] });
     },
   });
 
+  // Replay execution mutation
   const replayMutation = useMutation({
     mutationFn: () => api.replayRun(runId),
     onSuccess: () => {
-      alert('Run successfully replayed from stored history.');
-      refetchRun();
+      queryClient.invalidateQueries({ queryKey: ['runs'] });
+      queryClient.invalidateQueries({ queryKey: ['run', runId] });
+      queryClient.invalidateQueries({ queryKey: ['run-events', runId] });
     },
   });
 
+  // Resolve gate mutation
   const resolveGateMutation = useMutation({
-    mutationFn: async (resolution: 'approve' | 'reject' | 'edit') => {
-      const gateOpenedEv = events.find((e) => e.type === 'gate.opened');
-      const gateId = gateOpenedEv?.payload?.gate_id;
+    mutationFn: async (action: 'approve' | 'reject' | 'edit') => {
+      const activeGate = gates.find((g) => g.run_id === runId);
+      const gateId = activeGate?.gate_id;
       if (!gateId) throw new Error('No active gate found');
 
-      let payload: unknown = undefined;
-      if (resolution === 'edit') {
-        payload = JSON.parse(editedPayload);
+      if (action === 'approve') {
+        return api.resolveGate(gateId, { resolution: 'approve' });
+      } else if (action === 'reject') {
+        return api.resolveGate(gateId, { resolution: 'reject' });
+      } else {
+        let parsed = {};
+        try {
+          parsed = JSON.parse(editedPayload);
+        } catch {
+          throw new Error('Edited payload must be valid JSON');
+        }
+        return api.resolveGate(gateId, {
+          resolution: 'approve',
+          payload: parsed,
+        });
       }
-      return api.resolveGate(gateId, { resolution, actor: 'human_reviewer', payload });
     },
     onSuccess: () => {
       setIsResolveModalOpen(false);
-      refetchRun();
+      queryClient.invalidateQueries({ queryKey: ['run', runId] });
+      queryClient.invalidateQueries({ queryKey: ['gates'] });
     },
   });
 
-  // Calculate live usage from events
+  // Aggregate stats from events
   const totalTokens = events.reduce((sum, e) => {
-    if (e.type === 'llm.responded') {
-      return sum + (e.payload.input_tokens || 0) + (e.payload.output_tokens || 0);
+    if (e.type === 'step.completed' && e.payload?.usage?.total_tokens) {
+      return sum + Number(e.payload.usage.total_tokens);
     }
     return sum;
   }, 0);
 
   const totalCost = events.reduce((sum, e) => {
-    if (e.type === 'llm.responded' || e.type === 'tool.responded') {
-      return sum + (e.payload.cost_usd || e.payload.cost || 0);
+    if (e.type === 'step.completed' && e.payload?.cost_usd) {
+      return sum + Number(e.payload.cost_usd);
     }
     return sum;
   }, 0);
@@ -187,33 +198,33 @@ export default function RunViewerPage() {
   const wallPct = Math.min(100, Math.max(0, Math.round((wallSeconds / maxWall) * 100)));
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden select-none bg-slate-50">
+    <div className="flex-1 flex flex-col h-full overflow-hidden select-none bg-background text-foreground">
       {/* Header bar */}
-      <header className="h-14 bg-white border-b border-border flex items-center justify-between px-6 select-none shrink-0 z-20 sticky top-0">
+      <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-6 select-none shrink-0 z-20 sticky top-0">
         <div className="flex items-center gap-3">
           <Link
             href="/runs"
-            className="text-slate-500 hover:text-slate-900 p-1.5 rounded hover:bg-slate-100 transition-colors"
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
             title="Back to all runs"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-medium text-slate-500">Run</span>
-            <span className="font-semibold text-slate-900 text-xs">
+            <span className="text-xs font-mono text-muted-foreground">Run</span>
+            <span className="font-semibold text-foreground text-xs font-mono">
               {runId.slice(0, 16)}...
             </span>
             <StatusBadge status={run?.status} />
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {run?.status === 'running' && (
             <button
               type="button"
               disabled={cancelMutation.isPending}
               onClick={() => cancelMutation.mutate()}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-all cursor-pointer"
             >
               <StopCircle className="w-3.5 h-3.5" />
               <span>{cancelMutation.isPending ? 'Cancelling...' : 'Cancel'}</span>
@@ -224,12 +235,12 @@ export default function RunViewerPage() {
             type="button"
             disabled={replayMutation.isPending}
             onClick={() => replayMutation.mutate()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded text-xs font-medium bg-white border border-border text-slate-800 hover:bg-slate-50 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-card border border-border text-foreground hover:bg-secondary transition-all cursor-pointer shadow-sm"
             title="Replay from recorded event logs"
           >
             <RotateCcw
               className={cn(
-                'w-3.5 h-3.5 text-slate-600 transition-transform duration-300',
+                'w-3.5 h-3.5 text-muted-foreground transition-transform duration-300',
                 replayMutation.isPending ? 'animate-spin' : 'group-hover:-rotate-45'
               )}
             />
@@ -239,23 +250,23 @@ export default function RunViewerPage() {
       </header>
 
       {/* Budget meters strip */}
-      <div className="bg-white border-b border-border px-6 py-3 shrink-0">
+      <div className="bg-card border-b border-border px-6 py-4 shrink-0 shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
           {/* Steps */}
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <span className="text-slate-600 text-xs font-medium">Steps</span>
+                <Layers className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="text-muted-foreground text-xs font-medium">Steps</span>
               </div>
-              <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="font-semibold text-slate-900 text-xs">{stepCount}</span>
-                <span className="text-slate-400 text-xs">/ {maxSteps}</span>
+              <div className="flex items-baseline gap-1 tabular-nums font-mono">
+                <span className="font-semibold text-foreground text-xs">{stepCount}</span>
+                <span className="text-muted-foreground/60 text-xs">/ {maxSteps}</span>
               </div>
             </div>
-            <div className="h-1.5 rounded bg-slate-100 overflow-hidden mt-2 w-full">
+            <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded bg-slate-900 transition-all duration-500"
+                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
                 style={{ width: `${stepPct}%` }}
               />
             </div>
@@ -265,21 +276,21 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <span className="text-slate-600 text-xs font-medium">Tokens</span>
+                <Cpu className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="text-muted-foreground text-xs font-medium">Tokens</span>
               </div>
-              <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="font-semibold text-slate-900 text-xs">
+              <div className="flex items-baseline gap-1 tabular-nums font-mono">
+                <span className="font-semibold text-foreground text-xs">
                   {totalTokens.toLocaleString()}
                 </span>
-                <span className="text-slate-400 text-xs">
+                <span className="text-muted-foreground/60 text-xs">
                   / {maxTokens.toLocaleString()}
                 </span>
               </div>
             </div>
-            <div className="h-1.5 rounded bg-slate-100 overflow-hidden mt-2 w-full">
+            <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded bg-slate-900 transition-all duration-500"
+                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
                 style={{ width: `${tokenPct}%` }}
               />
             </div>
@@ -289,19 +300,19 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Coins className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <span className="text-slate-600 text-xs font-medium">Cost</span>
+                <Coins className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="text-muted-foreground text-xs font-medium">Cost</span>
               </div>
-              <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="font-semibold text-slate-900 text-xs">
+              <div className="flex items-baseline gap-1 tabular-nums font-mono">
+                <span className="font-semibold text-foreground text-xs">
                   ${totalCost.toFixed(4)}
                 </span>
-                <span className="text-slate-400 text-xs">/ ${maxCost.toFixed(2)}</span>
+                <span className="text-muted-foreground/60 text-xs">/ ${maxCost.toFixed(2)}</span>
               </div>
             </div>
-            <div className="h-1.5 rounded bg-slate-100 overflow-hidden mt-2 w-full">
+            <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded bg-slate-900 transition-all duration-500"
+                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
                 style={{ width: `${costPct}%` }}
               />
             </div>
@@ -311,17 +322,17 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                <span className="text-slate-600 text-xs font-medium">Wall Clock</span>
+                <Clock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span className="text-muted-foreground text-xs font-medium">Wall Clock</span>
               </div>
-              <div className="flex items-baseline gap-1 tabular-nums">
-                <span className="font-semibold text-slate-900 text-xs">{wallSeconds}s</span>
-                <span className="text-slate-400 text-xs">/ {maxWall}s</span>
+              <div className="flex items-baseline gap-1 tabular-nums font-mono">
+                <span className="font-semibold text-foreground text-xs">{wallSeconds}s</span>
+                <span className="text-muted-foreground/60 text-xs">/ {maxWall}s</span>
               </div>
             </div>
-            <div className="h-1.5 rounded bg-slate-100 overflow-hidden mt-2 w-full">
+            <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded bg-slate-900 transition-all duration-500"
+                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
                 style={{ width: `${wallPct}%` }}
               />
             </div>
@@ -339,27 +350,27 @@ export default function RunViewerPage() {
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="bg-amber-50 border-b border-amber-200 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-amber-500/15 border-b border-amber-500/30 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-8 h-8 rounded bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0">
                   <ShieldAlert className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-semibold text-amber-800 tracking-wide uppercase block">
+                  <span className="text-xs font-mono font-semibold text-amber-300 tracking-wide uppercase block">
                     Human Review Required
                   </span>
-                  <p className="text-xs text-amber-900 mt-0.5 line-clamp-2">
+                  <p className="text-xs text-foreground mt-0.5 line-clamp-2">
                     &ldquo;{gatePrompt || 'Action requires human approval before proceeding.'}&rdquo;
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2.5 shrink-0">
                 <button
                   type="button"
                   disabled={resolveGateMutation.isPending}
                   onClick={() => resolveGateMutation.mutate('reject')}
-                  className="px-3.5 py-1.5 rounded text-xs font-medium border border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-all cursor-pointer"
                 >
                   Reject
                 </button>
@@ -367,15 +378,15 @@ export default function RunViewerPage() {
                   type="button"
                   disabled={resolveGateMutation.isPending}
                   onClick={() => setIsResolveModalOpen(true)}
-                  className="px-3.5 py-1.5 rounded text-xs font-medium bg-white border border-border text-slate-800 hover:bg-slate-50 transition-all cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-card border border-border text-foreground hover:bg-secondary transition-all cursor-pointer shadow-sm"
                 >
-                  Edit & Approve...
+                  Edit &amp; Approve...
                 </button>
                 <button
                   type="button"
                   disabled={resolveGateMutation.isPending}
                   onClick={() => resolveGateMutation.mutate('approve')}
-                  className="px-4 py-1.5 rounded text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition-all cursor-pointer"
+                  className="px-4 py-1.5 rounded-xl text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-all cursor-pointer shadow-md shadow-emerald-500/20"
                 >
                   Approve
                 </button>
@@ -388,17 +399,17 @@ export default function RunViewerPage() {
       {/* Main split content area */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left pane: Timeline and Narration */}
-        <div className="w-1/2 border-r border-border flex flex-col bg-white min-h-0">
-          <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-white">
-            <div className="inline-flex p-0.5 rounded border border-slate-200 bg-slate-50">
+        <div className="w-1/2 border-r border-border flex flex-col bg-card min-h-0">
+          <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-card">
+            <div className="inline-flex p-1 rounded-xl border border-border bg-secondary/60 gap-1">
               <button
                 type="button"
                 onClick={() => setActiveTab('timeline')}
                 className={cn(
-                  'px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer',
+                  'px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
                   activeTab === 'timeline'
-                    ? 'bg-white text-slate-900 border border-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-card text-foreground border border-border shadow-sm font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 Timeline ({events.length})
@@ -407,10 +418,10 @@ export default function RunViewerPage() {
                 type="button"
                 onClick={() => setActiveTab('narration')}
                 className={cn(
-                  'px-3 py-1 rounded text-xs font-medium transition-all cursor-pointer',
+                  'px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer',
                   activeTab === 'narration'
-                    ? 'bg-white text-slate-900 border border-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-card text-foreground border border-border shadow-sm font-semibold'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 Narration
@@ -418,23 +429,23 @@ export default function RunViewerPage() {
             </div>
 
             {run?.status === 'running' ? (
-              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-zinc-900">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-900" />
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-indigo-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
                 <span>Live Stream</span>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-zinc-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-muted-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                 <span>Recorded Stream</span>
               </div>
             )}
           </div>
 
           {activeTab === 'timeline' ? (
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+            <div className="flex-1 overflow-y-auto divide-y divide-border/60">
               {events.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400">
-                  <Clock className="w-6 h-6 mb-2 text-slate-300" />
+                <div className="flex flex-col items-center justify-center h-full text-center p-8 text-muted-foreground">
+                  <Clock className="w-6 h-6 mb-2 text-muted-foreground/60" />
                   <p className="text-xs font-medium">No events recorded yet</p>
                 </div>
               ) : (
@@ -447,38 +458,38 @@ export default function RunViewerPage() {
                       className={cn(
                         'py-3 px-4 flex items-start gap-3 cursor-pointer transition-colors group',
                         isSelected
-                          ? 'bg-slate-100 border-l-2 border-slate-900'
-                          : 'hover:bg-slate-50 border-l-2 border-transparent'
+                          ? 'bg-accent/80 border-l-2 border-indigo-400'
+                          : 'hover:bg-white/[0.02] border-l-2 border-transparent'
                       )}
                     >
-                      <div className="text-[11px] tabular-nums text-slate-400 w-7 text-right shrink-0 mt-0.5 select-none font-medium">
+                      <div className="text-[11px] tabular-nums font-mono text-muted-foreground w-7 text-right shrink-0 mt-0.5 select-none font-medium">
                         #{ev.seq}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span
                             className={cn(
-                              'text-xs font-semibold truncate',
-                              isSelected ? 'text-slate-900 font-semibold' : 'text-slate-800 group-hover:text-slate-900'
+                              'text-xs font-mono font-semibold truncate',
+                              isSelected ? 'text-indigo-400' : 'text-foreground group-hover:text-indigo-400'
                             )}
                           >
                             {ev.type}
                           </span>
-                          <span className="text-[11px] tabular-nums text-slate-500 shrink-0">
+                          <span className="text-[11px] font-mono tabular-nums text-muted-foreground shrink-0">
                             {new Date(ev.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
                         {ev.node_id && (
-                          <div className="text-[11px] text-slate-500 mt-0.5 truncate flex items-center gap-1">
-                            <span className="text-slate-400">node:</span>
-                            <span className="text-slate-700 font-medium">{ev.node_id}</span>
+                          <div className="text-[11px] text-muted-foreground mt-0.5 truncate flex items-center gap-1">
+                            <span className="text-muted-foreground/60">node:</span>
+                            <span className="text-foreground font-medium font-mono">{ev.node_id}</span>
                           </div>
                         )}
                       </div>
                       <ChevronRight
                         className={cn(
                           'w-3.5 h-3.5 shrink-0 mt-1 transition-transform',
-                          isSelected ? 'text-slate-900' : 'text-slate-400'
+                          isSelected ? 'text-indigo-400' : 'text-muted-foreground/60'
                         )}
                       />
                     </div>
@@ -487,9 +498,9 @@ export default function RunViewerPage() {
               )}
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-4 text-xs leading-relaxed text-slate-700 bg-slate-50/50">
+            <div className="flex-1 overflow-y-auto p-4 text-xs leading-relaxed text-foreground bg-background/50 font-mono">
               {events.length === 0 ? (
-                <div className="text-slate-400 italic">No narration entries recorded.</div>
+                <div className="text-muted-foreground italic">No narration entries recorded.</div>
               ) : (
                 <div className="space-y-1.5 select-text">
                   {events.map((ev) => {
@@ -497,19 +508,19 @@ export default function RunViewerPage() {
                     return (
                       <div
                         key={ev.seq}
-                        className="flex items-start gap-2.5 hover:bg-white p-1 rounded transition-colors"
+                        className="flex items-start gap-2.5 hover:bg-card p-1.5 rounded-lg transition-colors"
                       >
-                        <span className="text-slate-400 select-none shrink-0 tabular-nums text-[11px]">
+                        <span className="text-muted-foreground select-none shrink-0 tabular-nums text-[11px]">
                           [{t}]
                         </span>
-                        <span className="text-slate-900 font-medium shrink-0">{ev.type}</span>
+                        <span className="text-indigo-400 font-medium shrink-0">{ev.type}</span>
                         {ev.node_id && (
-                          <span className="text-slate-700 shrink-0">
-                            <span className="text-slate-400">→</span> {ev.node_id}
+                          <span className="text-foreground shrink-0">
+                            <span className="text-muted-foreground">→</span> {ev.node_id}
                           </span>
                         )}
                         {ev.payload && Object.keys(ev.payload).length > 0 && (
-                          <span className="text-slate-500 truncate font-mono text-[11px]">
+                          <span className="text-muted-foreground truncate text-[11px]">
                             {JSON.stringify(ev.payload)}
                           </span>
                         )}
@@ -523,26 +534,26 @@ export default function RunViewerPage() {
         </div>
 
         {/* Right pane: Event detail inspector */}
-        <div className="w-1/2 flex flex-col bg-slate-50 overflow-y-auto p-6 text-xs min-h-0">
+        <div className="w-1/2 flex flex-col bg-background overflow-y-auto p-6 text-xs min-h-0">
           {selectedEvent ? (
             <div className="space-y-5">
               <div className="pb-4 border-b border-border flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase block">
+                  <span className="text-[10px] font-mono font-semibold tracking-wider text-muted-foreground uppercase block">
                     Event Detail
                   </span>
-                  <h3 className="text-sm font-semibold text-slate-900 mt-1 flex items-center gap-2">
-                    <span>{selectedEvent.type}</span>
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white text-slate-700 border border-border tabular-nums">
+                  <h3 className="text-sm font-semibold text-foreground mt-1 flex items-center gap-2">
+                    <span className="font-mono text-indigo-400">{selectedEvent.type}</span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border tabular-nums">
                       seq #{selectedEvent.seq}
                     </span>
                   </h3>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs tabular-nums font-medium text-slate-700">
+                  <span className="text-xs tabular-nums font-mono font-medium text-foreground">
                     {new Date(selectedEvent.timestamp).toLocaleTimeString()}
                   </span>
-                  <span className="block text-[11px] tabular-nums text-slate-400">
+                  <span className="block text-[11px] tabular-nums text-muted-foreground">
                     {new Date(selectedEvent.timestamp).toLocaleDateString()}
                   </span>
                 </div>
@@ -550,11 +561,11 @@ export default function RunViewerPage() {
 
               {selectedEvent.node_id && (
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                  <label className="block text-[11px] font-mono font-semibold text-muted-foreground uppercase tracking-wider">
                     Target Node
                   </label>
-                  <div className="bg-white border border-border rounded px-3 py-1.5 text-xs text-slate-800 font-medium flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                  <div className="bg-card border border-border rounded-xl px-3.5 py-2 text-xs text-foreground font-mono flex items-center gap-2 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                     <span>{selectedEvent.node_id}</span>
                   </div>
                 </div>
@@ -562,10 +573,10 @@ export default function RunViewerPage() {
 
               {selectedEvent.step_id && (
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                  <label className="block text-[11px] font-mono font-semibold text-muted-foreground uppercase tracking-wider">
                     Step ID
                   </label>
-                  <div className="bg-white border border-border rounded px-3 py-1.5 text-xs text-slate-700">
+                  <div className="bg-card border border-border rounded-xl px-3.5 py-2 text-xs text-foreground font-mono shadow-sm">
                     {selectedEvent.step_id}
                   </div>
                 </div>
@@ -573,7 +584,7 @@ export default function RunViewerPage() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider">
+                  <label className="block text-[11px] font-mono font-semibold text-muted-foreground uppercase tracking-wider">
                     Payload
                   </label>
                   <button
@@ -583,10 +594,10 @@ export default function RunViewerPage() {
                       setCopiedPayload(true);
                       setTimeout(() => setCopiedPayload(false), 2000);
                     }}
-                    className="text-[11px] text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1 cursor-pointer font-medium"
+                    className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 cursor-pointer font-medium"
                   >
                     {copiedPayload ? (
-                      <span className="text-emerald-600 flex items-center gap-1 font-medium">
+                      <span className="text-emerald-400 flex items-center gap-1 font-medium">
                         <Check className="w-3 h-3" /> Copied
                       </span>
                     ) : (
@@ -596,7 +607,7 @@ export default function RunViewerPage() {
                     )}
                   </button>
                 </div>
-                <pre className="bg-white border border-border rounded p-3 font-mono text-xs text-slate-800 overflow-x-auto whitespace-pre leading-relaxed select-text">
+                <pre className="bg-card border border-border rounded-xl p-4 font-mono text-xs text-foreground overflow-x-auto whitespace-pre leading-relaxed select-text shadow-sm">
                   {JSON.stringify(selectedEvent.payload, null, 2)}
                 </pre>
               </div>
@@ -604,12 +615,12 @@ export default function RunViewerPage() {
               {Boolean(run?.output) && (
                 <div className="space-y-1.5 pt-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[11px] font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <label className="block text-[11px] font-mono font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Run Final Output</span>
                     </label>
                   </div>
-                  <pre className="bg-emerald-50/50 border border-emerald-200 rounded p-3 font-mono text-xs text-emerald-900 overflow-x-auto whitespace-pre leading-relaxed select-text">
+                  <pre className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre leading-relaxed select-text">
                     {JSON.stringify(run?.output, null, 2)}
                   </pre>
                 </div>
@@ -617,19 +628,19 @@ export default function RunViewerPage() {
 
               {Boolean(run?.error) && (
                 <div className="space-y-1.5 pt-2">
-                  <label className="block text-[11px] font-semibold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <label className="block text-[11px] font-mono font-semibold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
                     <XCircle className="w-3.5 h-3.5" />
                     <span>Execution Error</span>
                   </label>
-                  <div className="bg-rose-50/60 border border-rose-200 rounded p-3 font-mono text-xs text-rose-900 overflow-x-auto whitespace-pre-wrap select-text">
+                  <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 font-mono text-xs text-rose-300 overflow-x-auto whitespace-pre-wrap select-text">
                     {run?.error}
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-center p-8">
-              <FileText className="w-8 h-8 mb-2 opacity-50" />
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center p-8">
+              <FileText className="w-8 h-8 mb-2 opacity-40 text-muted-foreground" />
               <p className="text-xs font-medium">Select an event to view details</p>
             </div>
           )}
@@ -639,16 +650,16 @@ export default function RunViewerPage() {
       {/* Edit & Approve Modal */}
       <Dialog.Root open={isResolveModalOpen} onOpenChange={setIsResolveModalOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-white border border-border rounded shadow-modal p-6 focus:outline-none">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md animate-in fade-in-0 duration-150" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl p-6 focus:outline-none animate-in fade-in-0 zoom-in-95 duration-150 text-foreground">
             <div className="flex items-center justify-between pb-3 border-b border-border">
-              <Dialog.Title className="text-sm font-semibold text-slate-900">
+              <Dialog.Title className="text-sm font-semibold text-foreground">
                 Edit &amp; Approve Parameters
               </Dialog.Title>
               <Dialog.Close asChild>
                 <button
                   type="button"
-                  className="p-1 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -664,7 +675,7 @@ export default function RunViewerPage() {
                 rows={7}
                 value={editedPayload}
                 onChange={(e) => setEditedPayload(e.target.value)}
-                className="w-full bg-slate-50 border border-border rounded p-3 text-xs text-slate-900 font-mono focus:border-slate-400 focus:bg-white outline-none resize-none transition-colors"
+                className="w-full bg-secondary border border-border rounded-xl p-3 text-xs text-foreground font-mono focus:border-white/20 outline-none resize-none transition-colors"
                 placeholder="{\n  &quot;approved&quot;: true\n}"
               />
             </div>
@@ -673,7 +684,7 @@ export default function RunViewerPage() {
               <button
                 type="button"
                 onClick={() => setIsResolveModalOpen(false)}
-                className="px-3.5 py-1.5 rounded text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -681,7 +692,7 @@ export default function RunViewerPage() {
                 type="button"
                 disabled={resolveGateMutation.isPending}
                 onClick={() => resolveGateMutation.mutate('edit')}
-                className="px-4 py-1.5 rounded text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white transition-all disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-medium bg-foreground text-background hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer shadow-md"
               >
                 {resolveGateMutation.isPending ? 'Submitting...' : 'Submit Edited Approval'}
               </button>

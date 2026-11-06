@@ -10,13 +10,11 @@ import {
   Play,
   Upload,
   ShieldCheck,
-  Sparkles,
   X,
   Loader2,
   Workflow,
 } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/cn';
 
 export function EditorHeader() {
@@ -118,11 +116,11 @@ export function EditorHeader() {
   };
 
   return (
-    <header className="h-14 bg-white border-b border-border flex items-center justify-between px-5 select-none z-20 shrink-0">
+    <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-5 select-none z-20 shrink-0">
       {/* Left: Workflow metadata */}
       <div className="flex items-center gap-3">
-        <div className="w-7 h-7 rounded border border-border bg-slate-50 text-slate-700 flex items-center justify-center shrink-0">
-          <Workflow className="w-3.5 h-3.5 text-slate-500" />
+        <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-indigo-400 flex items-center justify-center shrink-0 shadow-sm">
+          <Workflow className="w-4 h-4" />
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -132,8 +130,8 @@ export function EditorHeader() {
 
           {/* Unsaved changes badge */}
           {isDirty && (
-            <span className="inline-flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               <span>unsaved changes</span>
             </span>
           )}
@@ -141,7 +139,7 @@ export function EditorHeader() {
           {/* Hash badge */}
           {semanticHash && (
             <span
-              className="text-[10px] text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded"
+              className="text-[10px] font-mono text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-full hidden sm:inline-block"
               title={`Semantic Hash: ${semanticHash}`}
             >
               hash: {semanticHash.slice(0, 8)}
@@ -154,8 +152,8 @@ export function EditorHeader() {
       <div className="flex items-center gap-2">
         {/* Published success banner */}
         {publishSuccess && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-            <Check className="w-3.5 h-3.5 text-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl">
+            <Check className="w-3.5 h-3.5 text-emerald-400" />
             <span>published v{publishSuccess}</span>
           </span>
         )}
@@ -165,12 +163,12 @@ export function EditorHeader() {
           type="button"
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-border transition-colors disabled:opacity-40 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-foreground hover:bg-secondary bg-card border border-border transition-all disabled:opacity-40 cursor-pointer shadow-sm"
         >
           {isSaving ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Save className="w-3.5 h-3.5 text-slate-500" />
+            <Save className="w-3.5 h-3.5 text-muted-foreground" />
           )}
           <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
         </button>
@@ -180,12 +178,12 @@ export function EditorHeader() {
           type="button"
           onClick={handleValidate}
           disabled={isValidating}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-border transition-colors disabled:opacity-40 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-foreground hover:bg-secondary bg-card border border-border transition-all disabled:opacity-40 cursor-pointer shadow-sm"
         >
           {isValidating ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
           ) : (
-            <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
           )}
           <span>{isValidating ? 'Validating...' : 'Validate'}</span>
         </button>
@@ -195,21 +193,21 @@ export function EditorHeader() {
           type="button"
           onClick={handlePublish}
           disabled={isPublishing}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-medium bg-white hover:bg-slate-50 text-slate-900 border border-border transition-colors disabled:opacity-40 cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-foreground hover:bg-secondary bg-card border border-border transition-all disabled:opacity-40 cursor-pointer shadow-sm"
         >
           {isPublishing ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Upload className="w-3.5 h-3.5 text-slate-500" />
+            <Upload className="w-3.5 h-3.5 text-muted-foreground" />
           )}
-          <span>{isPublishing ? 'Publishing...' : 'Publish Version'}</span>
+          <span>{isPublishing ? 'Publishing...' : 'Publish'}</span>
         </button>
 
         {/* Run */}
         <button
           type="button"
           onClick={() => setIsRunModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-foreground text-background hover:opacity-90 transition-opacity cursor-pointer shadow-md"
         >
           <Play className="w-3 h-3 fill-current" />
           <span>Run</span>
@@ -219,20 +217,20 @@ export function EditorHeader() {
       {/* Radix UI Dialog Run Modal */}
       <Dialog.Root open={isRunModalOpen} onOpenChange={setIsRunModalOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-900/30 backdrop-blur-[2px] animate-in fade-in-0 duration-150" />
-          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] w-full max-w-md bg-white border border-border rounded p-5 shadow-modal focus:outline-none animate-in fade-in-0 zoom-in-95 duration-150">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md animate-in fade-in-0 duration-150" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl focus:outline-none animate-in fade-in-0 zoom-in-95 duration-150 text-foreground">
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded border border-border bg-slate-50 text-slate-700 flex items-center justify-center">
-                  <Play className="w-3 h-3 fill-current ml-0.5" />
+                <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-indigo-400 flex items-center justify-center shadow-sm">
+                  <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                 </div>
                 <div>
                   <Dialog.Title className="text-sm font-semibold text-foreground tracking-tight">
                     Run Workflow
                   </Dialog.Title>
                   <Dialog.Description className="text-xs text-muted-foreground mt-0.5">
-                    Provide initial input for the workflow. Each step will execute and update in real-time.
+                    Provide initial input for the workflow. Each step will execute in real-time.
                   </Dialog.Description>
                 </div>
               </div>
@@ -240,7 +238,7 @@ export function EditorHeader() {
               <Dialog.Close asChild>
                 <button
                   type="button"
-                  className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                   aria-label="Close"
                 >
                   <X className="w-4 h-4" />
@@ -249,8 +247,8 @@ export function EditorHeader() {
             </div>
 
             {/* Input payload textarea */}
-            <div className="mt-4 space-y-1.5">
-              <label className="block text-[11px] font-medium text-slate-700">
+            <div className="mt-5 space-y-1.5">
+              <label className="block text-[11px] font-mono font-semibold text-muted-foreground uppercase tracking-wider">
                 Input Payload (JSON)
               </label>
               <textarea
@@ -258,16 +256,16 @@ export function EditorHeader() {
                 value={runInput}
                 onChange={(e) => setRunInput(e.target.value)}
                 placeholder='{\n  "ticket": "Customer issue..."\n}'
-                className="w-full bg-slate-50 border border-border rounded p-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-slate-400 focus:bg-white transition-colors resize-none"
+                className="w-full bg-secondary border border-border rounded-xl p-3 text-xs text-foreground font-mono placeholder:text-muted-foreground focus:outline-none focus:border-white/20 transition-all resize-none"
               />
             </div>
 
             {/* Modal Footer */}
-            <div className="mt-5 flex items-center justify-end gap-2 pt-3 border-t border-border">
+            <div className="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-border">
               <Dialog.Close asChild>
                 <button
                   type="button"
-                  className="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -277,7 +275,7 @@ export function EditorHeader() {
                 type="button"
                 disabled={isStartingRun}
                 onClick={handleStartRun}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium bg-foreground text-background hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer shadow-md"
               >
                 {isStartingRun ? (
                   <>

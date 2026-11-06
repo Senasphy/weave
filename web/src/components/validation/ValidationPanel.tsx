@@ -49,10 +49,10 @@ export function ValidationPanel() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="rounded bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 text-[10px] tabular-nums font-medium">
+            <span className="rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 text-[10px] tabular-nums font-medium">
               {errors.length} {errors.length === 1 ? 'error' : 'errors'}
             </span>
-            <span className="rounded bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.5 text-[10px] tabular-nums font-medium">
+            <span className="rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 text-[10px] tabular-nums font-medium">
               {warnings.length} {warnings.length === 1 ? 'warning' : 'warnings'}
             </span>
           </div>

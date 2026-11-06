@@ -93,15 +93,15 @@ export default function WorkflowEditorPage() {
       type: 'default',
       label: e.kind === 'when' ? `when: ${e.expr || ''}` : e.kind !== 'always' ? e.kind : undefined,
       labelStyle: {
-        fill: '#475569',
+        fill: 'rgba(255, 255, 255, 0.75)',
         fontSize: 10,
         fontFamily: 'var(--font-mono, monospace)',
         fontWeight: 600,
         letterSpacing: '0.02em',
       },
       labelBgStyle: {
-        fill: '#ffffff',
-        stroke: '#cbd5e1',
+        fill: '#111215',
+        stroke: 'rgba(255, 255, 255, 0.12)',
         strokeWidth: 1,
       },
       labelBgPadding: [6, 3] as [number, number],
@@ -114,20 +114,20 @@ export default function WorkflowEditorPage() {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-slate-50 text-slate-500 gap-3 select-none">
+      <div className="flex-1 flex flex-col items-center justify-center bg-background text-muted-foreground gap-3 select-none">
         <div className="relative flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full border-2 border-slate-200 border-t-slate-800 animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-border border-t-foreground animate-spin" />
         </div>
         <div className="flex flex-col items-center gap-1">
-          <p className="text-xs font-semibold text-slate-900 tracking-tight">Loading workflow graph</p>
-          <p className="text-[11px] text-slate-500 font-medium">Initializing canvas & state...</p>
+          <p className="text-xs font-semibold text-foreground tracking-tight">Loading workflow graph</p>
+          <p className="text-[11px] text-muted-foreground font-medium">Initializing canvas & state...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden select-none bg-slate-50">
+    <div className="h-full flex flex-col overflow-hidden select-none bg-background">
       {/* Top Editor Header */}
       <EditorHeader />
 
@@ -167,38 +167,38 @@ export default function WorkflowEditorPage() {
                 minZoom={0.2}
                 maxZoom={2.0}
                 proOptions={{ hideAttribution: true }}
-                className="bg-slate-50"
+                className="bg-background"
               >
                 <Background
                   variant={BackgroundVariant.Dots}
-                  gap={20}
+                  gap={24}
                   size={1.2}
-                  color="#cbd5e1"
+                  color="rgba(255, 255, 255, 0.08)"
                 />
                 <Controls
                   showInteractive={false}
-                  className="!bg-white !border !border-border !rounded !shadow-none overflow-hidden !m-4"
+                  className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
                 />
                 <MiniMap
                   nodeColor={(node) => {
                     switch (node.type) {
                       case 'agent':
-                        return '#0f172a';
+                        return '#6366f1';
                       case 'gate':
-                        return '#d97706';
+                        return '#f59e0b';
                       case 'router':
-                        return '#0891b2';
+                        return '#06b6d4';
                       case 'fan_out':
                       case 'join':
-                        return '#9333ea';
+                        return '#a855f7';
                       default:
-                        return '#0f172a';
+                        return '#64748b';
                     }
                   }}
                   nodeStrokeColor="transparent"
-                  nodeBorderRadius={2}
-                  maskColor="rgba(241, 245, 249, 0.8)"
-                  className="!bg-white !border !border-border !rounded !shadow-none overflow-hidden !m-4"
+                  nodeBorderRadius={4}
+                  maskColor="rgba(9, 10, 13, 0.85)"
+                  className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
                 />
               </ReactFlow>
             </motion.div>

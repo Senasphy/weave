@@ -46,7 +46,7 @@ function ToggleSwitch({ checked, onChange, label, description, disabled }: Toggl
         }
       }}
       className={cn(
-        'flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 border border-border hover:bg-accent/40 transition-colors cursor-pointer select-none group',
+        'flex items-center justify-between gap-3 p-3 rounded-xl bg-secondary/60 border border-border hover:bg-accent/40 transition-colors cursor-pointer select-none group',
         disabled && 'opacity-50 cursor-not-allowed'
       )}
     >
@@ -63,12 +63,12 @@ function ToggleSwitch({ checked, onChange, label, description, disabled }: Toggl
       <div
         className={cn(
           'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border border-border',
-          checked ? 'bg-foreground border-foreground' : 'bg-muted'
+          checked ? 'bg-indigo-500 border-indigo-400' : 'bg-secondary'
         )}
       >
         <span
           className={cn(
-            'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-background shadow-sm ring-0 transition-transform duration-200 ease-in-out',
+            'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ease-in-out',
             checked ? 'translate-x-[18px]' : 'translate-x-0.5'
           )}
         />
@@ -78,13 +78,13 @@ function ToggleSwitch({ checked, onChange, label, description, disabled }: Toggl
 }
 
 const inputClass =
-  'w-full rounded bg-white border border-border focus:border-slate-400 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground transition-colors focus:outline-none';
+  'w-full rounded-xl bg-secondary border border-border focus:border-white/20 px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground transition-all focus:outline-none';
 
 const selectClass =
-  'w-full rounded bg-white border border-border focus:border-slate-400 px-3 py-1.5 text-xs text-foreground transition-colors focus:outline-none [&>option]:bg-card [&>option]:text-foreground';
+  'w-full rounded-xl bg-secondary border border-border focus:border-white/20 px-3 py-2 text-xs text-foreground transition-all focus:outline-none [&>option]:bg-card [&>option]:text-foreground';
 
 const textareaClass =
-  'w-full rounded bg-white border border-border focus:border-slate-400 p-2.5 text-xs font-mono min-h-[80px] text-foreground placeholder:text-muted-foreground transition-colors focus:outline-none resize-y';
+  'w-full rounded-xl bg-secondary border border-border focus:border-white/20 p-3 text-xs font-mono min-h-[80px] text-foreground placeholder:text-muted-foreground transition-all focus:outline-none resize-y';
 
 export function InspectorPanel() {
   const {
@@ -101,45 +101,45 @@ export function InspectorPanel() {
 
   const [newToolInput, setNewToolInput] = useState('');
 
-  const selectedNode = graph.nodes.find((n) => n.id === selectedNodeId);
-  const selectedEdge = graph.edges.find((e) => e.id === selectedEdgeId);
+  const selectedNode = (graph?.nodes || []).find((n) => n.id === selectedNodeId);
+  const selectedEdge = (graph?.edges || []).find((e) => e.id === selectedEdgeId);
 
   const getNodeBadge = (type: NodeType) => {
     switch (type) {
       case 'agent':
         return {
-          icon: <Bot className="w-3.5 h-3.5 text-slate-700" />,
-          color: 'text-slate-800 bg-slate-100 border-slate-200',
+          icon: <Bot className="w-3.5 h-3.5 text-indigo-400" />,
+          color: 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30',
           label: 'Agent Node',
         };
       case 'gate':
         return {
-          icon: <UserCheck className="w-3.5 h-3.5 text-slate-700" />,
-          color: 'text-slate-800 bg-slate-100 border-slate-200',
+          icon: <UserCheck className="w-3.5 h-3.5 text-amber-400" />,
+          color: 'text-amber-300 bg-amber-500/15 border-amber-500/30',
           label: 'Gate Node',
         };
       case 'router':
         return {
-          icon: <GitFork className="w-3.5 h-3.5 text-slate-700" />,
-          color: 'text-slate-800 bg-slate-100 border-slate-200',
+          icon: <GitFork className="w-3.5 h-3.5 text-cyan-400" />,
+          color: 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30',
           label: 'Router Node',
         };
       case 'fan_out':
         return {
-          icon: <Network className="w-3.5 h-3.5 text-slate-700" />,
-          color: 'text-slate-800 bg-slate-100 border-slate-200',
+          icon: <Network className="w-3.5 h-3.5 text-purple-400" />,
+          color: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
           label: 'Fan Out',
         };
       case 'join':
         return {
-          icon: <GitMerge className="w-3.5 h-3.5 text-slate-700" />,
-          color: 'text-slate-800 bg-slate-100 border-slate-200',
+          icon: <GitMerge className="w-3.5 h-3.5 text-purple-400" />,
+          color: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
           label: 'Join Node',
         };
       default:
         return {
-          icon: <Code2 className="w-3.5 h-3.5 text-[#878da0]" />,
-          color: 'text-foreground-muted bg-white/[0.04] border-white/[0.08]',
+          icon: <Code2 className="w-3.5 h-3.5 text-muted-foreground" />,
+          color: 'text-muted-foreground bg-secondary border-border',
           label: 'Node',
         };
     }
@@ -170,14 +170,14 @@ export function InspectorPanel() {
         aria-label="Property Inspector"
         className="w-80 bg-card border-l border-border p-6 flex flex-col items-center justify-center text-center select-none"
       >
-        <div className="w-8 h-8 rounded border border-border bg-slate-50 flex items-center justify-center mb-3 text-slate-500">
-          <Code2 className="w-4 h-4" />
+        <div className="w-10 h-10 rounded-2xl border border-border bg-secondary flex items-center justify-center mb-3 text-muted-foreground">
+          <Code2 className="w-5 h-5 text-indigo-400" />
         </div>
         <h4 className="text-xs font-semibold text-foreground mb-1">No Element Selected</h4>
         <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
           Select any node or edge on the canvas or outline to inspect and configure properties.
         </p>
-        <div className="mt-3 px-2 py-0.5 rounded bg-slate-100 border border-border text-[10px] text-muted-foreground">
+        <div className="mt-4 px-2.5 py-1 rounded-lg bg-secondary border border-border text-[10px] font-mono text-muted-foreground">
           Press <kbd className="text-foreground">Delete</kbd> to remove selection
         </div>
       </aside>
@@ -187,16 +187,16 @@ export function InspectorPanel() {
   return (
     <aside
       aria-label="Property Inspector"
-      className="w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden select-none"
+      className="w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden select-none text-foreground"
     >
       {/* Panel Header */}
       <div className="p-4 border-b border-border flex items-center justify-between bg-card">
         <div className="min-w-0 pr-2">
           {selectedNode ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span
                 className={cn(
-                  'inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded border',
+                  'inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border font-mono',
                   getNodeBadge(selectedNode.type).color
                 )}
               >
@@ -204,13 +204,13 @@ export function InspectorPanel() {
                 {getNodeBadge(selectedNode.type).label}
               </span>
               {selectedNode.is_entry && (
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
                   entry
                 </span>
               )}
             </div>
           ) : (
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
               Edge Connection
             </span>
           )}
@@ -227,7 +227,7 @@ export function InspectorPanel() {
               if (selectedNodeId) deleteNode(selectedNodeId);
               if (selectedEdgeId) deleteEdge(selectedEdgeId);
             }}
-            className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+            className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -238,7 +238,7 @@ export function InspectorPanel() {
               selectNode(null);
               selectEdge(null);
             }}
-            className="p-1.5 rounded-lg text-[#878da0] hover:text-foreground hover:bg-white/[0.04] transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -246,14 +246,14 @@ export function InspectorPanel() {
       </div>
 
       {/* Panel Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 divide-y divide-white/[0.04]">
+      <div className="flex-1 overflow-y-auto px-4 divide-y divide-border/60">
         {/* Node Properties */}
         {selectedNode && (
           <>
             {/* General Settings */}
             <div className="py-4 space-y-3.5">
               <div className="space-y-1.5">
-                <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                   Node Label
                 </label>
                 <input
@@ -265,9 +265,9 @@ export function InspectorPanel() {
                 />
               </div>
 
-              <div className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded bg-slate-50 border border-border">
-                <span className="text-slate-500 font-medium">ID</span>
-                <span className="text-slate-800 truncate max-w-[180px] font-mono text-[11px]">{selectedNode.id}</span>
+              <div className="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-secondary border border-border">
+                <span className="text-muted-foreground font-mono">ID</span>
+                <span className="text-foreground truncate max-w-[180px] font-mono text-[11px]">{selectedNode.id}</span>
               </div>
 
               <ToggleSwitch
@@ -283,8 +283,8 @@ export function InspectorPanel() {
               <>
                 {/* Model Configuration */}
                 <div className="py-4 space-y-3">
-                  <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3 text-zinc-500" />
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Cpu className="w-3 h-3 text-indigo-400" />
                     <span>Model Config</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -363,7 +363,7 @@ export function InspectorPanel() {
 
                 {/* System Prompt */}
                 <div className="py-4 space-y-1.5">
-                  <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                     System Prompt
                   </label>
                   <textarea
@@ -377,27 +377,27 @@ export function InspectorPanel() {
 
                 {/* Allowed Tools with Pills */}
                 <div className="py-4 space-y-2.5">
-                  <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
-                    <Wrench className="w-3 h-3 text-[#4e5468]" />
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Wrench className="w-3 h-3 text-indigo-400" />
                     <span>Allowed Tools ({selectedNode.tools?.length || 0})</span>
                   </label>
 
-                  <div className="flex flex-wrap gap-1.5 min-h-[38px] p-2.5 rounded bg-slate-50 border border-border">
+                  <div className="flex flex-wrap gap-1.5 min-h-[42px] p-2.5 rounded-xl bg-secondary border border-border">
                     {(!selectedNode.tools || selectedNode.tools.length === 0) ? (
-                      <span className="text-xs text-slate-400 italic self-center">
+                      <span className="text-xs text-muted-foreground/60 italic self-center">
                         No tools assigned
                       </span>
                     ) : (
                       selectedNode.tools.map((tool) => (
                         <span
                           key={tool}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-white border border-border text-xs text-foreground transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-border text-xs text-foreground font-mono transition-colors"
                         >
-                          <span className="font-medium">{tool}</span>
+                          <span>{tool}</span>
                           <button
                             type="button"
                             onClick={() => handleRemoveTool(tool)}
-                            className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                            className="text-muted-foreground hover:text-rose-400 p-0.5 rounded transition-colors cursor-pointer"
                             title={`Remove ${tool}`}
                             aria-label={`Remove ${tool}`}
                           >
@@ -420,13 +420,13 @@ export function InspectorPanel() {
                           handleAddTool();
                         }
                       }}
-                      className={cn(inputClass, 'text-xs py-1.5')}
+                      className={cn(inputClass, 'text-xs py-2')}
                     />
                     <button
                       type="button"
                       onClick={handleAddTool}
                       disabled={!newToolInput.trim()}
-                      className="px-3 py-1.5 rounded bg-slate-900 hover:bg-slate-800 text-xs text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+                      className="px-3.5 py-2 rounded-xl bg-foreground text-background text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity shrink-0 cursor-pointer shadow-sm"
                     >
                       Add
                     </button>
@@ -435,13 +435,13 @@ export function InspectorPanel() {
 
                 {/* State I/O */}
                 <div className="py-4 space-y-3">
-                  <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
-                    <Database className="w-3 h-3 text-[#4e5468]" />
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Database className="w-3 h-3 text-indigo-400" />
                     <span>State Scope</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
-                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">State Reads</span>
+                      <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-wider block">State Reads</span>
                       <input
                         type="text"
                         placeholder="ticket, findings"
@@ -455,7 +455,7 @@ export function InspectorPanel() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider block">State Writes</span>
+                      <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-wider block">State Writes</span>
                       <input
                         type="text"
                         placeholder="ticket, findings"
@@ -473,8 +473,8 @@ export function InspectorPanel() {
 
                 {/* Permissions Switch */}
                 <div className="py-4 space-y-2">
-                  <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
-                    <ShieldAlert className="w-3 h-3 text-[#4e5468]" />
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <ShieldAlert className="w-3 h-3 text-amber-400" />
                     <span>Permissions</span>
                   </label>
                   <ToggleSwitch
@@ -498,7 +498,7 @@ export function InspectorPanel() {
             {selectedNode.type === 'gate' && (
               <>
                 <div className="py-4 space-y-1.5">
-                  <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                     Human Review Prompt
                   </label>
                   <textarea
@@ -511,7 +511,7 @@ export function InspectorPanel() {
                 </div>
 
                 <div className="py-4 space-y-1.5">
-                  <label className="text-[11px] uppercase tracking-wider text-[#4e5468] font-medium flex items-center gap-1.5">
+                  <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-amber-400" />
                     <span>Timeout (seconds)</span>
                   </label>
@@ -539,7 +539,7 @@ export function InspectorPanel() {
             {/* Router Node Configuration */}
             {selectedNode.type === 'router' && (
               <div className="py-4 space-y-1.5">
-                <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                   Router Evaluation Mode
                 </label>
                 <select
@@ -556,7 +556,7 @@ export function InspectorPanel() {
             {/* Join Node Configuration */}
             {selectedNode.type === 'join' && (
               <div className="py-4 space-y-1.5">
-                <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                   Join Policy
                 </label>
                 <select
@@ -576,23 +576,23 @@ export function InspectorPanel() {
         {/* Edge Properties */}
         {selectedEdge && (
           <div className="py-4 space-y-4">
-            <div className="p-3 rounded bg-slate-50 border border-border space-y-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 block">
+            <div className="p-3.5 rounded-xl bg-secondary border border-border space-y-2">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground block">
                 Connection Path
               </span>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-1 rounded bg-white border border-border text-foreground truncate max-w-[100px] font-mono text-[11px]">
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="px-2.5 py-1 rounded-lg bg-card border border-border text-foreground truncate max-w-[100px]">
                   {selectedEdge.from}
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="px-2 py-1 rounded bg-white border border-border text-foreground truncate max-w-[100px] font-mono text-[11px]">
+                <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="px-2.5 py-1 rounded-lg bg-card border border-border text-foreground truncate max-w-[100px]">
                   {selectedEdge.to}
                 </span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                 Edge Kind
               </label>
               <select
@@ -610,7 +610,7 @@ export function InspectorPanel() {
 
             {selectedEdge.kind === 'when' && (
               <div className="space-y-1.5">
-                <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+                <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                   CEL Expression (bool)
                 </label>
                 <input
@@ -624,7 +624,7 @@ export function InspectorPanel() {
             )}
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                 Evaluation Priority
               </label>
               <input
@@ -633,11 +633,11 @@ export function InspectorPanel() {
                 onChange={(e) => updateEdge(selectedEdge.id, { priority: parseInt(e.target.value) || 0 })}
                 className={cn(inputClass, 'font-mono')}
               />
-              <span className="text-[10px] text-[#4e5468]">Higher values are evaluated first</span>
+              <span className="text-[10px] text-muted-foreground font-mono">Higher values are evaluated first</span>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] uppercase tracking-wider text-[#4e5468] font-medium">
+              <label className="block text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
                 Max Traversals
               </label>
               <input
@@ -649,7 +649,7 @@ export function InspectorPanel() {
                 }
                 className={cn(inputClass, 'font-mono')}
               />
-              <span className="text-[10px] text-[#4e5468]">Guard against infinite graph execution cycles</span>
+              <span className="text-[10px] text-muted-foreground font-mono">Guard against infinite graph execution cycles</span>
             </div>
           </div>
         )}
@@ -663,7 +663,7 @@ export function InspectorPanel() {
             if (selectedNodeId) deleteNode(selectedNodeId);
             if (selectedEdgeId) deleteEdge(selectedEdgeId);
           }}
-          className="w-full py-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-xs font-medium transition-all flex items-center justify-center gap-2 group"
+          className="w-full py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 text-xs font-medium transition-all flex items-center justify-center gap-2 group cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
           <span>{selectedNode ? 'Delete Node' : 'Delete Edge'}</span>

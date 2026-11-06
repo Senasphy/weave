@@ -1,37 +1,37 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { AppShell } from '@/components/AppShell';
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Weave — Visual Multi-Agent Systems',
+  title: 'Weave — Orchestration Studio',
   description: 'Design multi-agent systems visually. Run them with confidence.',
   icons: {
     icon: [
       { url: '/weave-mark.svg', media: '(prefers-color-scheme: light)' },
-      { url: '/weave-mark.svg', media: '(prefers-color-scheme: dark)' },
+      { url: '/weave-mark-dark.svg', media: '(prefers-color-scheme: dark)' },
     ],
-    shortcut: ['/weave-mark.svg'],
-    apple: ['/weave-mark.svg'],
+    shortcut: ['/weave-mark-dark.svg'],
+    apple: ['/weave-mark-dark.svg'],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#f8fafc',
-  colorScheme: 'light',
+  themeColor: '#090a0d',
+  colorScheme: 'dark',
   width: 'device-width',
   initialScale: 1,
 };
@@ -44,9 +44,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`h-full dark ${geistSans.variable} ${geistMono.variable}`}
+      style={{ colorScheme: 'dark' }}
+      suppressHydrationWarning
     >
-      <body className="h-full bg-background text-foreground font-sans antialiased selection:bg-slate-900/10 selection:text-foreground">
+      <body className="h-full bg-background text-foreground font-sans antialiased selection:bg-indigo-500/25 selection:text-foreground">
         <Providers>
           <AppShell>
             {children}
