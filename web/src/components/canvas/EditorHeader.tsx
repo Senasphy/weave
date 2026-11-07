@@ -131,7 +131,7 @@ export function EditorHeader() {
           {/* Unsaved changes badge */}
           {isDirty && (
             <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
               <span>unsaved changes</span>
             </span>
           )}

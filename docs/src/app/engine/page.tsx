@@ -41,22 +41,22 @@ export default function EnginePage() {
           </p>
           <ol>
             <li>
-              <strong>Assemble prompt</strong> — combines the system instructions with incoming data from previous steps.
+              <strong>Assemble prompt</strong>: combines the system instructions with incoming data from previous steps.
             </li>
             <li>
-              <strong>Check spending caps</strong> — verifies that remaining tokens, cost, and time are within your declared budget.
+              <strong>Check spending caps</strong>: verifies that remaining tokens, cost, and time are within your declared budget.
             </li>
             <li>
-              <strong>Call the LLM</strong> — invokes the selected provider (Gemini, Claude, GPT, or local Mock).
+              <strong>Call the LLM</strong>: invokes the selected provider (Gemini, Claude, GPT, or local Mock).
             </li>
             <li>
-              <strong>Execute tools</strong> — if the model requests tools (e.g. web search), runs them with network safety checks.
+              <strong>Execute tools</strong>: if the model requests tools (e.g. web search), runs them with network safety checks.
             </li>
             <li>
-              <strong>Validate schema</strong> — ensures the output matches your requested JSON format. If invalid, re-prompts boundedly.
+              <strong>Validate schema</strong>: ensures the output matches your requested JSON format. If invalid, re-prompts boundedly.
             </li>
             <li>
-              <strong>Save step output</strong> — writes the result to shared state and PostgreSQL, then triggers the next steps.
+              <strong>Save step output</strong>: writes the result to shared state and durable storage, then triggers the next steps.
             </li>
           </ol>
         </div>

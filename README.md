@@ -116,11 +116,11 @@ pnpm dev
 
 ## CLI Reference
 
-- `weave validate <file.json>` — checks a workflow file for errors and missing fields.
-- `weave run <file.json> [--input <json>]` — executes a workflow locally and prints step-by-step progress.
-- `weave serve [--port 8080]` — launches the REST API and live event streaming server.
-- `weave worker` — runs background queue workers to process queued workflow steps.
-- `weave all [--port 8080]` — runs both the API server and worker in a single process (ideal for local development).
+- `weave validate <file.json>`: checks a workflow file for errors and missing fields.
+- `weave run <file.json> [--input <json>]`: executes a workflow locally and prints step-by-step progress.
+- `weave serve [--port 8080]`: launches the REST API and live event streaming server.
+- `weave worker`: runs background queue workers to process queued workflow steps.
+- `weave all [--port 8080]`: runs both the API server and worker in a single process (ideal for local development).
 
 ---
 

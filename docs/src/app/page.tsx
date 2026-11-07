@@ -108,7 +108,7 @@ export default function DocsHomePage() {
 
             <p className="mt-3 text-[14.5px] leading-relaxed text-muted-foreground">
               Weave lets you visually build, test, and run multi-step AI workflows. Connect LLM
-              prompts, tools, conditional branches, and human approvals — with strict spending caps
+              prompts, tools, conditional branches, and human approvals, backed by strict spending caps
               and full step-by-step execution history.
             </p>
 

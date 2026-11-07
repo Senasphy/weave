@@ -430,7 +430,7 @@ export default function RunViewerPage() {
 
             {run?.status === 'running' ? (
               <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-foreground animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground" />
                 <span>Live Stream</span>
               </div>
             ) : (

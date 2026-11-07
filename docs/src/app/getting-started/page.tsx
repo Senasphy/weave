@@ -53,24 +53,23 @@ export default function GettingStartedPage() {
           Instead of writing fragile scripts that lose progress if a server restarts or run up huge API bills from runaway loops, Weave gives you:
         </p>
         <ul>
-          <li><strong>Visual workflow canvas</strong> — connect AI prompts, decisions, and tools without messy glue code</li>
-          <li><strong>Step-by-step state saving</strong> — every step saves to Postgres so workflows can pause, resume, and recover from crashes</li>
-          <li><strong>Built-in human approvals</strong> — pause before sensitive actions (like refunds or emails) until a person clicks approve</li>
-          <li><strong>Hard spending limits</strong> — set strict caps on tokens, steps, time, and USD cost</li>
-          <li><strong>Full execution traces</strong> — inspect every prompt, tool call, and state change in real time</li>
+          <li><strong>Visual workflow canvas</strong>: connect AI prompts, decisions, and tools without messy glue code</li>
+          <li><strong>Step-by-step state saving</strong>: every step saves to durable cloud storage so workflows can pause, resume, and recover from crashes</li>
+          <li><strong>Built-in human approvals</strong>: pause before sensitive actions (like refunds or emails) until a person clicks approve</li>
+          <li><strong>Hard spending limits</strong>: set strict caps on tokens, steps, time, and USD cost</li>
+          <li><strong>Full execution traces</strong>: inspect every prompt, tool call, and state change in real time</li>
         </ul>
       </section>
 
       <section id="architecture">
         <h2>Architecture</h2>
         <p>
-          Weave is split into a React/Next.js frontend and a unified Go backend backed by Postgres.
-          The Go backend can run as <code>weave all</code> for development, or as separate API
-          servers and worker pods in production.
+          Weave is split into a React/Next.js frontend and a unified Go backend backed by durable cloud storage.
+          The Go backend runs as a high-performance orchestration service with real-time SSE streaming.
         </p>
         <CodeBlock code={archDiagram} language="text" filename="System architecture" />
-        <Callout type="tip" title="Local development without API keys">
-          The engine includes a mock LLM adapter. You can run graphs locally with no OpenAI or
+        <Callout type="tip" title="Testing without API keys">
+          The engine includes a mock LLM adapter. You can run graphs with no OpenAI or
           Anthropic keys and no outbound network calls.
         </Callout>
       </section>
@@ -79,13 +78,13 @@ export default function GettingStartedPage() {
         <h2>Prerequisites</h2>
         <ul>
           <li>
-            <strong>Go 1.23+</strong> — compile and run the orchestration engine
+            <strong>Modern Web Browser</strong>: Chrome, Safari, Edge, or Firefox to access the visual studio
           </li>
           <li>
-            <strong>Node.js 20+ & pnpm</strong> — visual editor
+            <strong>API Keys (Optional)</strong>: OpenAI, Anthropic, or Google AI Studio keys for live model execution
           </li>
           <li>
-            <strong>PostgreSQL 15+</strong> (or Docker) — durable event storage
+            <strong>Cloud Console Account</strong>: sign up in seconds with zero local setup required
           </li>
         </ul>
       </section>

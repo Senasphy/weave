@@ -251,7 +251,7 @@ export function Sidebar({
                     <span className="truncate">Approvals</span>
                     {pendingGatesCount > 0 && (
                       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
                         {pendingGatesCount}
                       </span>
                     )}

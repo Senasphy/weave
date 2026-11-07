@@ -57,10 +57,10 @@ export default function VisualEditorPage() {
           Selecting any node opens the inspector panel on the right. Here you can configure:
         </p>
         <ul>
-          <li><strong>Model config</strong> — provider (Gemini, Claude, GPT, Mock), model name, and temperature.</li>
-          <li><strong>System prompt</strong> — clear instructions and contextual guidelines for the AI agent.</li>
-          <li><strong>Tools</strong> — enable specific tools like web search or internal HTTP APIs.</li>
-          <li><strong>Output schema</strong> — specify required JSON fields for reliable structured data extraction.</li>
+          <li><strong>Model config</strong>: provider (Gemini, Claude, GPT, Mock), model name, and temperature.</li>
+          <li><strong>System prompt</strong>: clear instructions and contextual guidelines for the AI agent.</li>
+          <li><strong>Tools</strong>: enable specific tools like web search or internal HTTP APIs.</li>
+          <li><strong>Output schema</strong>: specify required JSON fields for reliable structured data extraction.</li>
         </ul>
         <Callout type="tip" title="Live error checking">
           As you edit, Weave automatically validates connections, expressions, and schemas in the background, displaying helpful remediation hints right next to the affected fields.

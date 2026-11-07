@@ -116,17 +116,7 @@ export function StatusBadge({
         className
       )}
     >
-      <span className="relative flex h-1.5 w-1.5 shrink-0 items-center justify-center">
-        {pulse && (
-          <span
-            className={cn(
-              'absolute inline-flex h-full w-full animate-ping rounded-full opacity-75',
-              dotClass
-            )}
-          />
-        )}
-        <span className={cn('relative inline-flex h-1.5 w-1.5 rounded-full', dotClass)} />
-      </span>
+      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', dotClass)} />
       <span>{displayText}</span>
     </span>
   );

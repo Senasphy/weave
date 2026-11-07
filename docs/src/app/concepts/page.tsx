@@ -40,7 +40,7 @@ export default function ConceptsPage() {
         <p>
           When you publish a workflow, Weave validates that all connections and schemas are correct
           and gives it a version number. Moving nodes around on the visual canvas won&apos;t trigger
-          an unnecessary new version — only changes to prompts, models, rules, or connections will.
+          an unnecessary new version: only changes to prompts, models, rules, or connections will.
         </p>
       </section>
 
@@ -57,13 +57,13 @@ export default function ConceptsPage() {
           </p>
           <ul>
             <li>
-              <strong>Model selection</strong> — choose any supported model (Gemini, Claude, GPT, or a local mock for zero-cost testing).
+              <strong>Model selection</strong>: choose any supported model (Gemini, Claude, GPT, or a local mock for zero-cost testing).
             </li>
             <li>
-              <strong>Tool access</strong> — grant access to safe tools or HTTP endpoints.
+              <strong>Tool access</strong>: grant access to safe tools or HTTP endpoints.
             </li>
             <li>
-              <strong>Structured output</strong> — automatically validates that the AI output adheres to your requested fields.
+              <strong>Structured output</strong>: automatically validates that the AI output adheres to your requested fields.
             </li>
           </ul>
           <CodeBlock
@@ -99,13 +99,13 @@ export default function ConceptsPage() {
           </p>
           <ul>
             <li>
-              <strong>Resource-safe</strong> — the workflow safely releases all server memory while waiting; no workers stay blocked.
+              <strong>Resource-safe</strong>: the workflow safely releases compute resources while waiting; no workers stay blocked.
             </li>
             <li>
-              <strong>Three resolution options</strong> — a reviewer can <code>approve</code>, <code>reject</code>, or <code>edit</code> the data.
+              <strong>Three resolution options</strong>: a reviewer can <code>approve</code>, <code>reject</code>, or <code>edit</code> the data.
             </li>
             <li>
-              <strong>Timeouts</strong> — set an expiration time (e.g., 24 hours) with a fallback policy if no one responds.
+              <strong>Timeouts</strong>: set an expiration time (e.g., 24 hours) with a fallback policy if no one responds.
             </li>
           </ul>
         </div>

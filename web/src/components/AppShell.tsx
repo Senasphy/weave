@@ -60,9 +60,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (isSessionPending) {
     return (
       <div className="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center gap-3 select-none">
-        <WeaveLogo className="h-8 w-auto animate-pulse" />
+        <WeaveLogo className="h-8 w-auto" />
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-ping" />
+          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
           <span>Verifying workspace session...</span>
         </div>
       </div>

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Weave — Orchestration Studio',
+  title: 'Weave | Orchestration Studio',
   description: 'Design multi-agent systems visually. Run them with confidence.',
   icons: {
     icon: [

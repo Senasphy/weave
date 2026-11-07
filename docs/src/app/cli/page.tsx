@@ -178,7 +178,7 @@ Flags:
                   <code>DATABASE_URL</code>
                 </td>
                 <td>Yes</td>
-                <td>—</td>
+                <td>None</td>
                 <td>PostgreSQL connection string.</td>
               </tr>
               <tr>
@@ -194,7 +194,7 @@ Flags:
                   <code>OPENAI_API_KEY</code>
                 </td>
                 <td>No</td>
-                <td>—</td>
+                <td>None</td>
                 <td>OpenAI API key for gpt-6.1-sol, gpt-6-astra, o3, and o3-mini nodes.</td>
               </tr>
               <tr>
@@ -202,7 +202,7 @@ Flags:
                   <code>ANTHROPIC_API_KEY</code>
                 </td>
                 <td>No</td>
-                <td>—</td>
+                <td>None</td>
                 <td>Anthropic API key for Opus 5.5, Sonnet 5.5, and Claude 4 nodes.</td>
               </tr>
               <tr>
@@ -210,7 +210,7 @@ Flags:
                   <code>GEMINI_API_KEY</code>
                 </td>
                 <td>No</td>
-                <td>—</td>
+                <td>None</td>
                 <td>Google AI Studio API key for Gemini 3.8 Flash and 3.1 Pro nodes.</td>
               </tr>
             </tbody>

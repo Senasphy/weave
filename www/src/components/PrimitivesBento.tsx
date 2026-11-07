@@ -31,7 +31,7 @@ const primitives = [
     name: "Conditional Routers",
     icon: GitBranch,
     subtitle: "Sandboxed Google CEL edge branching",
-    description: "Branches execution dynamically based on step outputs or shared run state. Uses Google's Common Expression Language (CEL) — non-Turing complete, sandboxed, and evaluated in microseconds.",
+    description: "Branches execution dynamically based on step outputs or shared run state. Uses Google's Common Expression Language (CEL), non-Turing complete, sandboxed, and evaluated in microseconds.",
     code: `{
   "id": "check_threshold",
   "type": "router",
@@ -77,7 +77,7 @@ const primitives = [
     name: "Parallel Steps & Joins",
     icon: Layers,
     subtitle: "Concurrent fan-out & deterministic merge",
-    description: "Dispatches multiple independent tasks simultaneously — such as querying 3 knowledge stores or running multiple models in parallel — and cleanly merges their outputs into downstream state.",
+    description: "Dispatches multiple independent tasks simultaneously, such as querying knowledge stores or running multiple models in parallel, and cleanly merges their outputs into downstream state.",
     code: `{
   "id": "parallel_research",
   "type": "parallel",

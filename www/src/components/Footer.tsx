@@ -13,11 +13,11 @@ export function Footer() {
           <div className="col-span-2">
             <WeaveLogo variant="full" textClassName="text-[20px] text-cloud-50" />
             <p className="mt-4 max-w-sm text-[14px] leading-[1.6] text-cloud-400">
-              One current, attributable runtime for your business workflows. Backed by PostgreSQL and hard budget governance.
+              One current, attributable runtime for your business workflows. Backed by durable cloud state and hard budget governance.
             </p>
             <div className="mt-6 flex items-center gap-2 font-mono text-[11px] text-cloud-400">
               <span className="size-2 rounded-full bg-status-live" />
-              <span>PostgreSQL 15+ &bull; Go 1.23 Engine</span>
+              <span>Managed Cloud Orchestration</span>
             </div>
           </div>
 
@@ -102,7 +102,6 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-14 pt-8 border-t border-cloud-900 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[12px] text-cloud-500">
           <div>&copy; {new Date().getFullYear()} Weave Systems. Apache 2.0 Open Source.</div>
-          <div>Built with Host Grotesk &bull; Go 1.23 &bull; React 19</div>
         </div>
       </div>
     </footer>
