@@ -1,199 +1,204 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowRight, Bot, GitBranch, ShieldAlert, Wrench, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Bot, ShieldCheck, Check, CornerDownRight } from "lucide-react";
 
-const stackItems = [
-  { name: "Google Gemini 3.8", sub: "Flash & Pro Reasoning" },
-  { name: "Anthropic Opus 5.5", sub: "Agentic Tool Calling" },
-  { name: "OpenAI GPT-6.1 Sol", sub: "Structured Outputs & Reasoning" },
-  { name: "PostgreSQL 15+", sub: "Durable Event Store" },
-  { name: "Google CEL", sub: "Type-Safe Conditions" },
-  { name: "React Flow", sub: "Visual Graph Canvas" },
+const providers = [
+  "Google Gemini 3.8",
+  "Anthropic Claude 3.7",
+  "OpenAI GPT-4.5 / o3",
+  "Type-Safe CEL",
+  "Custom HTTP Tools",
 ];
 
 export function HeroSection() {
-  const [activeNode, setActiveNode] = useState<number>(2); // Gate node selected by default
   const [gateApproved, setGateApproved] = useState<boolean>(false);
-
-  const nodes = [
-    {
-      id: "01",
-      title: "extract_ticket",
-      type: "agent",
-      model: "gemini-3.8-flash",
-      status: "committed",
-      output: '{"category": "refund", "amount_usd": 150.00}',
-    },
-    {
-      id: "02",
-      title: "check_spending_cap",
-      type: "router",
-      model: "CEL: out.amount_usd > 100",
-      status: "committed",
-      output: 'Route selected: "manager_approval_gate"',
-    },
-    {
-      id: "03",
-      title: "manager_approval_gate",
-      type: "gate",
-      model: "timeout: 86400s",
-      status: gateApproved ? "resolved" : "waiting_human",
-      output: gateApproved
-        ? 'Approved by Lead • Resumed via Postgres lease'
-        : 'Run suspended • 0 thread cost • Awaiting sign-off',
-    },
-    {
-      id: "04",
-      title: "stripe_refund_tool",
-      type: "tool",
-      model: "POST /v1/refunds",
-      status: gateApproved ? "executed" : "queued",
-      output: gateApproved ? '{"charge_id": "ch_3N8...", "status": "succeeded"}' : 'Awaiting upstream gate resolution',
-    },
-  ];
 
   return (
     <div className="relative pt-24 md:pt-28 pb-12 overflow-hidden border-b border-cloud-200 dark:border-cloud-50/10">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
         {/* Main Hero Split */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center min-h-[520px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Copy Column */}
-          <div className="lg:col-span-6 flex flex-col justify-center">
-            <h1 className="font-display font-medium text-[42px] sm:text-[60px] lg:text-[72px] leading-[1.0] tracking-[-0.03em] text-umber-800 dark:text-cloud-50">
-              <span className="block">Build AI workflows</span>
-              <span className="block">that don't crash</span>
-              <span className="block text-mid-brown dark:text-cloud-300">or blow your budget.</span>
+          <div className="lg:col-span-5 flex flex-col justify-center">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cloud-100 dark:bg-umber-800 border border-cloud-200 dark:border-cloud-50/15 w-fit text-xs font-mono text-mid-brown dark:text-cloud-300 mb-4">
+              <span className="size-1.5 rounded-full bg-status-live" />
+              <span>Weave Cloud Platform</span>
+            </div>
+
+            <h1 className="font-display font-medium text-[38px] sm:text-[48px] lg:text-[56px] leading-[1.05] tracking-[-0.03em] text-umber-800 dark:text-cloud-50">
+              <span className="block">Reliable AI workflows.</span>
+              <span className="block text-mid-brown dark:text-cloud-300">Zero setup.</span>
             </h1>
 
-            <p className="mt-5 max-w-[460px] text-[16px] sm:text-[17px] leading-[1.5] text-mid-brown dark:text-cloud-300">
-              Reliable multi-agent orchestration with hard spending caps, PostgreSQL persistence, and built-in human approval gates.
+            <p className="mt-4 text-[15px] sm:text-[16px] leading-relaxed text-mid-brown dark:text-cloud-300 max-w-md">
+              Design, test, and run multi-agent workflows in the cloud. Guard against runaway costs with hard budget caps and human approval gates.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               <a
                 href="https://weave-orchestrator-main.vercel.app"
-                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-5 text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-md bg-umber-800 px-5 text-[13px] font-medium text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors shadow-sm"
               >
-                <span>Launch Visual Editor</span>
-                <ArrowRight className="size-[14px]" />
+                <span>Launch Studio</span>
+                <ArrowRight className="size-3.5" />
               </a>
 
               <a
-                href="#use-cases"
-                className="inline-flex h-11 items-center justify-center rounded-[4px] border border-umber-400 bg-transparent px-5 text-[14px] font-medium tracking-[0.01em] text-umber-800 hover:border-current hover:bg-current/5 dark:border-cloud-100/40 dark:text-cloud-100 transition-colors"
+                href="https://weave-documentation.vercel.app"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center justify-center rounded-md border border-cloud-300 bg-transparent px-5 text-[13px] font-medium text-umber-800 hover:bg-cloud-100/60 dark:border-cloud-50/20 dark:text-cloud-200 dark:hover:bg-cloud-50/5 transition-colors"
               >
-                Who uses Weave?
+                Documentation
               </a>
             </div>
           </div>
 
-          {/* Architectural Axis & Scrubber (Zaro Hero Visual) */}
-          <div className="lg:col-span-6">
-            <div className="relative rounded-none border border-cloud-200 dark:border-cloud-50/15 bg-cloud-100 dark:bg-umber-800 p-5 md:p-7">
-              {/* CAD coordinate top bar */}
-              <div className="flex items-center justify-between border-b border-dashed border-cloud-300 dark:border-cloud-50/20 pb-3 mb-5 font-mono text-[11px] text-mid-brown dark:text-cloud-300">
-                <span className="flex items-center gap-1.5">
-                  <span className="size-2 rounded-full bg-status-live" />
-                  <span>LIVE DEMO RUN</span>
-                </span>
-                <span>SAVED TO POSTGRESQL</span>
-                <span className="text-umber-800 dark:text-cloud-100 font-semibold">$0.0134 / $0.500 SPEND CAP</span>
-              </div>
-
-              {/* Step Scrubber Line */}
-              <div className="relative mb-6">
-                <div className="absolute top-1/2 left-0 right-0 h-px -translate-y-1/2 border-t border-dashed border-cloud-400 dark:border-cloud-50/20" />
-                <div className="relative flex justify-between">
-                  {nodes.map((n, i) => (
-                    <button
-                      key={n.id}
-                      type="button"
-                      onClick={() => setActiveNode(i)}
-                      className={`relative z-10 flex size-9 items-center justify-center rounded-[2px] font-mono text-[12px] font-medium transition-all ${
-                        activeNode === i
-                          ? "border border-umber-800 bg-umber-800 text-cloud-50 dark:border-cloud-50 dark:bg-cloud-50 dark:text-umber-900 shadow-sm"
-                          : "border border-cloud-300 bg-cloud-50 text-mid-brown dark:border-cloud-50/30 dark:bg-umber-900 dark:text-cloud-300 hover:border-umber-800"
-                      }`}
-                    >
-                      {n.id}
-                    </button>
-                  ))}
+          {/* Right Preview Card - Clean & Minimal */}
+          <div className="lg:col-span-7">
+            <div className="rounded-xl border border-cloud-200 dark:border-cloud-50/15 bg-cloud-50 dark:bg-umber-800/90 shadow-xl overflow-hidden">
+              {/* Window Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-cloud-200 dark:border-cloud-50/10 bg-cloud-100/60 dark:bg-umber-900/60 text-xs">
+                <div className="flex items-center gap-2 font-mono text-mid-brown dark:text-cloud-300">
+                  <span className="flex gap-1.5">
+                    <span className="size-2.5 rounded-full bg-cloud-300 dark:bg-cloud-50/20" />
+                    <span className="size-2.5 rounded-full bg-cloud-300 dark:bg-cloud-50/20" />
+                    <span className="size-2.5 rounded-full bg-cloud-300 dark:bg-cloud-50/20" />
+                  </span>
+                  <span className="ml-2 font-medium text-umber-800 dark:text-cloud-100">support_triage.json</span>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono text-[11px] text-mid-brown dark:text-cloud-300">
+                  <span className="size-1.5 rounded-full bg-status-live" />
+                  <span>Cloud Active</span>
                 </div>
               </div>
 
-              {/* Active Node Detail Card */}
-              <div className="border border-cloud-200 bg-cloud-50 p-4 dark:border-cloud-50/10 dark:bg-umber-900">
-                <div className="flex items-center justify-between border-b border-cloud-200 dark:border-cloud-50/10 pb-2 mb-3">
-                  <div>
-                    <div className="font-display font-medium text-[16px] text-charcoal dark:text-cloud-50">
-                      {nodes[activeNode].title}
+              {/* Connected Steps */}
+              <div className="p-5 space-y-3.5">
+                {/* Step 1: Extract Ticket */}
+                <div className="rounded-lg border border-cloud-200 dark:border-cloud-50/10 bg-cloud-100/40 dark:bg-umber-900/50 p-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="size-7 rounded-md bg-cloud-200/60 dark:bg-cloud-50/10 flex items-center justify-center text-umber-800 dark:text-cloud-100">
+                      <Bot className="size-4" />
                     </div>
-                    <div className="font-mono text-[11px] text-mid-brown dark:text-cloud-400">
-                      {nodes[activeNode].model}
+                    <div>
+                      <div className="text-xs font-semibold text-umber-800 dark:text-cloud-100">
+                        1. extract_ticket
+                      </div>
+                      <div className="text-[11px] font-mono text-mid-brown dark:text-cloud-400">
+                        gemini-3.8-flash • parsed refund amount ($150.00)
+                      </div>
                     </div>
                   </div>
-
-                  <span
-                    className={`inline-flex items-center rounded-[2px] px-2 py-0.5 font-mono text-[10px] font-medium uppercase border ${
-                      nodes[activeNode].status === "waiting_human"
-                        ? "border-amber-500 text-amber-700 bg-amber-500/10"
-                        : "border-status-live text-status-live bg-status-live/10"
-                    }`}
-                  >
-                    {nodes[activeNode].status}
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-status-live/40 bg-status-live/10 text-status-live font-medium">
+                    Passed
                   </span>
                 </div>
 
-                <div className="font-mono text-[11px] text-cloud-700 dark:text-cloud-400 mb-1">
-                  EVENT LOG PAYLOAD:
-                </div>
-                <pre className="overflow-x-auto rounded-[2px] bg-cloud-950 p-3 font-mono text-[12px] text-lilac-300">
-                  <code>{nodes[activeNode].output}</code>
-                </pre>
-
-                {/* Human gate resolution button when on gate */}
-                {activeNode === 2 && !gateApproved && (
-                  <div className="mt-3.5 flex items-center justify-between border-t border-cloud-200 dark:border-cloud-50/10 pt-3">
-                    <span className="font-display text-[13px] text-charcoal dark:text-cloud-200">
-                      Human Review: Amount &gt; $100
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setGateApproved(true);
-                        setActiveNode(3);
-                      }}
-                      className="inline-flex h-8 items-center gap-1 rounded-[2px] bg-umber-800 px-3 font-mono text-[11px] font-medium text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900"
+                {/* Step 2: Human Review Gate */}
+                <div className="rounded-lg border border-cloud-300 dark:border-cloud-50/20 bg-cloud-50 dark:bg-umber-900 p-3.5 space-y-2.5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="size-7 rounded-md bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <ShieldCheck className="size-4" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-umber-800 dark:text-cloud-100">
+                          2. manager_approval_gate
+                        </div>
+                        <div className="text-[11px] font-mono text-mid-brown dark:text-cloud-400">
+                          policy: require human approval for refund &gt; $100
+                        </div>
+                      </div>
+                    </div>
+                    <span
+                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-medium ${
+                        gateApproved
+                          ? "border-status-live/40 bg-status-live/10 text-status-live"
+                          : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                      }`}
                     >
-                      <span>Approve Step</span>
-                      <ArrowRight className="size-3" />
-                    </button>
+                      {gateApproved ? "Approved" : "Needs Review"}
+                    </span>
                   </div>
-                )}
+
+                  {!gateApproved && (
+                    <div className="flex items-center justify-between pt-2 border-t border-cloud-200 dark:border-cloud-50/10 text-xs">
+                      <span className="text-[11px] text-mid-brown dark:text-cloud-300">
+                        Paused safely • 0 compute wasted
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setGateApproved(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-umber-800 dark:bg-cloud-100 text-cloud-50 dark:text-umber-900 text-xs font-medium hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
+                      >
+                        <Check className="size-3" />
+                        <span>Approve $150 Refund</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Step 3: Execute Action */}
+                <div
+                  className={`rounded-lg border transition-opacity p-3.5 flex items-center justify-between ${
+                    gateApproved
+                      ? "border-cloud-200 dark:border-cloud-50/10 bg-cloud-100/40 dark:bg-umber-900/50 opacity-100"
+                      : "border-cloud-200/50 dark:border-cloud-50/5 bg-cloud-100/20 dark:bg-umber-900/20 opacity-60"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-7 rounded-md bg-cloud-200/60 dark:bg-cloud-50/10 flex items-center justify-center text-umber-800 dark:text-cloud-100">
+                      <CornerDownRight className="size-4" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-umber-800 dark:text-cloud-100">
+                        3. stripe_refund_tool
+                      </div>
+                      <div className="text-[11px] font-mono text-mid-brown dark:text-cloud-400">
+                        {gateApproved ? "succeeded • charge_id: ch_3N8..." : "waiting for upstream approval"}
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-cloud-300 dark:border-cloud-50/20 text-mid-brown dark:text-cloud-400 font-medium">
+                    {gateApproved ? "Executed" : "Queued"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Bottom Telemetry Bar */}
+              <div className="px-5 py-3 border-t border-cloud-200 dark:border-cloud-50/10 bg-cloud-100/50 dark:bg-umber-900/60 flex items-center justify-between text-[11px] font-mono text-mid-brown dark:text-cloud-300">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cloud-400 dark:text-cloud-500">Spend:</span>
+                  <span className="font-semibold text-umber-800 dark:text-cloud-100">$0.013 / $0.50 cap</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5">
+                  <span className="text-cloud-400 dark:text-cloud-500">Duration:</span>
+                  <span className="text-umber-800 dark:text-cloud-100">1.2s</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-cloud-400 dark:text-cloud-500">Persistence:</span>
+                  <span className="text-umber-800 dark:text-cloud-100">Cloud checkpoint</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* BUILT FOR PRODUCTION BAND (Zaro Section 2 style) */}
-        <div className="mt-14 pt-6 border-t border-umber-800/10 dark:border-cloud-50/12">
-          <span className="block font-mono text-[11px] font-normal uppercase tracking-[0.01em] text-cloud-500 dark:text-cloud-300 mb-3">
-            ENGINEERED FOR MULTI-PROVIDER RELIABILITY
+        {/* Supported Ecosystem Bar */}
+        <div className="mt-12 pt-6 border-t border-cloud-200 dark:border-cloud-50/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-mid-brown dark:text-cloud-400">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-cloud-500 dark:text-cloud-400 font-medium">
+            Multi-Provider Support
           </span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            {stackItems.map((item, idx) => (
-              <div
-                key={idx}
-                className="flex h-[56px] flex-col justify-center px-3 rounded-[4px] border border-dashed border-cloud-200 dark:border-cloud-50/18 hover:border-cloud-400 transition-colors"
+          <div className="flex flex-wrap items-center gap-2">
+            {providers.map((p) => (
+              <span
+                key={p}
+                className="px-2.5 py-1 rounded border border-cloud-200 dark:border-cloud-50/15 bg-cloud-100/60 dark:bg-umber-800 text-[11px] font-mono text-umber-800 dark:text-cloud-200"
               >
-                <span className="font-display text-[13px] font-medium tracking-tight text-umber-800 dark:text-cloud-100">
-                  {item.name}
-                </span>
-                <span className="font-mono text-[10px] text-cloud-500 dark:text-cloud-400">
-                  {item.sub}
-                </span>
-              </div>
+                {p}
+              </span>
             ))}
           </div>
         </div>
