@@ -2,9 +2,14 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
 export function middleware(request: NextRequest) {
-  const sessionCookie = getSessionCookie(request);
   const { pathname } = request.nextUrl;
 
+  // Bypass API routes completely so client fetch calls and webhooks never get redirected to HTML login
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  const sessionCookie = getSessionCookie(request);
   const isAuthPage = pathname === '/login' || pathname === '/signup';
 
   // If user is not authenticated and trying to access protected route, redirect to /login
@@ -28,11 +33,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - api/auth (Better Auth endpoints)
+     * - api (API endpoints including Better Auth and /api/v1)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - Static asset extensions (.svg, .png, .ico, .jpg, etc.)
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

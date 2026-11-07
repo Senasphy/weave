@@ -9,11 +9,30 @@ import {
   Diagnostic,
 } from './types';
 
-let rawBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080').trim().replace(/\/+$/, '');
-if (rawBase && !rawBase.startsWith('http://') && !rawBase.startsWith('https://')) {
-  rawBase = `https://${rawBase}`;
+export function resolveApiBase(): string {
+  const customUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (customUrl) {
+    let raw = customUrl.replace(/\/+$/, '');
+    if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+      raw = `https://${raw}`;
+    }
+    return raw.endsWith('/v1') ? raw : `${raw}/v1`;
+  }
+
+  if (typeof window !== 'undefined') {
+    return '/api/v1';
+  }
+
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/v1`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/v1`;
+  }
+  return 'http://localhost:3000/api/v1';
 }
-export const API_BASE = rawBase.endsWith('/v1') ? rawBase : `${rawBase}/v1`;
+
+export const API_BASE = resolveApiBase();
 
 function getSessionToken(): string | null {
   if (typeof document === 'undefined') return null;
@@ -23,7 +42,8 @@ function getSessionToken(): string | null {
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE}${endpoint}`;
+  const base = resolveApiBase();
+  const url = `${base}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
   const token = getSessionToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
