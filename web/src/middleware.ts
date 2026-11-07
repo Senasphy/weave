@@ -31,8 +31,8 @@ export const config = {
      * - api/auth (Better Auth endpoints)
      * - _next/static (static files)
      * - _next/image (image optimization files)
-     * - favicon.ico, icon.svg, weave-mark.svg (public images and icons)
+     * - Static asset extensions (.svg, .png, .ico, .jpg, etc.)
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|icon.svg|weave-mark.svg).*)',
+    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

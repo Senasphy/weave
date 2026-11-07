@@ -41,7 +41,7 @@ export function WeaveLogo({
       >
         <img
           src="/weave-mark.svg"
-          alt={alt}
+          alt={isFull ? "" : alt}
           width={36}
           height={24}
           className="h-full w-auto block dark:hidden object-contain"
@@ -49,7 +49,7 @@ export function WeaveLogo({
         />
         <img
           src="/weave-mark-dark.svg"
-          alt={alt}
+          alt={isFull ? "" : alt}
           width={36}
           height={24}
           className="h-full w-auto hidden dark:block object-contain"
