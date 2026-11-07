@@ -8,9 +8,9 @@ export function Footer() {
   return (
     <footer className="bg-cloud-950 text-cloud-200 py-16 md:py-20 border-t border-cloud-900">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 sm:gap-10">
           {/* Logo & Manifesto */}
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <WeaveLogo variant="full" textClassName="text-[20px] text-cloud-50" />
             <p className="mt-4 max-w-sm text-[14px] leading-[1.6] text-cloud-400">
               One current, attributable runtime for your business workflows. Backed by durable cloud state and hard budget governance.

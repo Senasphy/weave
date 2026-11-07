@@ -168,7 +168,7 @@ export function InspectorPanel() {
     return (
       <aside
         aria-label="Property Inspector"
-        className="w-80 bg-card border-l border-border p-6 flex flex-col items-center justify-center text-center select-none"
+        className="w-full sm:w-80 bg-card border-l border-border p-6 flex flex-col items-center justify-center text-center select-none"
       >
         <div className="w-10 h-10 rounded-2xl border border-border bg-secondary flex items-center justify-center mb-3 text-muted-foreground">
           <Code2 className="w-5 h-5 text-muted-foreground" />
@@ -187,7 +187,7 @@ export function InspectorPanel() {
   return (
     <aside
       aria-label="Property Inspector"
-      className="w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden select-none text-foreground"
+      className="w-full sm:w-80 bg-card border-l border-border flex flex-col h-full overflow-hidden select-none text-foreground"
     >
       {/* Panel Header */}
       <div className="p-4 border-b border-border flex items-center justify-between bg-card">

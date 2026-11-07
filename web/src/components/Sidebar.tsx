@@ -83,12 +83,21 @@ export function Sidebar({
   const isSettingsActive = pathname.startsWith('/settings');
 
   return (
-    <aside
-      className={cn(
-        'h-full bg-background border-r border-border flex flex-col justify-between shrink-0 transition-all duration-200 z-30 select-none',
-        collapsed ? 'w-16' : 'w-64'
+    <>
+      {!collapsed && (
+        <div
+          onClick={onToggleCollapse}
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden"
+        />
       )}
-    >
+      <aside
+        className={cn(
+          'h-full bg-background border-r border-border flex flex-col justify-between shrink-0 transition-all duration-200 select-none',
+          collapsed
+            ? 'w-14 sm:w-16 z-30'
+            : 'fixed inset-y-0 left-0 w-64 z-50 shadow-2xl md:relative md:shadow-none'
+        )}
+      >
       {/* Top Part: Brand + Search + Main Navigation */}
       <div className="flex flex-col min-h-0">
         {/* Brand Header */}
@@ -405,5 +414,6 @@ export function Sidebar({
         </DropdownMenu.Root>
       </div>
     </aside>
+    </>
   );
 }

@@ -29,12 +29,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [isSessionPending, session, isAuthPage, pathname, router]);
 
   useEffect(() => {
-    if (isWorkflowCanvas) {
+    if (isWorkflowCanvas || (typeof window !== 'undefined' && window.innerWidth < 768)) {
       setCollapsed(true);
     } else {
       setCollapsed(false);
     }
   }, [isWorkflowCanvas]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setCollapsed(true);
+    }
+  }, [pathname]);
 
   // Global ⌘K / Ctrl+K shortcut to open command menu / search
   useEffect(() => {

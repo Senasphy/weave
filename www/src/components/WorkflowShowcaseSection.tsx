@@ -10,13 +10,13 @@ const workflows = [
     color: "bg-lilac-400",
     title: "Customer Support Triage & High-Value Refund Gate.",
     description:
-      "A customer requests a $150.00 refund. Gemini 3.8 Flash extracts the dollar amount into typed JSON. A CEL router evaluates out.amount_usd > 100 and pauses execution at a human approval gate. The worker releases its database lease and safely sleeps until a manager signs off.",
+      "A customer requests a $150.00 refund. Gemini 3.8 Flash extracts the dollar amount into typed JSON. A CEL router evaluates out.amount_usd > 100 and pauses execution at a human approval gate. The worker releases its cloud compute lease and safely sleeps until a manager signs off.",
     meta: "Primitives: Agent -> CEL Router -> Human Gate -> Stripe Tool",
   },
   {
     id: "research",
     pill: "Parallel Synthesis",
-    color: "bg-blue-200",
+    color: "bg-mid-brown dark:bg-cloud-300",
     title: "Multi-Model Document Synthesis with Parallel Joins.",
     description:
       "Fan-out simultaneous queries across Google Gemini 3.8 Flash, Anthropic Sonnet 5.5, and private company embeddings. Collect independent outputs concurrently, evaluate consensus with a Join step, and enforce a strict $0.25 total cost cap.",

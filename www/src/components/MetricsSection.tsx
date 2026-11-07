@@ -19,9 +19,9 @@ export function MetricsSection() {
           </div>
 
           {/* Technical CAD Curve Figure */}
-          <div className="border border-cloud-200 bg-cloud-100 p-6 dark:border-cloud-50/15 dark:bg-umber-900 rounded-none">
+          <div className="border border-cloud-200 bg-cloud-100 p-4 sm:p-6 dark:border-cloud-50/15 dark:bg-umber-900 rounded-none">
             {/* Legend */}
-            <div className="flex items-center gap-6 font-mono text-[11px] text-mid-brown dark:text-cloud-300 pb-4 mb-4 border-b border-cloud-200 dark:border-cloud-50/10">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-[11px] text-mid-brown dark:text-cloud-300 pb-4 mb-4 border-b border-cloud-200 dark:border-cloud-50/10">
               <div className="flex items-center gap-2">
                 <span className="size-2 rounded-full bg-status-live" />
                 <span>Effort per Workflow (Drops)</span>

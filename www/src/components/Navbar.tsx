@@ -74,13 +74,14 @@ export function Navbar() {
           </nav>
 
           {/* Right Action */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <a
               href="https://weave-orchestrator-main.vercel.app"
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-3.5 text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-[4px] bg-umber-800 px-2.5 sm:px-3.5 text-[13px] sm:text-[14px] font-medium tracking-[0.01em] text-cloud-50 hover:bg-umber-700 dark:bg-cloud-100 dark:text-umber-900 dark:hover:bg-cloud-50 transition-colors"
             >
-              <span>Launch Weave</span>
+              <span className="hidden sm:inline">Launch Weave</span>
+              <span className="sm:hidden">Studio</span>
               <ArrowRight className="size-[13px]" />
             </a>
 
@@ -137,6 +138,7 @@ export function Navbar() {
               href="https://weave-documentation.vercel.app"
               target="_blank"
               rel="noreferrer"
+              onClick={() => setMobileOpen(false)}
               className="py-1.5 text-[14px] font-medium text-mid-brown dark:text-cloud-300"
             >
               Docs &rarr;

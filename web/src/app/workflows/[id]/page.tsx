@@ -220,7 +220,7 @@ export default function WorkflowEditorPage() {
         <div
           className={cn(
             'transition-all duration-300 ease-out flex shrink-0',
-            hasSelection ? 'w-80' : 'w-0'
+            hasSelection ? 'w-full sm:w-80 fixed sm:relative right-0 inset-y-14 sm:inset-auto z-40' : 'w-0'
           )}
         >
           {hasSelection && <InspectorPanel />}

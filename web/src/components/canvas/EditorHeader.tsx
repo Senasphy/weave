@@ -116,23 +116,23 @@ export function EditorHeader() {
   };
 
   return (
-    <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-5 select-none z-20 shrink-0">
+    <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-5 select-none z-20 shrink-0 gap-2">
       {/* Left: Workflow metadata */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-foreground flex items-center justify-center shrink-0 shadow-sm">
           <Workflow className="w-4 h-4" />
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <h1 className="text-xs font-semibold text-foreground tracking-tight">
+        <div className="flex items-center gap-2 min-w-0">
+          <h1 className="text-xs font-semibold text-foreground tracking-tight truncate max-w-[120px] sm:max-w-none">
             {workflowName || graph.name}
           </h1>
 
           {/* Unsaved changes badge */}
           {isDirty && (
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>unsaved changes</span>
+              <span className="hidden sm:inline">unsaved changes</span>
             </span>
           )}
 
@@ -170,7 +170,7 @@ export function EditorHeader() {
           ) : (
             <Save className="w-3.5 h-3.5 text-muted-foreground" />
           )}
-          <span>{isSaving ? 'Saving...' : 'Save Draft'}</span>
+          <span className="hidden sm:inline">{isSaving ? 'Saving...' : 'Save Draft'}</span>
         </button>
 
         {/* Validate */}
@@ -185,7 +185,7 @@ export function EditorHeader() {
           ) : (
             <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
           )}
-          <span>{isValidating ? 'Validating...' : 'Validate'}</span>
+          <span className="hidden sm:inline">{isValidating ? 'Validating...' : 'Validate'}</span>
         </button>
 
         {/* Publish */}
@@ -200,7 +200,7 @@ export function EditorHeader() {
           ) : (
             <Upload className="w-3.5 h-3.5 text-muted-foreground" />
           )}
-          <span>{isPublishing ? 'Publishing...' : 'Publish'}</span>
+          <span className="hidden sm:inline">{isPublishing ? 'Publishing...' : 'Publish'}</span>
         </button>
 
         {/* Run */}

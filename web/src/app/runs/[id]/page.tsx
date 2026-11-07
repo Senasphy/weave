@@ -200,18 +200,18 @@ export default function RunViewerPage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden select-none bg-background text-foreground">
       {/* Header bar */}
-      <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-6 select-none shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-3">
+      <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-6 select-none shrink-0 z-20 sticky top-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href="/runs"
-            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors"
+            className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors shrink-0"
             title="Back to all runs"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs font-mono text-muted-foreground">Run</span>
-            <span className="font-semibold text-foreground text-xs font-mono">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs font-mono text-muted-foreground hidden sm:inline">Run</span>
+            <span className="font-semibold text-foreground text-xs font-mono truncate max-w-[120px] sm:max-w-none">
               {runId.slice(0, 16)}...
             </span>
             <StatusBadge status={run?.status} />
@@ -250,8 +250,8 @@ export default function RunViewerPage() {
       </header>
 
       {/* Budget meters strip */}
-      <div className="bg-card border-b border-border px-6 py-4 shrink-0 shadow-sm">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
+      <div className="bg-card border-b border-border px-3 sm:px-6 py-3 sm:py-4 shrink-0 shadow-sm">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 items-center">
           {/* Steps */}
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
@@ -397,9 +397,9 @@ export default function RunViewerPage() {
       </AnimatePresence>
 
       {/* Main split content area */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* Left pane: Timeline and Narration */}
-        <div className="w-1/2 border-r border-border flex flex-col bg-card min-h-0">
+        <div className="w-full lg:w-1/2 h-1/2 lg:h-full border-b lg:border-b-0 lg:border-r border-border flex flex-col bg-card min-h-0 shrink-0 lg:shrink">
           <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-card">
             <div className="inline-flex p-1 rounded-xl border border-border bg-secondary/60 gap-1">
               <button
@@ -534,7 +534,7 @@ export default function RunViewerPage() {
         </div>
 
         {/* Right pane: Event detail inspector */}
-        <div className="w-1/2 flex flex-col bg-background overflow-y-auto p-6 text-xs min-h-0">
+        <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col bg-background overflow-y-auto p-4 sm:p-6 text-xs min-h-0">
           {selectedEvent ? (
             <div className="space-y-5">
               <div className="pb-4 border-b border-border flex items-center justify-between">

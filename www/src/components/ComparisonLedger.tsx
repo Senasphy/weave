@@ -49,7 +49,7 @@ const comparisons = [
     script: "Unmanaged script processes",
     heavy: "Heavy Python runtime & dependencies",
     temporal: "Complex multi-cluster setup",
-    weave: "Single Go binary (API + Worker)",
+    weave: "Hosted Cloud Platform (Zero Ops / Instant Deploy)",
     weaveHighlight: true,
   },
 ];
@@ -71,8 +71,13 @@ export function ComparisonLedger() {
           </p>
         </div>
 
+        {/* Mobile scroll hint */}
+        <p className="mt-6 text-[12px] font-mono uppercase tracking-wider text-mid-brown dark:text-cloud-400 sm:hidden flex items-center gap-1">
+          <span>&larr; Swipe table horizontally &rarr;</span>
+        </p>
+
         {/* Comparison Table */}
-        <div className="mt-12 overflow-x-auto">
+        <div className="mt-4 sm:mt-12 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <div className="min-w-[800px] border border-cloud-200 dark:border-cloud-50/15 bg-cloud-100 dark:bg-umber-800">
             {/* Table Header */}
             <div className="grid grid-cols-5 p-5 border-b border-cloud-200 dark:border-cloud-50/15 font-mono text-[12px] uppercase text-mid-brown dark:text-cloud-300 font-medium">

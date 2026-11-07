@@ -41,8 +41,8 @@ export default function ApiReferencePage() {
             Base URL &amp; Conventions
           </h2>
           <div className="rounded-lg border border-border bg-card p-4 font-mono text-sm">
-            <div className="text-muted-foreground">Base Development URL:</div>
-            <div className="text-foreground">http://localhost:8080/v1</div>
+            <div className="text-muted-foreground">Production API Base URL:</div>
+            <div className="text-foreground">https://weave-orchestrator-main.vercel.app/api/v1</div>
           </div>
           <p>
             All request bodies must use <code>Content-Type: application/json</code>. All responses return JSON payloads with standard HTTP status codes. Real-time event streaming uses standard <code>text/event-stream</code>.
@@ -324,7 +324,7 @@ export default function ApiReferencePage() {
 
           <CodeBlock
             code={`// Client-side SSE consumption example
-const eventSource = new EventSource('http://localhost:8080/v1/runs/run_01hx48a1c9e/stream');
+const eventSource = new EventSource('https://weave-orchestrator-main.vercel.app/api/v1/runs/run_01hx48a1c9e/stream');
 
 eventSource.onmessage = (event) => {
   const payload = JSON.parse(event.data);

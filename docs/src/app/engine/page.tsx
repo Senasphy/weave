@@ -195,7 +195,7 @@ export default function EnginePage() {
           </ul>
           <CodeBlock
             code={`# Resolving a gate via API
-curl -X POST http://localhost:8080/v1/gates/gate_9f82bc/resolve \\
+curl -X POST https://weave-orchestrator-main.vercel.app/api/v1/gates/gate_9f82bc/resolve \\
   -H "Content-Type: application/json" \\
   -d '{
     "resolution": "edit",
