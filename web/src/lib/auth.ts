@@ -37,22 +37,65 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   };
 }
 
+const defaultAppUrl = 'https://weave-orchestrator-main.vercel.app';
+
 const rawBaseURL =
   process.env.BETTER_AUTH_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
-const baseURL = rawBaseURL ? rawBaseURL.trim().replace(/\/+$/, '') : undefined;
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined) ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : defaultAppUrl);
+const baseURL = rawBaseURL ? rawBaseURL.trim().replace(/\/+$/, '') : defaultAppUrl;
 
-const trustedOrigins: string[] = [];
-if (baseURL) trustedOrigins.push(baseURL);
-if (process.env.NEXT_PUBLIC_APP_URL) trustedOrigins.push(process.env.NEXT_PUBLIC_APP_URL.trim().replace(/\/+$/, ''));
-if (process.env.VERCEL_URL) trustedOrigins.push(`https://${process.env.VERCEL_URL.trim().replace(/\/+$/, '')}`);
+if (!process.env.BETTER_AUTH_URL) {
+  process.env.BETTER_AUTH_URL = baseURL;
+}
+
+const staticOrigins = [
+  'https://weave-orchestrator-main.vercel.app',
+  'https://weave-orchestrator.vercel.app',
+  'https://weave-documentation.vercel.app',
+  'https://*.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3456',
+  'http://localhost:8080',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3456',
+];
+if (baseURL && !staticOrigins.includes(baseURL)) staticOrigins.push(baseURL);
+if (process.env.NEXT_PUBLIC_APP_URL) staticOrigins.push(process.env.NEXT_PUBLIC_APP_URL.trim().replace(/\/+$/, ''));
+if (process.env.VERCEL_URL) staticOrigins.push(`https://${process.env.VERCEL_URL.trim().replace(/\/+$/, '')}`);
+if (process.env.VERCEL_PROJECT_PRODUCTION_URL) staticOrigins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim().replace(/\/+$/, '')}`);
 
 export const auth = betterAuth({
   database: pool,
   secret: process.env.BETTER_AUTH_SECRET || 'weave-insecure-dev-secret-replace-in-production',
   baseURL,
-  trustedOrigins: Array.from(new Set(trustedOrigins.filter(Boolean))),
+  trustedOrigins: async (request?: Request) => {
+    const origins = [...staticOrigins];
+    if (request) {
+      const originHeader = request.headers.get('origin') || request.headers.get('referer');
+      if (originHeader) {
+        try {
+          const originUrl = new URL(originHeader);
+          if (
+            originUrl.hostname === 'weave-orchestrator-main.vercel.app' ||
+            originUrl.hostname === 'weave-orchestrator.vercel.app' ||
+            originUrl.hostname.endsWith('.vercel.app') ||
+            originUrl.hostname === 'localhost' ||
+            originUrl.hostname === '127.0.0.1'
+          ) {
+            origins.push(originUrl.origin);
+          }
+        } catch {
+          // ignore invalid URLs
+        }
+      }
+    }
+    return Array.from(new Set(origins.filter(Boolean)));
+  },
+  advanced: {
+    trustedProxyHeaders: true,
+  },
   emailAndPassword: {
     enabled: true,
   },

@@ -101,9 +101,6 @@ function SignUpForm() {
           <Link href="/" className="mb-4 hover:opacity-90 transition-opacity">
             <WeaveLogo variant="mark" className="h-9 w-auto" />
           </Link>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent/80 border border-border text-[10px] font-mono font-medium text-muted-foreground uppercase tracking-widest mb-2.5">
-            Join the Network
-          </div>
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Create your account
           </h1>
