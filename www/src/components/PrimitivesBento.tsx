@@ -56,7 +56,7 @@ const primitives = [
     name: "Human Approval Gates",
     icon: ShieldAlert,
     subtitle: "Zero-cost safe pausing with human sign-off",
-    description: "Suspends the run when high-stakes operations require human review. The Go engine releases Postgres worker leases immediately so threads aren't wasted. Resumes seamlessly via API or the unified Web inbox.",
+    description: "Suspends the run when high-stakes operations require human review. The engine releases compute resources immediately so zero server threads are wasted. Resumes seamlessly via API or the visual Studio console.",
     code: `{
   "id": "manager_approval_gate",
   "type": "gate",

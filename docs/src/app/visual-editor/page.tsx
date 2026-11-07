@@ -19,7 +19,7 @@ export default function VisualEditorPage() {
       currentSection="Reference"
       currentPage="Visual Editor"
       previousPage={{ title: "CLI", href: "/cli" }}
-      nextPage={{ title: "Deployment", href: "/deployment" }}
+      nextPage={{ title: "Cloud Platform", href: "/deployment" }}
     >
       <h1>Visual editor</h1>
       <p className="text-lg !mt-0 text-muted-foreground">

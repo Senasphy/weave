@@ -102,7 +102,7 @@ export const navigation: NavSection[] = [
     items: [
       { title: "CLI Tool", href: "/cli" },
       { title: "Visual Editor", href: "/visual-editor" },
-      { title: "Deployment & Docker", href: "/deployment" },
+      { title: "Cloud Platform", href: "/deployment" },
     ],
   },
   {
@@ -197,5 +197,5 @@ export const searchItems = [
   { title: "SSE Streaming", section: "Reference", href: "/api-reference#sse-streaming" },
   { title: "CLI Commands", section: "Reference", href: "/cli" },
   { title: "Visual Editor", section: "Reference", href: "/visual-editor" },
-  { title: "Deployment", section: "Reference", href: "/deployment" },
+  { title: "Cloud Platform", section: "Reference", href: "/deployment" },
 ];

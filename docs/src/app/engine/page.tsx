@@ -32,7 +32,7 @@ export default function EnginePage() {
       <section id="execution-semantics">
         <h2>How steps execute</h2>
         <p>
-          Weave executes workflows step by step. The engine schedules each step as soon as its prerequisite steps finish, keeping an immutable log in PostgreSQL.
+          Weave executes workflows step by step. The engine schedules each step as soon as its prerequisite steps finish, keeping an immutable log in durable cloud storage.
         </p>
         <div id="turn-loop">
           <h3>The agent step execution cycle</h3>
@@ -65,7 +65,7 @@ export default function EnginePage() {
       <section id="event-sourcing">
         <h2>Step-by-step progress logging</h2>
         <p>
-          Weave logs every action as an append-only event in PostgreSQL rather than overwriting database records. This design provides three major guarantees:
+          Weave logs every action as an append-only event in durable storage rather than overwriting mutable records. This design provides three major guarantees:
         </p>
         <ul>
           <li><strong>Auditability:</strong> You can inspect every prompt, tool call, latency, and cost for any run in history.</li>
@@ -250,16 +250,15 @@ curl -X POST http://localhost:8080/v1/gates/gate_9f82bc/resolve \\
       </section>
 
       <section id="crash-recovery">
-        <h2>Crash recovery and leases</h2>
+        <h2>Durable recovery &amp; automatic retries</h2>
         <p>
-          Workers pull jobs from Postgres with <code>SELECT ... FOR UPDATE SKIP LOCKED</code>. A
-          claimed step gets a lease (default 60s).
+          Weave processes steps through an atomic, distributed queue. Each claimed step holds a durable execution lease.
         </p>
-        <p>If a worker crashes, is killed, or is partitioned:</p>
+        <p>If a worker or network request times out:</p>
         <ul>
-          <li>The lease expires in Postgres.</li>
-          <li>Another worker claims the expired step.</li>
-          <li>Recorded tool events are checked before re-executing side effects.</li>
+          <li>The execution lease expires safely.</li>
+          <li>A healthy runner resumes the step from the last recorded checkpoint.</li>
+          <li>Recorded tool and LLM events are verified before re-executing any external side effects.</li>
         </ul>
       </section>
     </DocsLayout>

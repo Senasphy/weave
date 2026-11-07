@@ -156,7 +156,7 @@ export default function DocsHomePage() {
             href="/engine"
             kicker="STEP-BY-STEP LOGGING"
             title="Resumable & Crash-Safe"
-            description="Every step logs its input and output to Postgres. If a worker dies or a server restarts, the workflow resumes seamlessly."
+            description="Every step logs its input and output to durable cloud checkpoints. If a network interruption occurs, the workflow resumes seamlessly."
           />
           <FoundationsCard
             href="/engine#human-gates"

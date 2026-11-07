@@ -11,7 +11,7 @@ const personas = [
     color: "text-umber-800 dark:text-cloud-100",
     bgColor: "bg-umber-800/10 dark:bg-cloud-100/10",
     summary:
-      "Resume crashed workflows instantly from PostgreSQL without repeating expensive model calls. Eliminate home-grown retry logic and queue bloat.",
+      "Resume crashed workflows instantly from cloud checkpoints without repeating expensive model calls. Eliminate home-grown retry logic and queue bloat.",
     features: [
       "Zero duplicate model calls on crash",
       "Type-safe schema validation",

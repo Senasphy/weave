@@ -146,7 +146,7 @@ export function WorkflowSimulator() {
           <span className="text-umber-400 dark:text-cloud-700">/</span>
 
           <span className="text-[12px] font-mono text-umber-600 dark:text-cloud-400">
-            Postgres Lease: {activeStepIndex === 2 && !gateApproved ? "Freed (0 thread cost)" : "Acquired"}
+            Compute Thread: {activeStepIndex === 2 && !gateApproved ? "Released (0 thread cost)" : "Active"}
           </span>
         </div>
 
@@ -275,7 +275,7 @@ export function WorkflowSimulator() {
                   Manager Approval Required for Refund ($150.00 &gt; $100.00 cap)
                 </div>
                 <div className="text-[11px] text-amber-700 dark:text-amber-300/80">
-                  Worker released Postgres claim. The workflow safely sleeps until a human approves.
+                  Worker released compute resources. The workflow safely sleeps until a human approves.
                 </div>
               </div>
             </div>
@@ -297,7 +297,7 @@ export function WorkflowSimulator() {
             <div className="flex items-center gap-2">
               <CheckCircle2 className="size-4 text-status-live shrink-0" />
               <div className="text-[12px] font-medium text-emerald-900 dark:text-emerald-200">
-                Run Succeeded. All events appended to Postgres. $0.0134 total spent.
+                Run Succeeded. All events saved to cloud log. $0.0134 total spent.
               </div>
             </div>
             <button

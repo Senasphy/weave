@@ -7,7 +7,7 @@ const techStack = [
   { name: "Google Gemini 3.8 Flash", desc: "Frontier multimodal & reasoning" },
   { name: "Anthropic Opus 5.5", desc: "Long-horizon agentic synthesis" },
   { name: "OpenAI GPT-6.1 Sol & o3", desc: "Complex tool calling" },
-  { name: "PostgreSQL 15+", desc: "Append-only durable event log" },
+  { name: "Durable Checkpoints", desc: "Zero lost workflow state" },
   { name: "Google CEL", desc: "Sandboxed deterministic routing" },
   { name: "OpenAPI 3.1", desc: "Strict typed client & server contract" },
   { name: "SSE Streams", desc: "Sub-millisecond real-time execution" },

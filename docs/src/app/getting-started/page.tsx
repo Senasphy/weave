@@ -5,31 +5,29 @@ import { CodeBlock } from "@/components/CodeBlock";
 import { Callout } from "@/components/Callout";
 import { TopicCard } from "@/components/FeatureCard";
 
-const archDiagram = `Next.js 15 App (Editor · Execution Viewer · Workflow Catalog)
+const cloudArchDiagram = `Weave Studio (Web Console at weave-orchestrator-main.vercel.app)
       │
-      │ REST (OpenAPI 3.1) + SSE Streams (/v1/runs/{id}/stream)
+      │ HTTPS REST (OpenAPI 3.1) + Real-Time SSE Streams
       ▼
-Go Orchestration Service (Single binary: api | worker | all)
-├── api/        HTTP handlers, OpenAPI router, SSE event bus
-├── graph/      Schema types, pure semantic validator, CEL compiler
-├── engine/     Scheduler, step executor, state reducers, budget checks, gates
-├── llm/        Provider adapters (OpenAI, Anthropic, Mock) + price registry
-├── tools/      MCP client, HTTP runner with SSRF filter, built-ins
-├── store/      Postgres (pgx), event stream log, durable job queue (SKIP LOCKED)
-└── trace/      Projections, event narration, timeline reconstructor
-      ▼
-PostgreSQL 15+ (The only external state dependency)`;
+Weave Managed Cloud Engine
+├── Visual Graph Compiler & Pure Semantic Validator
+├── Multi-Provider Model Hub (Gemini, Claude, GPT, Mock)
+├── Hard Spending Limiter (Tokens, Cost, Wall-Clock, Steps)
+├── Human Approval Gate Coordinator
+├── Sandboxed CEL Router & Reducer Pipeline
+└── Durable Checkpoint & Execution Event Stream`;
 
 export default function GettingStartedPage() {
   const toc = [
     { id: "introduction", title: "What is Weave?" },
-    { id: "architecture", title: "Architecture" },
+    { id: "architecture", title: "Cloud Architecture" },
     { id: "prerequisites", title: "Prerequisites" },
     { id: "quickstart", title: "Quickstart" },
-    { id: "step-1-validate", title: "1. Validate", level: 3 },
-    { id: "step-2-run", title: "2. Execute locally", level: 3 },
-    { id: "step-3-server", title: "3. Start API", level: 3 },
-    { id: "step-4-frontend", title: "4. Launch editor", level: 3 },
+    { id: "step-1-studio", title: "1. Open Studio", level: 3 },
+    { id: "step-2-keys", title: "2. Configure Providers", level: 3 },
+    { id: "step-3-workflow", title: "3. Build Workflow", level: 3 },
+    { id: "step-4-execute", title: "4. Run & Monitor", level: 3 },
+    { id: "step-5-gates", title: "5. Human Gates", level: 3 },
     { id: "next-steps", title: "Next steps" },
   ];
 
@@ -43,34 +41,32 @@ export default function GettingStartedPage() {
     >
       <h1>Getting started</h1>
       <p className="text-lg !mt-0 text-muted-foreground">
-        Set up, validate, and execute your first durable multi-agent workflow in a few minutes.
+        Build, test, and deploy production multi-agent workflows in the cloud with zero infrastructure setup.
       </p>
 
       <section id="introduction">
         <h2>What is Weave?</h2>
         <p>
-          Weave is a visual builder and execution engine for multi-step AI workflows.
-          Instead of writing fragile scripts that lose progress if a server restarts or run up huge API bills from runaway loops, Weave gives you:
+          Weave is a hosted visual builder and execution platform for multi-step AI workflows.
+          Instead of writing fragile scripts that lose state on server restarts or rack up runaway API bills from infinite loops, Weave gives you:
         </p>
         <ul>
           <li><strong>Visual workflow canvas</strong>: connect AI prompts, decisions, and tools without messy glue code</li>
-          <li><strong>Step-by-step state saving</strong>: every step saves to durable cloud storage so workflows can pause, resume, and recover from crashes</li>
-          <li><strong>Built-in human approvals</strong>: pause before sensitive actions (like refunds or emails) until a person clicks approve</li>
-          <li><strong>Hard spending limits</strong>: set strict caps on tokens, steps, time, and USD cost</li>
-          <li><strong>Full execution traces</strong>: inspect every prompt, tool call, and state change in real time</li>
+          <li><strong>Durable state checkpoints</strong>: every step saves automatically so workflows can pause, resume, and recover from failures</li>
+          <li><strong>Built-in human approvals</strong>: pause before sensitive actions (like refunds or outbound emails) until a person signs off</li>
+          <li><strong>Hard spending limits</strong>: set strict caps on tokens, steps, execution time, and USD cost</li>
+          <li><strong>Full execution traces</strong>: inspect every prompt, tool call, and state change in real time via live streaming</li>
         </ul>
       </section>
 
       <section id="architecture">
-        <h2>Architecture</h2>
+        <h2>Cloud Architecture</h2>
         <p>
-          Weave is split into a React/Next.js frontend and a unified Go backend backed by durable cloud storage.
-          The Go backend runs as a high-performance orchestration service with real-time SSE streaming.
+          Weave runs as a fully managed cloud platform. Workflows execute in an isolated, sandboxed runtime with automatic durable checkpoints and live event streaming.
         </p>
-        <CodeBlock code={archDiagram} language="text" filename="System architecture" />
+        <CodeBlock code={cloudArchDiagram} language="text" filename="Cloud platform architecture" />
         <Callout type="tip" title="Testing without API keys">
-          The engine includes a mock LLM adapter. You can run graphs with no OpenAI or
-          Anthropic keys and no outbound network calls.
+          The platform includes a built-in mock LLM provider. You can test and validate workflow graphs immediately with zero external API costs.
         </Callout>
       </section>
 
@@ -78,77 +74,78 @@ export default function GettingStartedPage() {
         <h2>Prerequisites</h2>
         <ul>
           <li>
-            <strong>Modern Web Browser</strong>: Chrome, Safari, Edge, or Firefox to access the visual studio
+            <strong>Web Browser</strong>: Chrome, Safari, Edge, or Firefox to access the visual studio
           </li>
           <li>
-            <strong>API Keys (Optional)</strong>: OpenAI, Anthropic, or Google AI Studio keys for live model execution
+            <strong>API Keys (Optional)</strong>: Google AI Studio (Gemini), Anthropic (Claude), or OpenAI keys for live model execution
           </li>
           <li>
-            <strong>Cloud Console Account</strong>: sign up in seconds with zero local setup required
+            <strong>Weave Account</strong>: sign in at{" "}
+            <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer">
+              weave-orchestrator-main.vercel.app
+            </a>
           </li>
         </ul>
       </section>
 
       <section id="quickstart">
         <h2>Quickstart</h2>
-        <p>Run the bundled support triage workflow from the repository.</p>
+        <p>Follow these steps to launch and execute your first workflow in Weave Cloud.</p>
 
-        <div id="step-1-validate">
-          <h3>1. Validate workflow semantics</h3>
+        <div id="step-1-studio">
+          <h3>1. Open Weave Studio</h3>
           <p>
-            The semantic validator checks graph reachability, edge compatibility, JSON schemas,
-            reducer rules, and CEL expressions:
-          </p>
-          <CodeBlock
-            code="go run ./cmd/weave validate examples/support_triage.json"
-            language="bash"
-            filename="Terminal"
-          />
-          <p>
-            Add <code>--json</code> for machine-readable output in CI.
+            Navigate to{" "}
+            <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer" className="font-medium text-foreground underline">
+              weave-orchestrator-main.vercel.app
+            </a>{" "}
+            and sign in. You will land directly in your workspace console with instant access to the visual canvas, run history, and human approval queue.
           </p>
         </div>
 
-        <div id="step-2-run">
-          <h3>2. Execute locally</h3>
-          <p>Run in-memory with step-by-step narration:</p>
-          <CodeBlock
-            code={`go run ./cmd/weave run examples/support_triage.json \\
-  --input '{"ticket": "Customer requesting $150 refund for defective unit"}'`}
-            language="bash"
-            filename="Terminal"
-          />
-          <Callout type="note" title="Human review gate">
-            Because the refund exceeds $100, the graph branches to{" "}
-            <code>manager_approval_gate</code> and enters <code>waiting_human</code>.
+        <div id="step-2-keys">
+          <h3>2. Configure Model Providers</h3>
+          <p>
+            Go to <strong>Settings</strong> to connect your model providers. Weave supports Google Gemini, Anthropic Claude, and OpenAI models. If you prefer to test workflows without spending tokens, select the built-in <code>mock</code> provider.
+          </p>
+        </div>
+
+        <div id="step-3-workflow">
+          <h3>3. Build or Select a Workflow</h3>
+          <p>
+            On the <strong>Workflows</strong> page, click <strong>Create workflow</strong> or choose the bundled <strong>Support Triage</strong> starter template. You can drag and drop nodes, configure prompts in the right-hand Inspector, and specify type-safe JSON schemas.
+          </p>
+          <Callout type="note" title="Automatic semantic validation">
+            As you edit, Weave continuously validates graph reachability, edge compatibility, and CEL expressions to ensure your workflow is structurally sound before publishing.
           </Callout>
         </div>
 
-        <div id="step-3-server">
-          <h3>3. Start the API server</h3>
+        <div id="step-4-execute">
+          <h3>4. Run and Monitor</h3>
+          <p>
+            Click <strong>Run</strong> in the visual editor to trigger execution interactively, or invoke your workflow via the Cloud REST API:
+          </p>
           <CodeBlock
-            code={`export DATABASE_URL="postgres://postgres:postgres@localhost:5432/weave?sslmode=disable"
-go run ./cmd/weave serve --port 8080`}
+            code={`curl -X POST https://weave-orchestrator-main.vercel.app/api/v1/runs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "workflow_id": "wf_support_triage",
+    "input": {
+      "ticket": "Customer requesting $150 refund for defective unit"
+    }
+  }'`}
             language="bash"
-            filename="Terminal"
-          />
-        </div>
-
-        <div id="step-4-frontend">
-          <h3>4. Launch the visual editor</h3>
-          <CodeBlock
-            code={`cd web
-pnpm install
-pnpm dev`}
-            language="bash"
-            filename="Terminal"
+            filename="Terminal / HTTP Client"
           />
           <p>
-            Launch the visual editor directly at{" "}
-            <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer">
-              weave-orchestrator-main.vercel.app
-            </a>{" "}
-            (or access your local dev instance) to inspect graphs, trace runs, and resolve gates.
+            Execution streams live events directly to your screen, displaying budget consumption (tokens, cost, wall-clock time) and step outputs in real time.
+          </p>
+        </div>
+
+        <div id="step-5-gates">
+          <h3>5. Review Human Approval Gates</h3>
+          <p>
+            When a workflow hits a sensitive threshold (such as a refund exceeding $100), execution safely suspends at a Human Gate. Visit the <strong>Approvals</strong> page (`/gates`) to inspect the pending payload and approve, reject, or edit the transition.
           </p>
         </div>
       </section>

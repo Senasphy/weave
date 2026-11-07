@@ -16,7 +16,7 @@ export function FinalCtaSection() {
           </h2>
 
           <p className="mt-6 max-w-[540px] text-[16px] sm:text-[18px] leading-[1.6] text-mid-brown dark:text-cloud-300">
-            Stop debugging lost runs, runaway API bills, and fragile Python loops. Connect your models, tools, and human approvals into structured workflows backed by PostgreSQL.
+            Stop debugging lost runs, runaway API bills, and fragile Python loops. Connect your models, tools, and human approvals into structured workflows backed by durable cloud checkpoints and hard budget governance.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-3">

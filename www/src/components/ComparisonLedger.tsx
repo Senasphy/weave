@@ -9,7 +9,7 @@ const comparisons = [
     script: "Lost on restart; must re-run all steps",
     heavy: "Requires custom Redis/DB setup",
     temporal: "Durable, but code-only",
-    weave: "Automatic; resumes last step from PostgreSQL",
+    weave: "Automatic; resumes last step from cloud checkpoints",
     weaveHighlight: true,
   },
   {

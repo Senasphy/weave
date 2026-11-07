@@ -179,7 +179,7 @@ Flags:
                 </td>
                 <td>Yes</td>
                 <td>None</td>
-                <td>PostgreSQL connection string.</td>
+                <td>Optional database connection string.</td>
               </tr>
               <tr>
                 <td>

@@ -4,146 +4,141 @@ import { DocsLayout } from "@/components/DocsLayout";
 import { CodeBlock } from "@/components/CodeBlock";
 import { Callout } from "@/components/Callout";
 
-const composeYaml = `version: '3.8'
-
-services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: weave-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: weave
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d weave"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    container_name: weave-backend
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: "postgres://postgres:password@postgres:5432/weave?sslmode=disable"
-      PORT: "8080"
-    ports:
-      - "8080:8080"
-
-  web:
-    build:
-      context: ../web
-      dockerfile: Dockerfile
-    container_name: weave-web
-    restart: unless-stopped
-    depends_on:
-      - backend
-    environment:
-      NEXT_PUBLIC_API_URL: "http://localhost:8080/v1"
-    ports:
-      - "3000:3000"
-
-volumes:
-  pgdata:`;
-
 export default function DeploymentPage() {
   const toc = [
-    { id: "overview", title: "Topology" },
-    { id: "docker", title: "Docker Compose" },
-    { id: "configuration", title: "Configuration" },
-    { id: "production", title: "Production" },
+    { id: "overview", title: "Cloud Architecture" },
+    { id: "endpoints", title: "Service Endpoints" },
+    { id: "durability", title: "Durable Execution" },
+    { id: "security", title: "Security & Isolation" },
+    { id: "webhooks", title: "API & Webhooks" },
   ];
 
   return (
     <DocsLayout
       toc={toc}
       currentSection="Reference"
-      currentPage="Deployment"
+      currentPage="Cloud Platform"
       previousPage={{ title: "Visual Editor", href: "/visual-editor" }}
     >
-      <h1>Deployment</h1>
+      <h1>Cloud Platform &amp; Architecture</h1>
       <p className="text-lg !mt-0 text-muted-foreground">
-        Run Weave with Docker Compose, Kubernetes, or standalone instances.
+        Weave is fully hosted and managed in the cloud. Deploy multi-agent workflows with zero server management or database maintenance.
       </p>
 
       <section id="overview">
-        <h2>Architecture topology</h2>
+        <h2>Managed Cloud Architecture</h2>
         <p>
-          Stateful concerns stay in PostgreSQL 15+, which holds immutable event logs (
-          <code>run_events</code>) and the durable job queue.
+          Weave runs on distributed cloud infrastructure with automated state durability, edge delivery, and live streaming.
+          You do not need to install databases, configure queue workers, or maintain server fleets.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-border p-4">
-            <div className="font-medium text-foreground">API pods</div>
-            <p className="!mt-1 text-sm">REST, schema validation, SSE fan-out. Stateless.</p>
+            <div className="font-medium text-foreground">Studio Web App</div>
+            <p className="!mt-1 text-sm">Visual workflow builder, real-time telemetry, human gates dashboard.</p>
           </div>
           <div className="rounded-lg border border-border p-4">
-            <div className="font-medium text-foreground">Worker pods</div>
-            <p className="!mt-1 text-sm">Lease steps, call LLMs, run tools, fold state.</p>
+            <div className="font-medium text-foreground">Cloud Engine</div>
+            <p className="!mt-1 text-sm">Validates semantics, executes agents, evaluates CEL conditions, and runs tools.</p>
           </div>
           <div className="rounded-lg border border-border p-4">
-            <div className="font-medium text-foreground">Postgres</div>
-            <p className="!mt-1 text-sm">Workflows, versions, events, and leases.</p>
+            <div className="font-medium text-foreground">Durable State Log</div>
+            <p className="!mt-1 text-sm">Append-only event checkpoints, real-time SSE broadcast, immutable run audits.</p>
           </div>
         </div>
       </section>
 
-      <section id="docker">
-        <h2>Docker Compose</h2>
+      <section id="endpoints">
+        <h2>Official Service Endpoints</h2>
         <p>
-          The repository includes a compose file for Postgres, the API, and the Next.js editor:
+          Weave services are mapped to production domains:
         </p>
-        <CodeBlock code="docker compose up -d --build" language="bash" filename="Terminal" />
-        <CodeBlock code={composeYaml} language="yaml" filename="docker-compose.yml" />
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-xs">
+            <thead className="border-b border-border bg-muted/30">
+              <tr>
+                <th className="px-4 py-2 text-left font-semibold">Service</th>
+                <th className="px-4 py-2 text-left font-semibold">URL</th>
+                <th className="px-4 py-2 text-left font-semibold">Description</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              <tr>
+                <td className="px-4 py-2.5 font-medium text-foreground">Studio Console</td>
+                <td className="px-4 py-2.5 font-mono text-muted-foreground">
+                  <a href="https://weave-orchestrator-main.vercel.app" target="_blank" rel="noreferrer" className="underline">
+                    weave-orchestrator-main.vercel.app
+                  </a>
+                </td>
+                <td className="px-4 py-2.5 text-muted-foreground">Visual editor, run inspection, human gate queue.</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2.5 font-medium text-foreground">Documentation</td>
+                <td className="px-4 py-2.5 font-mono text-muted-foreground">
+                  <a href="https://weave-documentation.vercel.app" target="_blank" rel="noreferrer" className="underline">
+                    weave-documentation.vercel.app
+                  </a>
+                </td>
+                <td className="px-4 py-2.5 text-muted-foreground">Guides, core concepts, and API reference.</td>
+              </tr>
+              <tr>
+                <td className="px-4 py-2.5 font-medium text-foreground">Marketing &amp; Overview</td>
+                <td className="px-4 py-2.5 font-mono text-muted-foreground">
+                  <a href="https://weave-orchestrator.vercel.app" target="_blank" rel="noreferrer" className="underline">
+                    weave-orchestrator.vercel.app
+                  </a>
+                </td>
+                <td className="px-4 py-2.5 text-muted-foreground">Product overview, feature benchmarks, and use cases.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
-      <section id="configuration">
-        <h2>Configuration</h2>
+      <section id="durability">
+        <h2>Durable Execution &amp; Crash Recovery</h2>
         <p>
-          Provide credentials via environment variables or a <code>.env</code> file:
+          Unlike in-memory Python scripts that forfeit execution progress if a process terminates, Weave saves immutable checkpoints after every step:
+        </p>
+        <ul>
+          <li><strong>Step-level durability</strong>: Each finished step output is committed before triggering subsequent nodes.</li>
+          <li><strong>Zero-thread pauses</strong>: Workflows waiting for human approval or external webhooks sleep safely without consuming CPU or memory.</li>
+          <li><strong>Automatic failover</strong>: If an upstream model provider experiences a transient 500 error, Weave recovers from the last checkpoint rather than re-running the entire workflow.</li>
+        </ul>
+      </section>
+
+      <section id="security">
+        <h2>Security &amp; Network Isolation</h2>
+        <p>
+          Weave applies security best practices across all multi-tenant and external network integrations:
+        </p>
+        <ul>
+          <li><strong>Encrypted credential storage</strong>: Model provider API keys (OpenAI, Anthropic, Gemini) are securely scoped to your workspace.</li>
+          <li><strong>SSRF filtering</strong>: External tool calls automatically block requests to private subnets, localhost, and cloud metadata services (e.g. <code>169.254.169.254</code>).</li>
+          <li><strong>Deterministic CEL evaluation</strong>: Conditional router expressions evaluate with Google CEL in a sandboxed, non-Turing complete runtime.</li>
+        </ul>
+      </section>
+
+      <section id="webhooks">
+        <h2>API &amp; Webhooks</h2>
+        <p>
+          Trigger workflow executions and stream results directly into your backend applications:
         </p>
         <CodeBlock
-          code={`# PostgreSQL connection string
-DATABASE_URL=postgres://postgres:password@localhost:5432/weave?sslmode=disable
-
-# Optional LLM credentials (required if not using mock provider)
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Server configuration
-PORT=8080
-LOG_LEVEL=info`}
+          code={`curl -X POST https://weave-orchestrator-main.vercel.app/api/v1/runs \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "workflow_id": "wf_finance_review",
+    "input": {
+      "transaction_id": "tx_90123",
+      "amount": 2500
+    }
+  }'`}
           language="bash"
-          filename=".env"
+          filename="Trigger Execution"
         />
-        <Callout type="tip" title="Migrations">
-          The Go service applies pending schema migrations from <code>migrations/</code> on
-          startup before accepting traffic.
+        <Callout type="tip" title="Real-time event streaming">
+          Listen to step events in real time by connecting an EventSource to <code>/api/v1/runs/:id/stream</code>.
         </Callout>
-      </section>
-
-      <section id="production">
-        <h2>Production notes</h2>
-        <ul>
-          <li>
-            Scale workers from pending rows in{" "}
-            <code>step_jobs WHERE status = &apos;queued&apos;</code>.
-          </li>
-          <li>Place PgBouncer in transaction mode beyond ~20 worker pods.</li>
-          <li>
-            Block worker egress to cloud metadata endpoints such as <code>169.254.169.254</code>.
-          </li>
-        </ul>
       </section>
     </DocsLayout>
   );
