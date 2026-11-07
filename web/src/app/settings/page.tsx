@@ -12,7 +12,6 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { ModelPrice } from '@/lib/types';
-import { WeaveLogo } from '@/components/WeaveLogo';
 
 export default function SettingsPage() {
   const { data: models = [], isLoading } = useQuery<ModelPrice[]>({
@@ -30,66 +29,32 @@ export default function SettingsPage() {
   return (
     <div className="flex-1 overflow-y-auto w-full bg-background">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        {/* 1. Top Header Banner */}
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div
-              className="absolute -right-20 -top-20 h-[380px] w-[380px] rounded-full opacity-35 blur-3xl"
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 70%)',
-              }}
-            />
-            <svg
-              className="absolute right-0 top-0 h-full w-full opacity-[0.12]"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="100%"
-            >
-              <defs>
-                <pattern id="settingsGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
-                </pattern>
-                <linearGradient id="settingsFadeMask" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="black" stopOpacity="0" />
-                  <stop offset="60%" stopColor="black" stopOpacity="1" />
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#settingsGrid)" mask="url(#settingsFadeMask)" />
-            </svg>
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block opacity-[0.10] pointer-events-none select-none">
-              <WeaveLogo variant="mark" className="h-64 w-auto" />
-            </div>
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-400 mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              <span>System &amp; Registry</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/60">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
               Settings &amp; Tools
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Workspace configuration, LLM token pricing tables, and tool execution sandboxing.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Workspace configuration, LLM token pricing tables, and tool execution sandboxing
             </p>
+          </div>
 
-            <div className="mt-5 flex items-center gap-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-secondary/80 border border-border text-xs font-mono text-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>Engine: Operational (v1.0)</span>
-              </div>
+          <div className="flex items-center gap-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border text-xs font-mono text-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span>Engine: Operational</span>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* 2. Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>CONFIGURED MODELS</span>
-                <Coins className="w-4 h-4 text-indigo-400" />
+                <Coins className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {models.length}
@@ -105,11 +70,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>AGENT TOOLS</span>
-                <Wrench className="w-4 h-4 text-indigo-400" />
+                <Wrench className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {tools.length}
@@ -125,7 +90,7 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>PERMISSION GATING</span>
@@ -145,11 +110,11 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>STORAGE BACKEND</span>
-                <Cpu className="w-4 h-4 text-indigo-400" />
+                <Cpu className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground">
                 Postgres
@@ -264,7 +229,7 @@ export default function SettingsPage() {
                       key={t.id}
                       className="hover:bg-white/[0.03] transition-colors"
                     >
-                      <td className="py-3.5 px-4 font-semibold text-xs font-mono text-indigo-400">
+                      <td className="py-3.5 px-4 font-semibold text-xs font-mono text-foreground">
                         {t.id}
                       </td>
                       <td className="py-3.5 px-4 text-xs text-muted-foreground">

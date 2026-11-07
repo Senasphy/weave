@@ -48,7 +48,7 @@ export default function RootLayout({
       style={{ colorScheme: 'dark' }}
       suppressHydrationWarning
     >
-      <body className="h-full bg-background text-foreground font-sans antialiased selection:bg-indigo-500/25 selection:text-foreground">
+      <body className="h-full bg-background text-foreground font-sans antialiased selection:bg-foreground/20 selection:text-foreground">
         <Providers>
           <AppShell>
             {children}

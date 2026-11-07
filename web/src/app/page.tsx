@@ -38,7 +38,6 @@ import {
 import { api } from '@/lib/api';
 import { WorkflowGraph } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
-import { WeaveLogo } from '@/components/WeaveLogo';
 import { cn } from '@/lib/cn';
 
 function formatDate(dateString: string) {
@@ -225,102 +224,50 @@ export default function WorkflowsPage() {
   return (
     <div className="flex-1 overflow-y-auto w-full bg-background">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        {/* 1. Hero Banner Matching Docs Design */}
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm p-6 sm:p-8">
-          {/* Subtle atmospheric ambient glow & perspective grid */}
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {/* Top-right ambient radial glow */}
-            <div
-              className="absolute -right-20 -top-20 h-[380px] w-[380px] rounded-full opacity-35 blur-3xl"
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 70%)',
-              }}
-            />
-
-            {/* Fine architectural technical grid */}
-            <svg
-              className="absolute right-0 top-0 h-full w-full opacity-[0.12]"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="100%"
-            >
-              <defs>
-                <pattern id="studioHeroGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
-                </pattern>
-                <linearGradient id="studioFadeMask" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="black" stopOpacity="0" />
-                  <stop offset="60%" stopColor="black" stopOpacity="1" />
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#studioHeroGrid)" mask="url(#studioFadeMask)" />
-            </svg>
-
-            {/* Subtle technical brand mark watermark */}
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block opacity-[0.10] pointer-events-none select-none">
-              <WeaveLogo variant="mark" className="h-64 w-auto" />
-            </div>
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-400 mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              <span>Studio Overview</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Build and run reliable AI workflows
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/60">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+              Workflows
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Weave lets you visually build, test, and run multi-step AI workflows. Connect LLM prompts,
-              tools, conditional branches, and human approvals — with strict spending caps and full step-by-step execution history.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Build, orchestrate, and manage multi-agent execution graphs
             </p>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2.5 text-xs sm:text-sm font-medium text-background transition-opacity hover:opacity-90 shadow-md cursor-pointer"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Create workflow</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(workflows, null, 2));
-                  const downloadAnchor = document.createElement('a');
-                  downloadAnchor.setAttribute('href', dataStr);
-                  downloadAnchor.setAttribute('download', `workflows-export-${Date.now()}.json`);
-                  document.body.appendChild(downloadAnchor);
-                  downloadAnchor.click();
-                  downloadAnchor.remove();
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-secondary cursor-pointer"
-              >
-                <FileCode className="h-4 w-4 text-muted-foreground" />
-                <span>Export JSON</span>
-              </button>
-
-              <a
-                href="https://weave-documentation.vercel.app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/60 px-4 py-2.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span>Documentation</span>
-                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/60" />
-              </a>
-            </div>
           </div>
-        </section>
 
-        {/* 2. Stat / Metric Cards - Modeled after FoundationsCard from Docs */}
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-foreground px-4 py-2 text-xs sm:text-sm font-semibold text-background transition-opacity hover:opacity-90 shadow-sm cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create workflow</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(workflows, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute('href', dataStr);
+                downloadAnchor.setAttribute('download', `workflows-export-${Date.now()}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+            >
+              <FileCode className="h-4 w-4 text-muted-foreground" />
+              <span>Export</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2. Stat / Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Workflows */}
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>TOTAL WORKFLOWS</span>
@@ -341,11 +288,11 @@ export default function WorkflowsPage() {
           </div>
 
           {/* Card 2: Active Runs */}
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>ACTIVE EXECUTIONS</span>
-                <Play className="w-4 h-4 text-indigo-400" />
+                <Play className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {activeRunsCount}
@@ -364,7 +311,7 @@ export default function WorkflowsPage() {
           </div>
 
           {/* Card 3: Failed Runs */}
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>FAILED RUNS</span>
@@ -386,7 +333,7 @@ export default function WorkflowsPage() {
           </div>
 
           {/* Card 4: Gates Awaiting Review */}
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>PENDING APPROVALS</span>
@@ -524,7 +471,7 @@ export default function WorkflowsPage() {
           /* Empty State */
           <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center">
             <div className="w-12 h-12 rounded-2xl border border-border bg-secondary flex items-center justify-center mx-auto text-muted-foreground">
-              <Network className="w-6 h-6 text-indigo-400" />
+              <Network className="w-6 h-6 text-muted-foreground" />
             </div>
             <h3 className="text-sm font-semibold text-foreground mt-3">
               {search ? 'No matching workflows' : 'No workflows yet'}
@@ -565,7 +512,7 @@ export default function WorkflowsPage() {
                         type="checkbox"
                         checked={selectedIds.length === filtered.length && filtered.length > 0}
                         onChange={handleSelectAll}
-                        className="rounded border-border bg-secondary text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                        className="rounded border-border bg-secondary accent-foreground cursor-pointer"
                       />
                     </th>
                     <th className="py-3 px-4">
@@ -603,7 +550,7 @@ export default function WorkflowsPage() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleSelectRow(wf.id)}
-                            className="rounded border-border bg-secondary text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                            className="rounded border-border bg-secondary accent-foreground cursor-pointer"
                           />
                         </td>
 
@@ -616,7 +563,7 @@ export default function WorkflowsPage() {
                             <div className="min-w-0">
                               <Link
                                 href={`/workflows/${wf.id}`}
-                                className="text-xs font-semibold text-foreground hover:text-indigo-400 transition-colors truncate block"
+                                className="text-xs font-semibold text-foreground hover:underline transition-colors truncate block"
                               >
                                 {wf.name}
                               </Link>
@@ -781,7 +728,7 @@ export default function WorkflowsPage() {
                       </div>
                       <Link
                         href={`/workflows/${wf.id}`}
-                        className="text-xs font-semibold text-foreground group-hover:text-indigo-400 transition-colors line-clamp-1"
+                        className="text-xs font-semibold text-foreground hover:underline transition-colors line-clamp-1"
                       >
                         {wf.name}
                       </Link>
@@ -801,7 +748,7 @@ export default function WorkflowsPage() {
                   </span>
                   <Link
                     href={`/workflows/${wf.id}`}
-                    className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:text-indigo-400 transition-colors"
+                    className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline transition-colors"
                   >
                     <span>Open Editor</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -879,12 +826,12 @@ export default function WorkflowsPage() {
                     className={cn(
                       'p-3.5 rounded-xl border text-left transition-all cursor-pointer relative',
                       selectedTemplate === 'triage'
-                        ? 'border-indigo-500 bg-indigo-500/10 ring-1 ring-indigo-500/40'
+                        ? 'border-foreground bg-accent/80 ring-1 ring-foreground/20'
                         : 'border-border bg-secondary/40 hover:bg-secondary/70'
                     )}
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg border border-border bg-secondary text-indigo-400 flex items-center justify-center">
+                      <div className="w-7 h-7 rounded-lg border border-border bg-secondary text-foreground flex items-center justify-center">
                         <Sparkles className="w-3.5 h-3.5" />
                       </div>
                       <div>
@@ -903,7 +850,7 @@ export default function WorkflowsPage() {
                     className={cn(
                       'p-3.5 rounded-xl border text-left transition-all cursor-pointer relative',
                       selectedTemplate === 'blank'
-                        ? 'border-indigo-500 bg-indigo-500/10 ring-1 ring-indigo-500/40'
+                        ? 'border-foreground bg-accent/80 ring-1 ring-foreground/20'
                         : 'border-border bg-secondary/40 hover:bg-secondary/70'
                     )}
                   >

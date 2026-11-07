@@ -19,7 +19,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
-import { WeaveLogo } from '@/components/WeaveLogo';
 
 const FILTER_TABS = [
   { label: 'All runs', value: '' },
@@ -96,75 +95,40 @@ export default function RunsPage() {
   return (
     <div className="flex-1 overflow-y-auto w-full bg-background">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        {/* 1. Header Banner */}
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div
-              className="absolute -right-20 -top-20 h-[380px] w-[380px] rounded-full opacity-35 blur-3xl"
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(99, 102, 241, 0.45) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 70%)',
-              }}
-            />
-            <svg
-              className="absolute right-0 top-0 h-full w-full opacity-[0.12]"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="100%"
-            >
-              <defs>
-                <pattern id="runsGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
-                </pattern>
-                <linearGradient id="runsFadeMask" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="black" stopOpacity="0" />
-                  <stop offset="60%" stopColor="black" stopOpacity="1" />
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#runsGrid)" mask="url(#runsFadeMask)" />
-            </svg>
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block opacity-[0.10] pointer-events-none select-none">
-              <WeaveLogo variant="mark" className="h-64 w-auto" />
-            </div>
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-400 mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-              <span>Durable Engine Logs</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Execution Runs & Traces
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/60">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+              Runs
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Track multi-agent workflow executions with step-by-step state logging, token cost tracking,
-              and crash-safe resumption.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Track multi-agent workflow executions, streaming token telemetry, and run history
             </p>
-
-            <div className="mt-5 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(runs, null, 2));
-                  const downloadAnchor = document.createElement('a');
-                  downloadAnchor.setAttribute('href', dataStr);
-                  downloadAnchor.setAttribute('download', `runs-export-${Date.now()}.json`);
-                  document.body.appendChild(downloadAnchor);
-                  downloadAnchor.click();
-                  downloadAnchor.remove();
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/60 px-4 py-2 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-secondary cursor-pointer"
-              >
-                <FileCode className="h-4 w-4 text-muted-foreground" />
-                <span>Export JSON</span>
-              </button>
-            </div>
           </div>
-        </section>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(runs, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute('href', dataStr);
+                downloadAnchor.setAttribute('download', `runs-export-${Date.now()}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+            >
+              <FileCode className="h-4 w-4 text-muted-foreground" />
+              <span>Export JSON</span>
+            </button>
+          </div>
+        </div>
 
         {/* 2. Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>TOTAL EXECUTIONS</span>
@@ -184,11 +148,11 @@ export default function RunsPage() {
             </div>
           </div>
 
-          <div className="group relative flex min-h-[140px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
+          <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>ACTIVE EXECUTIONS</span>
-                <Play className="w-4 h-4 text-indigo-400" />
+                <Play className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {runningCount}
@@ -300,7 +264,7 @@ export default function RunsPage() {
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center">
             <div className="w-12 h-12 rounded-2xl border border-border bg-secondary flex items-center justify-center mx-auto text-muted-foreground">
-              <Play className="w-6 h-6 text-indigo-400" />
+              <Play className="w-6 h-6 text-muted-foreground" />
             </div>
             <h3 className="text-sm font-semibold text-foreground mt-3">
               {statusFilter ? 'No runs matching filter' : 'No execution traces yet'}
@@ -322,7 +286,7 @@ export default function RunsPage() {
                         type="checkbox"
                         checked={selectedIds.length === filtered.length && filtered.length > 0}
                         onChange={handleSelectAll}
-                        className="rounded border-border bg-secondary text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                        className="rounded border-border bg-secondary accent-foreground cursor-pointer"
                       />
                     </th>
                     <th className="py-3 px-4">
@@ -356,7 +320,7 @@ export default function RunsPage() {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleSelectRow(run.id)}
-                            className="rounded border-border bg-secondary text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                            className="rounded border-border bg-secondary accent-foreground cursor-pointer"
                           />
                         </td>
 
@@ -364,12 +328,12 @@ export default function RunsPage() {
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-xl border border-border bg-secondary flex items-center justify-center shrink-0 text-foreground shadow-sm">
-                              <Play className="w-3.5 h-3.5 text-indigo-400" />
+                              <Play className="w-3.5 h-3.5 text-muted-foreground" />
                             </div>
                             <div className="min-w-0">
                               <Link
                                 href={`/runs/${run.id}`}
-                                className="text-xs font-semibold text-foreground hover:text-indigo-400 font-mono transition-colors block truncate"
+                                className="text-xs font-semibold text-foreground hover:underline font-mono transition-colors block truncate"
                               >
                                 {run.id}
                               </Link>

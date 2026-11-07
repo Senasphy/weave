@@ -2,7 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import {
   Network,
   Play,
@@ -14,12 +15,13 @@ import {
   PanelLeftOpen,
   ChevronDown,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { WeaveLogo } from '@/components/WeaveLogo';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { useSession, useActiveOrganization } from '@/lib/auth-client';
+import { useSession, useActiveOrganization, signOut } from '@/lib/auth-client';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -33,6 +35,7 @@ export function Sidebar({
   onOpenSearch,
 }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   // Quick stats for badges
   const { data: workflows = [] } = useQuery({
@@ -57,6 +60,17 @@ export function Sidebar({
 
   const { data: session } = useSession();
   const { data: activeOrg } = useActiveOrganization();
+
+  const handleSignOut = async () => {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push('/login');
+          router.refresh();
+        },
+      },
+    });
+  };
 
   const workspaceName =
     activeOrg?.name ||
@@ -162,7 +176,7 @@ export function Sidebar({
                 <Network
                   className={cn(
                     'w-4 h-4 shrink-0 transition-colors',
-                    isWorkflowsActive ? 'text-indigo-400' : 'text-muted-foreground group-hover:text-foreground'
+                    isWorkflowsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 {!collapsed && (
@@ -192,15 +206,15 @@ export function Sidebar({
                 <Play
                   className={cn(
                     'w-4 h-4 shrink-0 transition-colors',
-                    isRunsActive ? 'text-indigo-400' : 'text-muted-foreground group-hover:text-foreground'
+                    isRunsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 {!collapsed && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Runs</span>
                     {activeRunsCount > 0 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-2 py-0.5 rounded-full border border-indigo-500/30 bg-indigo-500/15 text-indigo-300 font-mono">
-                        <span className="inline-flex rounded-full h-1.5 w-1.5 bg-indigo-400" />
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-2 py-0.5 rounded-full border border-border bg-secondary text-foreground font-mono">
+                        <span className="inline-flex rounded-full h-1.5 w-1.5 bg-foreground" />
                         {activeRunsCount}
                       </span>
                     ) : (
@@ -229,14 +243,14 @@ export function Sidebar({
                 <ShieldAlert
                   className={cn(
                     'w-4 h-4 shrink-0 transition-colors',
-                    isGatesActive ? 'text-amber-400' : 'text-muted-foreground group-hover:text-foreground'
+                    isGatesActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 {!collapsed && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Approvals</span>
                     {pendingGatesCount > 0 && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/15 text-amber-300 font-mono">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium tabular-nums px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400 font-mono">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                         {pendingGatesCount}
                       </span>
@@ -269,7 +283,7 @@ export function Sidebar({
                 <Settings
                   className={cn(
                     'w-4 h-4 shrink-0 transition-colors',
-                    isSettingsActive ? 'text-indigo-400' : 'text-muted-foreground group-hover:text-foreground'
+                    isSettingsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
                 {!collapsed && <span className="truncate">Settings</span>}
@@ -299,32 +313,96 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Bottom Footer: Workspace card (Removed 'Active' label & green pulse as requested) */}
+      {/* Bottom Footer: Workspace & Account Card with Logout Dropdown */}
       <div className="p-3 border-t border-border bg-background">
-        {collapsed ? (
-          <div className="flex justify-center" title={workspaceName}>
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-semibold text-xs flex items-center justify-center shadow-sm">
-              {workspaceInitial}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-card border border-border hover:border-white/20 hover:bg-accent/40 transition-all cursor-pointer group shadow-sm">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
-                {workspaceInitial}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-foreground truncate">
-                  {workspaceName}
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            {collapsed ? (
+              <button
+                type="button"
+                className="w-full flex justify-center cursor-pointer outline-none group"
+                title={`${workspaceName} • Account & logout`}
+                aria-label="Account menu"
+              >
+                <div className="w-8 h-8 rounded-xl bg-secondary border border-border text-foreground font-semibold text-xs flex items-center justify-center shadow-sm group-hover:border-foreground/40 transition-colors">
+                  {workspaceInitial}
                 </div>
-                <div className="text-[11px] text-muted-foreground truncate">
-                  {activeOrg ? 'Team Workspace' : 'Personal Workspace'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="w-full flex items-center justify-between p-2 rounded-xl bg-card border border-border hover:border-border/80 hover:bg-accent/40 transition-all cursor-pointer group shadow-sm text-left outline-none"
+                aria-label="Account and workspace menu"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-secondary border border-border text-foreground font-semibold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                    {workspaceInitial}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-foreground truncate">
+                      {workspaceName}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {activeOrg ? 'Team Workspace' : 'Personal Workspace'}
+                    </div>
+                  </div>
                 </div>
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 ml-1" />
+              </button>
+            )}
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              side="top"
+              align={collapsed ? 'start' : 'center'}
+              sideOffset={10}
+              className="z-50 min-w-[220px] bg-card rounded-2xl shadow-2xl border border-border p-1.5 text-xs select-none animate-in fade-in-0 zoom-in-95 text-foreground"
+            >
+              {/* User details header */}
+              <div className="px-3 py-2 border-b border-border mb-1">
+                <div className="font-semibold text-foreground truncate">
+                  {session?.user?.name || workspaceName}
+                </div>
+                {session?.user?.email && (
+                  <div className="text-[11px] text-muted-foreground truncate font-mono">
+                    {session.user.email}
+                  </div>
+                )}
               </div>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 ml-1" />
-          </div>
-        )}
+
+              {/* Workspace label */}
+              <div className="px-3 py-1.5 text-[11px] text-muted-foreground flex items-center justify-between">
+                <span>Workspace</span>
+                <span className="font-medium text-foreground">{workspaceName}</span>
+              </div>
+
+              <div className="h-px bg-border my-1" />
+
+              {/* Settings link */}
+              <DropdownMenu.Item asChild>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-accent text-foreground transition-colors cursor-pointer outline-none"
+                >
+                  <Settings className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Workspace Settings</span>
+                </Link>
+              </DropdownMenu.Item>
+
+              <div className="h-px bg-border my-1" />
+
+              {/* Logout Option */}
+              <DropdownMenu.Item
+                onSelect={handleSignOut}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors cursor-pointer outline-none font-medium"
+              >
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span>Log out</span>
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
     </aside>
   );

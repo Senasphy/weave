@@ -119,7 +119,7 @@ export function EditorHeader() {
     <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-5 select-none z-20 shrink-0">
       {/* Left: Workflow metadata */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-indigo-400 flex items-center justify-center shrink-0 shadow-sm">
+        <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-foreground flex items-center justify-center shrink-0 shadow-sm">
           <Workflow className="w-4 h-4" />
         </div>
 
@@ -183,7 +183,7 @@ export function EditorHeader() {
           {isValidating ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
           ) : (
-            <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+            <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
           )}
           <span>{isValidating ? 'Validating...' : 'Validate'}</span>
         </button>
@@ -222,7 +222,7 @@ export function EditorHeader() {
             {/* Modal Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-indigo-400 flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-foreground flex items-center justify-center shadow-sm">
                   <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
                 </div>
                 <div>

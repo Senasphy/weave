@@ -48,8 +48,8 @@ export function StatusBadge({
     case 'running':
     case 'active':
     case 'in_progress':
-      bgClass = 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 font-medium';
-      dotClass = 'bg-indigo-400';
+      bgClass = 'bg-secondary text-foreground border-border font-medium';
+      dotClass = 'bg-foreground';
       defaultLabel = norm === 'active' ? 'Active' : 'Running';
       break;
 

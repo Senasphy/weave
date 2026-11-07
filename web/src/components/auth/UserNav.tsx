@@ -129,7 +129,7 @@ export function UserNav() {
               className="w-6 h-6 rounded-full object-cover"
             />
           ) : (
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">
+            <div className="w-6 h-6 rounded-full bg-secondary border border-border text-foreground text-[10px] font-semibold flex items-center justify-center">
               {initials}
             </div>
           )}
@@ -168,7 +168,7 @@ export function UserNav() {
             )}
           >
             <div className="flex items-center gap-2.5 truncate">
-              <User className="w-3.5 h-3.5 text-indigo-400" />
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="truncate">Personal Workspace</span>
             </div>
             {!activeOrg && <Check className="w-3.5 h-3.5 text-emerald-400" />}
@@ -189,7 +189,7 @@ export function UserNav() {
                     )}
                   >
                     <div className="flex items-center gap-2.5 truncate">
-                      <Building2 className="w-3.5 h-3.5 text-indigo-400" />
+                      <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
                       <span className="truncate">{org.name}</span>
                     </div>
                     {isActive && (

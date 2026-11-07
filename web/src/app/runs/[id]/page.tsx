@@ -256,7 +256,7 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <Layers className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span className="text-muted-foreground text-xs font-medium">Steps</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums font-mono">
@@ -266,7 +266,7 @@ export default function RunViewerPage() {
             </div>
             <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                className="h-full rounded-full bg-foreground transition-all duration-500"
                 style={{ width: `${stepPct}%` }}
               />
             </div>
@@ -276,7 +276,7 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <Cpu className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span className="text-muted-foreground text-xs font-medium">Tokens</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums font-mono">
@@ -290,7 +290,7 @@ export default function RunViewerPage() {
             </div>
             <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                className="h-full rounded-full bg-foreground transition-all duration-500"
                 style={{ width: `${tokenPct}%` }}
               />
             </div>
@@ -300,7 +300,7 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Coins className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <Coins className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span className="text-muted-foreground text-xs font-medium">Cost</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums font-mono">
@@ -312,7 +312,7 @@ export default function RunViewerPage() {
             </div>
             <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                className="h-full rounded-full bg-foreground transition-all duration-500"
                 style={{ width: `${costPct}%` }}
               />
             </div>
@@ -322,7 +322,7 @@ export default function RunViewerPage() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <Clock className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span className="text-muted-foreground text-xs font-medium">Wall Clock</span>
               </div>
               <div className="flex items-baseline gap-1 tabular-nums font-mono">
@@ -332,7 +332,7 @@ export default function RunViewerPage() {
             </div>
             <div className="h-1.5 rounded-full bg-secondary overflow-hidden mt-2 w-full">
               <div
-                className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                className="h-full rounded-full bg-foreground transition-all duration-500"
                 style={{ width: `${wallPct}%` }}
               />
             </div>
@@ -429,8 +429,8 @@ export default function RunViewerPage() {
             </div>
 
             {run?.status === 'running' ? (
-              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-indigo-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-foreground">
+                <span className="w-1.5 h-1.5 rounded-full bg-foreground animate-ping" />
                 <span>Live Stream</span>
               </div>
             ) : (
@@ -458,7 +458,7 @@ export default function RunViewerPage() {
                       className={cn(
                         'py-3 px-4 flex items-start gap-3 cursor-pointer transition-colors group',
                         isSelected
-                          ? 'bg-accent/80 border-l-2 border-indigo-400'
+                          ? 'bg-accent/80 border-l-2 border-foreground'
                           : 'hover:bg-white/[0.02] border-l-2 border-transparent'
                       )}
                     >
@@ -470,7 +470,7 @@ export default function RunViewerPage() {
                           <span
                             className={cn(
                               'text-xs font-mono font-semibold truncate',
-                              isSelected ? 'text-indigo-400' : 'text-foreground group-hover:text-indigo-400'
+                              isSelected ? 'text-foreground' : 'text-foreground/80 group-hover:text-foreground'
                             )}
                           >
                             {ev.type}
@@ -489,7 +489,7 @@ export default function RunViewerPage() {
                       <ChevronRight
                         className={cn(
                           'w-3.5 h-3.5 shrink-0 mt-1 transition-transform',
-                          isSelected ? 'text-indigo-400' : 'text-muted-foreground/60'
+                          isSelected ? 'text-foreground' : 'text-muted-foreground/60'
                         )}
                       />
                     </div>
@@ -513,7 +513,7 @@ export default function RunViewerPage() {
                         <span className="text-muted-foreground select-none shrink-0 tabular-nums text-[11px]">
                           [{t}]
                         </span>
-                        <span className="text-indigo-400 font-medium shrink-0">{ev.type}</span>
+                        <span className="text-foreground font-medium shrink-0">{ev.type}</span>
                         {ev.node_id && (
                           <span className="text-foreground shrink-0">
                             <span className="text-muted-foreground">→</span> {ev.node_id}
@@ -543,7 +543,7 @@ export default function RunViewerPage() {
                     Event Detail
                   </span>
                   <h3 className="text-sm font-semibold text-foreground mt-1 flex items-center gap-2">
-                    <span className="font-mono text-indigo-400">{selectedEvent.type}</span>
+                    <span className="font-mono text-foreground">{selectedEvent.type}</span>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border tabular-nums">
                       seq #{selectedEvent.seq}
                     </span>
@@ -565,7 +565,7 @@ export default function RunViewerPage() {
                     Target Node
                   </label>
                   <div className="bg-card border border-border rounded-xl px-3.5 py-2 text-xs text-foreground font-mono flex items-center gap-2 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-foreground" />
                     <span>{selectedEvent.node_id}</span>
                   </div>
                 </div>

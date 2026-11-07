@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
 import { StatusBadge } from '@/components/StatusBadge';
-import { WeaveLogo } from '@/components/WeaveLogo';
 import {
   ShieldAlert,
   Clock,
@@ -55,71 +54,36 @@ export default function GatesPage() {
   return (
     <div className="flex-1 overflow-y-auto w-full bg-background">
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        {/* 1. Header Banner */}
-        <section className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm p-6 sm:p-8">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            <div
-              className="absolute -right-20 -top-20 h-[380px] w-[380px] rounded-full opacity-35 blur-3xl"
-              style={{
-                background:
-                  'radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, rgba(99, 102, 241, 0.2) 50%, transparent 70%)',
-              }}
-            />
-            <svg
-              className="absolute right-0 top-0 h-full w-full opacity-[0.12]"
-              xmlns="http://www.w3.org/2000/svg"
-              width="100%"
-              height="100%"
-            >
-              <defs>
-                <pattern id="gatesGrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="currentColor" strokeWidth="1" />
-                </pattern>
-                <linearGradient id="gatesFadeMask" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="black" stopOpacity="0" />
-                  <stop offset="60%" stopColor="black" stopOpacity="1" />
-                </linearGradient>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#gatesGrid)" mask="url(#gatesFadeMask)" />
-            </svg>
-            <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden md:block opacity-[0.10] pointer-events-none select-none">
-              <WeaveLogo variant="mark" className="h-64 w-auto" />
-            </div>
-          </div>
-
-          <div className="relative z-10 max-w-2xl">
-            <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-400 mb-2 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <span>Human-In-The-Loop</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              Approvals Inbox
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/60">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+              Approval Gates
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Review and resolve critical workflow actions before they execute. Inspect parameters,
-              edit payload variables, or reject unsafe steps.
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+              Review and resolve critical workflow actions before they execute
             </p>
-
-            <div className="mt-5 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(gates, null, 2));
-                  const downloadAnchor = document.createElement('a');
-                  downloadAnchor.setAttribute('href', dataStr);
-                  downloadAnchor.setAttribute('download', `gates-export-${Date.now()}.json`);
-                  document.body.appendChild(downloadAnchor);
-                  downloadAnchor.click();
-                  downloadAnchor.remove();
-                }}
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-secondary/60 px-4 py-2 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-secondary cursor-pointer"
-              >
-                <FileCode className="h-4 w-4 text-muted-foreground" />
-                <span>Export Queue</span>
-              </button>
-            </div>
           </div>
-        </section>
+
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(gates, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute('href', dataStr);
+                downloadAnchor.setAttribute('download', `gates-export-${Date.now()}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+              }}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-accent cursor-pointer"
+            >
+              <FileCode className="h-4 w-4 text-muted-foreground" />
+              <span>Export Queue</span>
+            </button>
+          </div>
+        </div>
 
         {/* 2. Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -189,7 +153,7 @@ export default function GatesPage() {
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>CONCURRENCY</span>
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Sparkles className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground">
                 Atomic

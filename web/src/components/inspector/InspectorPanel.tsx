@@ -63,12 +63,12 @@ function ToggleSwitch({ checked, onChange, label, description, disabled }: Toggl
       <div
         className={cn(
           'relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out border border-border',
-          checked ? 'bg-indigo-500 border-indigo-400' : 'bg-secondary'
+          checked ? 'bg-foreground border-foreground' : 'bg-secondary'
         )}
       >
         <span
           className={cn(
-            'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 ease-in-out',
+            'pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-background shadow-sm ring-0 transition-transform duration-200 ease-in-out',
             checked ? 'translate-x-[18px]' : 'translate-x-0.5'
           )}
         />
@@ -108,32 +108,32 @@ export function InspectorPanel() {
     switch (type) {
       case 'agent':
         return {
-          icon: <Bot className="w-3.5 h-3.5 text-indigo-400" />,
-          color: 'text-indigo-300 bg-indigo-500/15 border-indigo-500/30',
+          icon: <Bot className="w-3.5 h-3.5 text-foreground" />,
+          color: 'text-foreground bg-secondary border-border',
           label: 'Agent Node',
         };
       case 'gate':
         return {
-          icon: <UserCheck className="w-3.5 h-3.5 text-amber-400" />,
-          color: 'text-amber-300 bg-amber-500/15 border-amber-500/30',
+          icon: <UserCheck className="w-3.5 h-3.5 text-foreground" />,
+          color: 'text-foreground bg-secondary border-border',
           label: 'Gate Node',
         };
       case 'router':
         return {
-          icon: <GitFork className="w-3.5 h-3.5 text-cyan-400" />,
-          color: 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30',
+          icon: <GitFork className="w-3.5 h-3.5 text-foreground" />,
+          color: 'text-foreground bg-secondary border-border',
           label: 'Router Node',
         };
       case 'fan_out':
         return {
-          icon: <Network className="w-3.5 h-3.5 text-purple-400" />,
-          color: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
+          icon: <Network className="w-3.5 h-3.5 text-foreground" />,
+          color: 'text-foreground bg-secondary border-border',
           label: 'Fan Out',
         };
       case 'join':
         return {
-          icon: <GitMerge className="w-3.5 h-3.5 text-purple-400" />,
-          color: 'text-purple-300 bg-purple-500/15 border-purple-500/30',
+          icon: <GitMerge className="w-3.5 h-3.5 text-foreground" />,
+          color: 'text-foreground bg-secondary border-border',
           label: 'Join Node',
         };
       default:
@@ -171,7 +171,7 @@ export function InspectorPanel() {
         className="w-80 bg-card border-l border-border p-6 flex flex-col items-center justify-center text-center select-none"
       >
         <div className="w-10 h-10 rounded-2xl border border-border bg-secondary flex items-center justify-center mb-3 text-muted-foreground">
-          <Code2 className="w-5 h-5 text-indigo-400" />
+          <Code2 className="w-5 h-5 text-muted-foreground" />
         </div>
         <h4 className="text-xs font-semibold text-foreground mb-1">No Element Selected</h4>
         <p className="text-xs text-muted-foreground leading-relaxed max-w-[220px]">
@@ -284,7 +284,7 @@ export function InspectorPanel() {
                 {/* Model Configuration */}
                 <div className="py-4 space-y-3">
                   <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3 text-indigo-400" />
+                    <Cpu className="w-3 h-3 text-muted-foreground" />
                     <span>Model Config</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -378,7 +378,7 @@ export function InspectorPanel() {
                 {/* Allowed Tools with Pills */}
                 <div className="py-4 space-y-2.5">
                   <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-                    <Wrench className="w-3 h-3 text-indigo-400" />
+                    <Wrench className="w-3 h-3 text-muted-foreground" />
                     <span>Allowed Tools ({selectedNode.tools?.length || 0})</span>
                   </label>
 
@@ -436,7 +436,7 @@ export function InspectorPanel() {
                 {/* State I/O */}
                 <div className="py-4 space-y-3">
                   <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-                    <Database className="w-3 h-3 text-indigo-400" />
+                    <Database className="w-3 h-3 text-muted-foreground" />
                     <span>State Scope</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -474,7 +474,7 @@ export function InspectorPanel() {
                 {/* Permissions Switch */}
                 <div className="py-4 space-y-2">
                   <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-                    <ShieldAlert className="w-3 h-3 text-amber-400" />
+                    <ShieldAlert className="w-3 h-3 text-muted-foreground" />
                     <span>Permissions</span>
                   </label>
                   <ToggleSwitch
@@ -512,7 +512,7 @@ export function InspectorPanel() {
 
                 <div className="py-4 space-y-1.5">
                   <label className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 text-amber-400" />
+                    <Clock className="w-3 h-3 text-muted-foreground" />
                     <span>Timeout (seconds)</span>
                   </label>
                   <input

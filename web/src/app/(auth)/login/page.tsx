@@ -68,28 +68,7 @@ function LoginForm() {
 
   return (
     <div className="relative w-full max-w-[440px] px-4 py-8">
-      {/* Ambient background glow */}
-      <div
-        className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-72 w-96 rounded-full opacity-30 blur-3xl"
-        style={{
-          background:
-            'radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.2) 50%, transparent 70%)',
-        }}
-      />
-
       <div className="relative bg-card rounded-2xl border border-border shadow-2xl p-8 sm:p-10 overflow-hidden">
-        {/* Subtle grid pattern inside card header */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 overflow-hidden opacity-[0.06]">
-          <svg className="h-full w-full" width="100%" height="100%">
-            <defs>
-              <pattern id="login-grid" width="24" height="24" patternUnits="userSpaceOnUse">
-                <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="1" className="text-foreground" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#login-grid)" />
-          </svg>
-        </div>
-
         {/* Header */}
         <div className="relative flex flex-col items-center text-center mb-8">
           <Link href="/" className="mb-4 hover:opacity-90 transition-opacity">

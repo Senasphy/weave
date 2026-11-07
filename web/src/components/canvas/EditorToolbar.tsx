@@ -57,7 +57,7 @@ export function EditorToolbar({
           className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
           title="Add Agent Node"
         >
-          <Bot className="w-3.5 h-3.5 text-indigo-400" />
+          <Bot className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span>Agent</span>
         </button>
 
@@ -67,7 +67,7 @@ export function EditorToolbar({
           className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
           title="Add Human Gate Node"
         >
-          <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+          <UserCheck className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span>Gate</span>
         </button>
 
@@ -77,7 +77,7 @@ export function EditorToolbar({
           className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
           title="Add Router Node"
         >
-          <GitFork className="w-3.5 h-3.5 text-cyan-400" />
+          <GitFork className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span>Router</span>
         </button>
 
@@ -87,7 +87,7 @@ export function EditorToolbar({
           className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
           title="Add Fan-Out / Join Nodes"
         >
-          <Network className="w-3.5 h-3.5 text-purple-400" />
+          <Network className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span>Fan-Out</span>
         </button>
       </div>

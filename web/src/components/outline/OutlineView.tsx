@@ -25,23 +25,23 @@ export function OutlineView() {
     switch (type) {
       case 'agent':
         return {
-          icon: <Bot className="w-3.5 h-3.5 text-indigo-400" />,
+          icon: <Bot className="w-3.5 h-3.5 text-foreground" />,
         };
       case 'gate':
         return {
-          icon: <UserCheck className="w-3.5 h-3.5 text-amber-400" />,
+          icon: <UserCheck className="w-3.5 h-3.5 text-foreground" />,
         };
       case 'router':
         return {
-          icon: <GitFork className="w-3.5 h-3.5 text-cyan-400" />,
+          icon: <GitFork className="w-3.5 h-3.5 text-foreground" />,
         };
       case 'fan_out':
         return {
-          icon: <Network className="w-3.5 h-3.5 text-purple-400" />,
+          icon: <Network className="w-3.5 h-3.5 text-foreground" />,
         };
       case 'join':
         return {
-          icon: <GitMerge className="w-3.5 h-3.5 text-purple-400" />,
+          icon: <GitMerge className="w-3.5 h-3.5 text-foreground" />,
         };
       default:
         return {
@@ -57,7 +57,7 @@ export function OutlineView() {
       case 'on_failure':
         return 'bg-rose-500/10 text-rose-300 border-rose-500/20';
       case 'when':
-        return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/20';
+        return 'bg-secondary text-foreground border-border';
       case 'default':
         return 'bg-secondary text-muted-foreground border-border';
       default:
@@ -115,7 +115,7 @@ export function OutlineView() {
                 className={cn(
                   'rounded-2xl border p-4 transition-all text-left group bg-card shadow-sm cursor-pointer',
                   isSelected
-                    ? 'border-indigo-500/80 ring-2 ring-indigo-500/40 shadow-[0_0_20px_rgba(99,102,241,0.25)]'
+                    ? 'border-foreground/80 ring-1 ring-foreground/20 shadow-md'
                     : 'border-border hover:border-white/20'
                 )}
               >
@@ -137,7 +137,7 @@ export function OutlineView() {
                           {node.type}
                         </span>
                         {node.is_entry && (
-                          <span className="rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 text-[10px] flex items-center gap-1 font-mono font-medium">
+                          <span className="rounded-full bg-secondary text-foreground border border-border px-2 py-0.5 text-[10px] flex items-center gap-1 font-mono font-medium">
                             entry
                           </span>
                         )}
