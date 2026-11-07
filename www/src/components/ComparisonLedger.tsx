@@ -85,7 +85,7 @@ export function ComparisonLedger() {
               <div className="col-span-1">Ad-Hoc Scripts</div>
               <div className="col-span-1">LangChain / CrewAI</div>
               <div className="col-span-1">Temporal / Inngest</div>
-              <div className="col-span-1 text-status-live font-bold">Weave Engine</div>
+              <div className="col-span-1 text-umber-800 dark:text-cloud-100 font-bold">Weave Engine</div>
             </div>
 
             {/* Table Rows */}
@@ -108,7 +108,7 @@ export function ComparisonLedger() {
                     {row.temporal}
                   </div>
                   <div className="col-span-1 text-umber-800 dark:text-cloud-50 font-medium flex items-start gap-1.5 pr-2">
-                    <Check className="size-4 text-status-live shrink-0 mt-0.5" />
+                    <Check className="size-4 text-umber-800 dark:text-cloud-200 shrink-0 mt-0.5" />
                     <span>{row.weave}</span>
                   </div>
                 </div>

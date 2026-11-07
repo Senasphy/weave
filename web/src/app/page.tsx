@@ -584,7 +584,7 @@ export default function WorkflowsPage() {
                           >
                             <span>{wf.id.length > 16 ? `${wf.id.substring(0, 16)}...` : wf.id}</span>
                             {copiedId === wf.id ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
+                              <Check className="w-3 h-3 text-foreground" />
                             ) : (
                               <Copy className="w-3 h-3 opacity-0 group-hover/id:opacity-100 text-muted-foreground transition-opacity" />
                             )}

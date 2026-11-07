@@ -25,7 +25,7 @@ const workflows = [
   {
     id: "sre",
     pill: "Automated Ops",
-    color: "bg-status-live",
+    color: "bg-umber-800 dark:bg-cloud-100",
     title: "Autonomous Incident Diagnostics with Hard Ceilings.",
     description:
       "When a production service alerts, Weave invokes an agent with scoped kubectl and SQL tools. Hard ceilings on steps (15) and spend ($0.30) guarantee that autonomous exploration never enters recursive cost loops.",

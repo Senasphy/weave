@@ -56,8 +56,8 @@ export function StatusBadge({
     case 'succeeded':
     case 'completed':
     case 'approved':
-      bgClass = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
-      dotClass = 'bg-emerald-400';
+      bgClass = 'bg-secondary text-foreground border-border font-medium';
+      dotClass = 'bg-muted-foreground';
       defaultLabel = norm === 'approved' ? 'Approved' : 'Completed';
       break;
 

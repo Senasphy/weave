@@ -152,8 +152,8 @@ export function EditorHeader() {
       <div className="flex items-center gap-2">
         {/* Published success banner */}
         {publishSuccess && (
-          <span className="inline-flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl">
-            <Check className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="inline-flex items-center gap-1.5 text-xs text-foreground bg-secondary border border-border px-2.5 py-1 rounded-md font-mono">
+            <Check className="w-3.5 h-3.5 text-muted-foreground" />
             <span>published v{publishSuccess}</span>
           </span>
         )}

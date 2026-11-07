@@ -171,7 +171,7 @@ export function UserNav() {
               <User className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="truncate">Personal Workspace</span>
             </div>
-            {!activeOrg && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+            {!activeOrg && <Check className="w-3.5 h-3.5 text-foreground" />}
           </DropdownMenu.Item>
 
           {/* Organizations List */}
@@ -193,7 +193,7 @@ export function UserNav() {
                       <span className="truncate">{org.name}</span>
                     </div>
                     {isActive && (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-foreground" />
                     )}
                   </DropdownMenu.Item>
                 );

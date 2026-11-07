@@ -15,10 +15,6 @@ export function Footer() {
             <p className="mt-4 max-w-sm text-[14px] leading-[1.6] text-cloud-400">
               One current, attributable runtime for your business workflows. Backed by durable cloud state and hard budget governance.
             </p>
-            <div className="mt-6 flex items-center gap-2 font-mono text-[11px] text-cloud-400">
-              <span className="size-2 rounded-full bg-status-live" />
-              <span>Managed Cloud Orchestration</span>
-            </div>
           </div>
 
           {/* Links: Engine */}

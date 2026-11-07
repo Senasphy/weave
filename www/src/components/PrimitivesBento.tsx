@@ -182,7 +182,7 @@ export function PrimitivesBento() {
                 </div>
               </div>
 
-              <span className="rounded-full bg-status-live/15 text-status-live px-3 py-1 text-[11px] font-mono font-medium">
+              <span className="rounded-full bg-cloud-200/60 dark:bg-cloud-50/10 text-umber-800 dark:text-cloud-200 px-3 py-1 text-[11px] font-mono font-medium">
                 Production Ready
               </span>
             </div>
@@ -209,7 +209,7 @@ export function PrimitivesBento() {
                   key={i}
                   className="inline-flex items-center gap-1.5 rounded-full border border-umber-800/10 dark:border-cloud-100/10 bg-cloud-100/50 dark:bg-umber-950/50 px-3 py-1 text-[12px] text-umber-800 dark:text-cloud-300 font-mono"
                 >
-                  <CheckCircle2 className="size-3 text-status-live" />
+                  <CheckCircle2 className="size-3 text-mid-brown dark:text-cloud-400" />
                   <span>{h}</span>
                 </span>
               ))}

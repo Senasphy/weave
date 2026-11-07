@@ -21,8 +21,8 @@ const personas = [
     icon: ShieldCheck,
     role: "Support & Operations",
     badge: "Oversight",
-    color: "text-status-live",
-    bgColor: "bg-status-live/10",
+    color: "text-umber-800 dark:text-cloud-100",
+    bgColor: "bg-cloud-200/60 dark:bg-cloud-50/10",
     summary:
       "Pause sensitive actions like refunds or customer emails for human sign-off. Workflows wait safely in team queues with zero idle compute cost.",
     features: [
@@ -107,7 +107,7 @@ export function WhoUsesWeaveSection() {
                 <div className="pt-3 border-t border-cloud-200 dark:border-cloud-50/10 space-y-1.5">
                   {p.features.map((feat) => (
                     <div key={feat} className="flex items-center gap-2 text-[12.5px] text-mid-brown dark:text-cloud-300">
-                      <Check className="size-3.5 text-status-live shrink-0" />
+                      <Check className="size-3.5 text-mid-brown dark:text-cloud-300 shrink-0" />
                       <span>{feat}</span>
                     </div>
                   ))}

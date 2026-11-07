@@ -53,7 +53,7 @@ export function OutlineView() {
   const getEdgeBadgeStyle = (kind: string) => {
     switch (kind) {
       case 'on_success':
-        return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+        return 'bg-secondary text-foreground border-border';
       case 'on_failure':
         return 'bg-rose-500/10 text-rose-300 border-rose-500/20';
       case 'when':

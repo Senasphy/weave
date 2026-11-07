@@ -60,7 +60,7 @@ export function GovernanceSection() {
                 <div className="relative space-y-4">
                   <div className="border-b border-cloud-900 pb-3 flex justify-between text-cloud-300 font-medium">
                     <span>SAFETY ENGINE</span>
-                    <span className="text-status-live">STATUS: ENFORCING</span>
+                    <span className="text-cloud-200">STATUS: ENFORCING</span>
                   </div>
 
                   <div className="border border-cloud-900 p-3 bg-cloud-900/40 text-cloud-300 space-y-1">
@@ -70,7 +70,7 @@ export function GovernanceSection() {
                     <div className="text-[11px] text-cloud-300">
                       Scrubbing strings against pattern: &#36;&#123;secret:NAME&#125;
                     </div>
-                    <div className="text-[11px] text-status-live font-medium">
+                    <div className="text-[11px] text-cloud-200 font-medium">
                       Result: Zero API keys or secrets leaked to logs
                     </div>
                   </div>
@@ -82,7 +82,7 @@ export function GovernanceSection() {
                     <div className="text-[11px] text-cloud-300">
                       Maximum budget per run: max_cost_usd = $0.50
                     </div>
-                    <div className="text-[11px] text-status-live font-medium">
+                    <div className="text-[11px] text-cloud-200 font-medium">
                       Result: Immediate halt if cost exceeds threshold
                     </div>
                   </div>
@@ -94,7 +94,7 @@ export function GovernanceSection() {
                     <div className="text-[11px] text-cloud-300">
                       Blocklist: localhost (127.0.0.1) &amp; AWS metadata (169.254.169.254)
                     </div>
-                    <div className="text-[11px] text-status-live font-medium">
+                    <div className="text-[11px] text-cloud-200 font-medium">
                       Result: Models blocked from reaching private company networks
                     </div>
                   </div>

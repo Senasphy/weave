@@ -42,7 +42,7 @@ export default function SettingsPage() {
 
           <div className="flex items-center gap-2.5">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card border border-border text-xs font-mono text-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
               <span>Engine: Operational</span>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function SettingsPage() {
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>PERMISSION GATING</span>
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground">
                 Enforced
@@ -186,8 +186,8 @@ export default function SettingsPage() {
                           ${m.output_per_mtok.toFixed(2)}
                         </td>
                         <td className="py-3.5 px-4 text-center">
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[11px] font-medium font-mono">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-border bg-secondary text-foreground text-[11px] font-medium font-mono">
+                            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                             Active
                           </span>
                         </td>
@@ -254,8 +254,8 @@ export default function SettingsPage() {
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[11px] font-medium font-mono">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-border bg-secondary text-foreground text-[11px] font-medium font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
                           Ready
                         </span>
                       </td>

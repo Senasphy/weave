@@ -386,7 +386,7 @@ export default function RunViewerPage() {
                   type="button"
                   disabled={resolveGateMutation.isPending}
                   onClick={() => resolveGateMutation.mutate('approve')}
-                  className="px-4 py-1.5 rounded-xl text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+                  className="px-4 py-1.5 rounded-xl text-xs font-medium bg-foreground hover:bg-foreground/90 text-background transition-all cursor-pointer shadow-sm"
                 >
                   Approve
                 </button>
@@ -597,7 +597,7 @@ export default function RunViewerPage() {
                     className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 cursor-pointer font-medium"
                   >
                     {copiedPayload ? (
-                      <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                      <span className="text-foreground flex items-center gap-1 font-medium">
                         <Check className="w-3 h-3" /> Copied
                       </span>
                     ) : (
@@ -615,12 +615,12 @@ export default function RunViewerPage() {
               {Boolean(run?.output) && (
                 <div className="space-y-1.5 pt-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[11px] font-mono font-semibold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    <label className="block text-[11px] font-mono font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground" />
                       <span>Run Final Output</span>
                     </label>
                   </div>
-                  <pre className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre leading-relaxed select-text">
+                  <pre className="bg-card border border-border rounded-xl p-4 font-mono text-xs text-foreground overflow-x-auto whitespace-pre leading-relaxed select-text shadow-sm">
                     {JSON.stringify(run?.output, null, 2)}
                   </pre>
                 </div>

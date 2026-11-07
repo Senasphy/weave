@@ -21,11 +21,6 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Copy Column */}
           <div className="lg:col-span-5 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cloud-100 dark:bg-umber-800 border border-cloud-200 dark:border-cloud-50/15 w-fit text-xs font-mono text-mid-brown dark:text-cloud-300 mb-4">
-              <span className="size-1.5 rounded-full bg-status-live" />
-              <span>Weave Cloud Platform</span>
-            </div>
-
             <h1 className="font-display font-medium text-[38px] sm:text-[48px] lg:text-[56px] leading-[1.05] tracking-[-0.03em] text-umber-800 dark:text-cloud-50">
               <span className="block">Reliable AI workflows.</span>
               <span className="block text-mid-brown dark:text-cloud-300">Zero setup.</span>
@@ -68,9 +63,8 @@ export function HeroSection() {
                   </span>
                   <span className="ml-2 font-medium text-umber-800 dark:text-cloud-100">support_triage.json</span>
                 </div>
-                <div className="flex items-center gap-1.5 font-mono text-[11px] text-mid-brown dark:text-cloud-300">
-                  <span className="size-1.5 rounded-full bg-status-live" />
-                  <span>Cloud Active</span>
+                <div className="font-mono text-[11px] text-mid-brown dark:text-cloud-400">
+                  interactive preview
                 </div>
               </div>
 
@@ -91,7 +85,7 @@ export function HeroSection() {
                       </div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-status-live/40 bg-status-live/10 text-status-live font-medium">
+                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-cloud-200 dark:border-cloud-50/15 text-mid-brown dark:text-cloud-300 font-medium">
                     Passed
                   </span>
                 </div>
@@ -115,7 +109,7 @@ export function HeroSection() {
                     <span
                       className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-medium ${
                         gateApproved
-                          ? "border-status-live/40 bg-status-live/10 text-status-live"
+                          ? "border-cloud-300 dark:border-cloud-50/20 text-umber-800 dark:text-cloud-200"
                           : "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
                       }`}
                     >

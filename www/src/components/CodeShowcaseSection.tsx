@@ -116,7 +116,7 @@ export function CodeShowcaseSection() {
                 onClick={handleCopy}
                 className="inline-flex items-center gap-1.5 rounded-md border border-umber-800/15 dark:border-cloud-100/15 bg-cloud-50 dark:bg-umber-800 px-2.5 py-1 text-[11px] font-mono text-umber-800 dark:text-cloud-100 hover:bg-umber-800/5 transition-colors"
               >
-                {copied ? <Check className="size-3 text-status-live" /> : <Copy className="size-3" />}
+                {copied ? <Check className="size-3 text-cloud-200" /> : <Copy className="size-3" />}
                 <span>{copied ? "Copied" : "Copy JSON"}</span>
               </button>
             </div>

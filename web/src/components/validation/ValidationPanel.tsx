@@ -41,7 +41,7 @@ export function ValidationPanel() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {isValid ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-foreground shrink-0" />
             ) : (
               <XCircle className="w-4 h-4 text-red-400 shrink-0" />
             )}
@@ -77,7 +77,7 @@ export function ValidationPanel() {
         <div className="max-h-48 overflow-y-auto divide-y divide-border border-t border-border">
           {diagnostics.length === 0 ? (
             <div className="p-3 text-xs text-muted-foreground font-medium flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/70" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-foreground/70" />
               <span>Graph validation passing with no diagnostics</span>
             </div>
           ) : (

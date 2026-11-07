@@ -113,7 +113,7 @@ export default function GatesPage() {
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
                 <span>QUEUE STATUS</span>
-                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <UserCheck className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground">
                 {gates.length === 0 ? 'Inbox Zero' : 'Review Active'}
@@ -195,7 +195,7 @@ export default function GatesPage() {
             </div>
           ) : gates.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border bg-card p-14 text-center">
-              <div className="w-12 h-12 rounded-2xl border border-border bg-secondary flex items-center justify-center mx-auto mb-3 text-emerald-400">
+              <div className="w-12 h-12 rounded-2xl border border-border bg-secondary flex items-center justify-center mx-auto mb-3 text-muted-foreground">
                 <UserCheck className="w-6 h-6" />
               </div>
               <h3 className="text-sm font-semibold text-foreground tracking-tight">Inbox Zero</h3>
@@ -283,7 +283,7 @@ export default function GatesPage() {
                             onClick={() =>
                               resolveMutation.mutate({ gateId: g.gate_id, resolution: 'approve' })
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium bg-emerald-500 hover:bg-emerald-600 text-white transition-all cursor-pointer disabled:opacity-50 shadow-md shadow-emerald-500/20"
+                            className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-medium bg-foreground hover:bg-foreground/90 text-background transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                           >
                             {isApprovePending ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin" />

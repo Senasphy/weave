@@ -133,7 +133,7 @@ export function WorkflowSimulator() {
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-umber-800/10 dark:border-cloud-100/10 pb-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="inline-flex rounded-full size-2 bg-status-live"></span>
+            <span className="inline-flex rounded-full size-2 bg-umber-800 dark:bg-cloud-200"></span>
             <span className="text-[12px] font-mono font-medium text-umber-900 dark:text-cloud-100">
               {activeStepIndex === 2 && !gateApproved
                 ? "RUN SUSPENDED • WAITING_HUMAN"
@@ -214,11 +214,11 @@ export function WorkflowSimulator() {
                   {step.type === "agent" && <Bot className="size-3 text-lilac-500" />}
                   {step.type === "router" && <GitBranch className="size-3 text-amber-500" />}
                   {step.type === "gate" && <ShieldAlert className="size-3 text-rose-500" />}
-                  {step.type === "tool" && <Wrench className="size-3 text-status-live" />}
+                  {step.type === "tool" && <Wrench className="size-3 text-umber-700 dark:text-cloud-300" />}
                   {step.type.toUpperCase()}
                 </span>
                 {isPast ? (
-                  <CheckCircle2 className="size-3 text-status-live" />
+                  <CheckCircle2 className="size-3 text-umber-700 dark:text-cloud-300" />
                 ) : isGateWaiting ? (
                   <Clock className="size-3 text-amber-500" />
                 ) : null}
@@ -293,17 +293,17 @@ export function WorkflowSimulator() {
 
         {/* Completed Run Summary (when step 3 is reached) */}
         {activeStepIndex === 3 && (
-          <div className="mt-3.5 flex items-center justify-between gap-3 rounded-lg border border-status-live/30 bg-status-live/10 p-3">
+          <div className="mt-3.5 flex items-center justify-between gap-3 rounded-lg border border-cloud-300 dark:border-cloud-50/20 bg-cloud-100/60 dark:bg-umber-900/60 p-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 text-status-live shrink-0" />
-              <div className="text-[12px] font-medium text-emerald-900 dark:text-emerald-200">
+              <CheckCircle2 className="size-4 text-umber-800 dark:text-cloud-200 shrink-0" />
+              <div className="text-[12px] font-medium text-umber-900 dark:text-cloud-100">
                 Run Succeeded. All events saved to cloud log. $0.0134 total spent.
               </div>
             </div>
             <button
               type="button"
               onClick={handleReset}
-              className="text-[11px] font-mono text-status-live hover:underline"
+              className="text-[11px] font-mono text-umber-800 dark:text-cloud-200 hover:underline"
             >
               Replay Trace
             </button>

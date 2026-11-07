@@ -84,7 +84,7 @@ export const GateNode = memo(({ data, selected }: NodeProps) => {
           position={Position.Right}
           id="on_success"
           aria-label="Approve handle"
-          className="!top-[-14px] !w-2.5 !h-2.5 !bg-emerald-400 !border-2 !border-[#090a0d] !rounded-full transition-all hover:!scale-125"
+          className="!top-[-14px] !w-2.5 !h-2.5 !bg-foreground !border-2 !border-[#090a0d] !rounded-full transition-all hover:!scale-125"
         />
         <Handle
           type="source"

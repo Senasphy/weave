@@ -23,7 +23,7 @@ export function MetricsSection() {
             {/* Legend */}
             <div className="flex flex-wrap items-center gap-3 sm:gap-6 font-mono text-[11px] text-mid-brown dark:text-cloud-300 pb-4 mb-4 border-b border-cloud-200 dark:border-cloud-50/10">
               <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-status-live" />
+                <span className="size-2 rounded-full bg-umber-800 dark:bg-cloud-200" />
                 <span>Effort per Workflow (Drops)</span>
               </div>
               <div className="flex items-center gap-2">
