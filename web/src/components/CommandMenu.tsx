@@ -142,7 +142,7 @@ export function CommandMenu({ isOpen, onClose }: CommandMenuProps) {
       role="dialog"
       aria-modal="true"
       aria-label="Command search menu"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-24 px-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-14 sm:pt-24 px-3 sm:px-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div

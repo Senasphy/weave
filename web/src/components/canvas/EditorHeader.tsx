@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEditorStore } from '@/store/editorStore';
+import { useMobileNav } from '@/components/AppShell';
 import { api } from '@/lib/api';
 import {
   Save,
@@ -13,12 +15,15 @@ import {
   X,
   Loader2,
   Workflow,
+  Menu,
+  ArrowLeft,
 } from 'lucide-react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { cn } from '@/lib/cn';
 
 export function EditorHeader() {
   const router = useRouter();
+  const { openMobileNav } = useMobileNav();
   const {
     workflowId,
     workflowName,
@@ -116,15 +121,33 @@ export function EditorHeader() {
   };
 
   return (
-    <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-5 select-none z-20 shrink-0 gap-2">
+    <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-2.5 sm:px-5 select-none z-20 shrink-0 gap-2">
       {/* Left: Workflow metadata */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-        <div className="w-8 h-8 rounded-xl border border-border bg-secondary text-foreground flex items-center justify-center shrink-0 shadow-sm">
+      <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+        <button
+          type="button"
+          onClick={openMobileNav}
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors md:hidden shrink-0 cursor-pointer"
+          title="Open menu"
+          aria-label="Open menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <Link
+          href="/"
+          className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+          title="Back to workflows"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl border border-border bg-secondary text-foreground hidden sm:flex items-center justify-center shrink-0 shadow-sm">
           <Workflow className="w-4 h-4" />
         </div>
 
         <div className="flex items-center gap-2 min-w-0">
-          <h1 className="text-xs font-semibold text-foreground tracking-tight truncate max-w-[120px] sm:max-w-none">
+          <h1 className="text-xs font-semibold text-foreground tracking-tight truncate max-w-[90px] min-[420px]:max-w-[140px] sm:max-w-none">
             {workflowName || graph.name}
           </h1>
 

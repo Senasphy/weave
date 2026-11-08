@@ -45,7 +45,7 @@ export function EditorToolbar({
       role="toolbar"
       aria-label="Editor Palette & Controls"
       className={cn(
-        'absolute top-3 left-3 sm:top-4 sm:left-4 z-10 flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl bg-card/90 border border-border select-none shadow-2xl backdrop-blur-md max-w-[calc(100vw-1.5rem)] overflow-x-auto',
+        'absolute top-3 left-3 sm:top-4 sm:left-4 z-10 flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-2xl bg-card/90 border border-border select-none shadow-2xl backdrop-blur-md max-w-[calc(100vw-1.5rem)] overflow-x-auto no-scrollbar',
         className
       )}
     >

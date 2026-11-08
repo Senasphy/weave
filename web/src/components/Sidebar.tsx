@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ExternalLink,
   LogOut,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { WeaveLogo } from '@/components/WeaveLogo';
@@ -27,12 +28,16 @@ interface SidebarProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenSearch?: () => void;
+  isMobileDrawer?: boolean;
+  onCloseMobileDrawer?: () => void;
 }
 
 export function Sidebar({
   collapsed = false,
   onToggleCollapse,
   onOpenSearch,
+  isMobileDrawer = false,
+  onCloseMobileDrawer,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -84,7 +89,7 @@ export function Sidebar({
 
   return (
     <>
-      {!collapsed && (
+      {!isMobileDrawer && !collapsed && (
         <div
           onClick={onToggleCollapse}
           className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden"
@@ -92,10 +97,15 @@ export function Sidebar({
       )}
       <aside
         className={cn(
-          'h-full bg-background border-r border-border flex flex-col justify-between shrink-0 transition-all duration-200 select-none',
-          collapsed
-            ? 'w-14 sm:w-16 z-30'
-            : 'fixed inset-y-0 left-0 w-64 z-50 shadow-2xl md:relative md:shadow-none'
+          'h-full bg-background flex flex-col justify-between shrink-0 transition-all duration-200 select-none',
+          isMobileDrawer
+            ? 'w-full border-none'
+            : cn(
+                'border-r border-border',
+                collapsed
+                  ? 'hidden md:flex md:w-14 sm:w-16 z-30'
+                  : 'fixed inset-y-0 left-0 w-64 z-50 shadow-2xl md:relative md:shadow-none'
+              )
         )}
       >
       {/* Top Part: Brand + Search + Main Navigation */}
@@ -104,25 +114,38 @@ export function Sidebar({
         <div className="h-14 flex items-center justify-between px-4 border-b border-border">
           <Link
             href="/"
+            onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
             className={cn(
               'flex items-center gap-2 overflow-hidden transition-opacity hover:opacity-90',
-              collapsed && 'justify-center w-full'
+              collapsed && !isMobileDrawer && 'justify-center w-full'
             )}
             title="Weave Home"
           >
-            <WeaveLogo variant={collapsed ? 'mark' : 'full'} />
+            <WeaveLogo variant={collapsed && !isMobileDrawer ? 'mark' : 'full'} />
           </Link>
 
-          {!collapsed && onToggleCollapse && (
+          {isMobileDrawer && onCloseMobileDrawer ? (
             <button
               type="button"
-              onClick={onToggleCollapse}
+              onClick={onCloseMobileDrawer}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
-              title="Collapse sidebar"
-              aria-label="Collapse sidebar"
+              title="Close menu"
+              aria-label="Close menu"
             >
-              <PanelLeftClose className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
+          ) : (
+            !collapsed && onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            )
           )}
         </div>
 
@@ -173,12 +196,13 @@ export function Sidebar({
               {/* Workflows */}
               <Link
                 href="/"
+                onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
                 className={cn(
                   'group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all select-none',
                   isWorkflowsActive
                     ? 'bg-accent/80 text-foreground font-semibold border border-white/[0.08] shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
-                  collapsed && 'justify-center px-0'
+                  collapsed && !isMobileDrawer && 'justify-center px-0'
                 )}
                 title="Workflows"
               >
@@ -188,7 +212,7 @@ export function Sidebar({
                     isWorkflowsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
-                {!collapsed && (
+                {(!collapsed || isMobileDrawer) && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Workflows</span>
                     {workflows.length > 0 && (
@@ -203,12 +227,13 @@ export function Sidebar({
               {/* Runs */}
               <Link
                 href="/runs"
+                onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
                 className={cn(
                   'group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all select-none',
                   isRunsActive
                     ? 'bg-accent/80 text-foreground font-semibold border border-white/[0.08] shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
-                  collapsed && 'justify-center px-0'
+                  collapsed && !isMobileDrawer && 'justify-center px-0'
                 )}
                 title="Runs"
               >
@@ -218,7 +243,7 @@ export function Sidebar({
                     isRunsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
-                {!collapsed && (
+                {(!collapsed || isMobileDrawer) && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Runs</span>
                     {activeRunsCount > 0 ? (
@@ -240,12 +265,13 @@ export function Sidebar({
               {/* Approvals */}
               <Link
                 href="/gates"
+                onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
                 className={cn(
                   'group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all select-none',
                   isGatesActive
                     ? 'bg-accent/80 text-foreground font-semibold border border-white/[0.08] shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
-                  collapsed && 'justify-center px-0'
+                  collapsed && !isMobileDrawer && 'justify-center px-0'
                 )}
                 title="Approvals"
               >
@@ -255,7 +281,7 @@ export function Sidebar({
                     isGatesActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
-                {!collapsed && (
+                {(!collapsed || isMobileDrawer) && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
                     <span className="truncate">Approvals</span>
                     {pendingGatesCount > 0 && (
@@ -272,7 +298,7 @@ export function Sidebar({
 
           {/* System & Configuration Group */}
           <div>
-            {!collapsed && (
+            {(!collapsed || isMobileDrawer) && (
               <div className="px-2 mb-2 text-[10.5px] font-mono font-semibold uppercase tracking-[0.14em] text-muted-foreground/75">
                 System
               </div>
@@ -280,12 +306,13 @@ export function Sidebar({
             <nav className="space-y-1">
               <Link
                 href="/settings"
+                onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
                 className={cn(
                   'group relative flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all select-none',
                   isSettingsActive
                     ? 'bg-accent/80 text-foreground font-semibold border border-white/[0.08] shadow-sm'
                     : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
-                  collapsed && 'justify-center px-0'
+                  collapsed && !isMobileDrawer && 'justify-center px-0'
                 )}
                 title="Settings"
               >
@@ -295,7 +322,7 @@ export function Sidebar({
                     isSettingsActive ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                   )}
                 />
-                {!collapsed && <span className="truncate">Settings</span>}
+                {(!collapsed || isMobileDrawer) && <span className="truncate">Settings</span>}
               </Link>
 
               {/* Documentation External Link */}
@@ -303,14 +330,15 @@ export function Sidebar({
                 href="https://weave-documentation.vercel.app"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={isMobileDrawer ? onCloseMobileDrawer : undefined}
                 className={cn(
                   'group flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all select-none',
-                  collapsed && 'justify-center px-0'
+                  collapsed && !isMobileDrawer && 'justify-center px-0'
                 )}
                 title="Open Documentation Site"
               >
                 <BookOpen className="w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
-                {!collapsed && (
+                {(!collapsed || isMobileDrawer) && (
                   <div className="flex-1 flex items-center justify-between">
                     <span>Documentation</span>
                     <ExternalLink className="w-3.5 h-3.5 text-muted-foreground/60 group-hover:text-foreground transition-colors" />
@@ -326,7 +354,7 @@ export function Sidebar({
       <div className="p-3 border-t border-border bg-background">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
-            {collapsed ? (
+            {collapsed && !isMobileDrawer ? (
               <button
                 type="button"
                 className="w-full flex justify-center cursor-pointer outline-none group"
