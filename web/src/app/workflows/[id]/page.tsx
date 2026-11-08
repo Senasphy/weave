@@ -15,7 +15,6 @@ import {
   BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Workflow,
   Bot,
@@ -41,7 +40,7 @@ import { cn } from '@/lib/cn';
 function WorkflowEditorContent() {
   const params = useParams();
   const workflowId = params.id as string;
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
 
   const {
     graph,
@@ -55,11 +54,11 @@ function WorkflowEditorContent() {
     selectedEdgeId,
     addNode,
     viewMode,
-    isDirty,
     workflowName,
   } = useEditorStore();
 
   const isInitializedRef = useRef<string | null>(null);
+  const initialFitDoneRef = useRef(false);
 
   const { data: workflow, isLoading } = useQuery({
     queryKey: ['workflow', workflowId],
@@ -82,14 +81,13 @@ function WorkflowEditorContent() {
         draft &&
         Array.isArray(draft.nodes) &&
         draft.nodes.length > 0 &&
-        (!graph?.nodes || graph.nodes.length === 0) &&
-        !isDirty
+        (!graph?.nodes || graph.nodes.length === 0)
       ) {
         // Late-arriving draft with actual nodes on a clean empty canvas
         initGraph(workflow.id, workflow.name, draft);
       }
     }
-  }, [workflow, draftGraph, initGraph, isDirty, graph?.nodes]);
+  }, [workflow, draftGraph, initGraph, graph?.nodes]);
 
   const loadTriageTemplate = useCallback(() => {
     const triageGraph: WorkflowGraph = {
@@ -167,26 +165,65 @@ function WorkflowEditorContent() {
       router: RouterNode,
       fan_out: ParallelNode,
       join: ParallelNode,
+      default: AgentNode, // fallback to ensure any unexpected node type renders
     }),
     []
   );
 
-  // Convert graph nodes to React Flow nodes with explicit selection state
+  // Convert graph nodes to React Flow nodes with guaranteed positions and initial dimensions
   const flowNodes: FlowNode[] = useMemo(() => {
     const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
-    return nodes.map((n) => ({
-      id: n.id,
-      type: n.type,
-      position: n.position || { x: 100, y: 100 },
-      data: n as any,
-      selected: n.id === selectedNodeId,
-    }));
+
+    // Check if positions are missing, identical (0,0), or invalid
+    const allAtZero = nodes.length > 1 && nodes.every(
+      (n) => !n.position || (n.position.x === 0 && n.position.y === 0)
+    );
+
+    return nodes.map((n, index) => {
+      let pos = n.position;
+      const isPosValid =
+        pos &&
+        typeof pos.x === 'number' &&
+        typeof pos.y === 'number' &&
+        !isNaN(pos.x) &&
+        !isNaN(pos.y);
+
+      if (!isPosValid || allAtZero) {
+        // Safe linear grid layout: 80, 400, 720, 1040...
+        pos = {
+          x: 80 + (index % 4) * 320,
+          y: 150 + Math.floor(index / 4) * 200,
+        };
+      }
+
+      const rawType = (n.type || 'agent').toLowerCase();
+      const type = ['agent', 'gate', 'router', 'fan_out', 'join'].includes(rawType)
+        ? rawType
+        : 'agent';
+
+      return {
+        id: n.id,
+        type,
+        position: pos!,
+        data: n as any,
+        selected: n.id === selectedNodeId,
+        width: 260,
+        initialWidth: 260,
+        initialHeight: 140,
+      };
+    });
   }, [graph?.nodes, selectedNodeId]);
 
-  // Convert graph edges to React Flow edges with refined styles
+  // Convert graph edges to React Flow edges with safety checks
   const flowEdges: FlowEdge[] = useMemo(() => {
+    const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
+    const nodeIds = new Set(nodes.map((n) => n.id));
     const edges = Array.isArray(graph?.edges) ? graph.edges : [];
-    return edges.map((e) => ({
+
+    // Filter out edges that reference missing nodes
+    const validEdges = edges.filter((e) => nodeIds.has(e.from) && nodeIds.has(e.to));
+
+    return validEdges.map((e) => ({
       id: e.id,
       source: e.from,
       target: e.to,
@@ -209,7 +246,18 @@ function WorkflowEditorContent() {
       labelBgBorderRadius: 6,
       data: e as any,
     }));
-  }, [graph?.edges, selectedEdgeId]);
+  }, [graph?.nodes, graph?.edges, selectedEdgeId]);
+
+  // Auto fit-view to center all nodes when nodes load or when switching back to canvas
+  useEffect(() => {
+    if (viewMode === 'canvas' && flowNodes.length > 0 && !initialFitDoneRef.current) {
+      initialFitDoneRef.current = true;
+      const timer = setTimeout(() => {
+        fitView({ padding: 0.25, duration: 350 });
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, flowNodes.length, fitView]);
 
   // Drag-and-drop node placement from palette onto canvas
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -261,148 +309,139 @@ function WorkflowEditorContent() {
       <div className="flex-1 flex flex-row overflow-hidden relative">
         {/* Left Column: Canvas Area & Bottom Validation Panel */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 relative overflow-hidden h-full">
             {/* Floating EditorToolbar */}
             <div className="absolute top-4 left-4 z-10 pointer-events-auto">
               <EditorToolbar />
             </div>
 
-            {/* View Switch: Canvas View vs Outline View with AnimatePresence */}
-            <AnimatePresence mode="wait">
-              {viewMode === 'canvas' ? (
-                <motion.div
-                  key="canvas-view"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full h-full relative"
-                >
-                  <ReactFlow
-                    nodes={flowNodes}
-                    edges={flowEdges}
-                    nodeTypes={nodeTypes}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onDragOver={onDragOver}
-                    onDrop={onDrop}
-                    onNodeClick={(_, node) => selectNode(node.id)}
-                    onEdgeClick={(_, edge) => selectEdge(edge.id)}
-                    onPaneClick={() => {
-                      selectNode(null);
-                      selectEdge(null);
-                    }}
-                    fitView
-                    minZoom={0.2}
-                    maxZoom={2.0}
-                    proOptions={{ hideAttribution: true }}
-                    className="bg-background"
-                  >
-                    <Background
-                      variant={BackgroundVariant.Dots}
-                      gap={24}
-                      size={1.2}
-                      color="rgba(255, 255, 255, 0.08)"
-                    />
-                    <Controls
-                      showInteractive={false}
-                      className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
-                    />
-                    <MiniMap
-                      style={{
-                        backgroundColor: '#0c0d12',
-                      }}
-                      nodeColor={(node) => {
-                        switch (node.type) {
-                          case 'agent':
-                            return '#6366f1';
-                          case 'gate':
-                            return '#f59e0b';
-                          case 'router':
-                            return '#06b6d4';
-                          case 'fan_out':
-                          case 'join':
-                            return '#a855f7';
-                          default:
-                            return '#64748b';
-                        }
-                      }}
-                      nodeStrokeColor="transparent"
-                      nodeBorderRadius={4}
-                      maskColor="rgba(9, 10, 13, 0.85)"
-                      className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
-                    />
-                  </ReactFlow>
-
-                  {/* Empty Canvas Starter Guide Overlay */}
-                  {flowNodes.length === 0 && (
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 p-4">
-                      <div className="pointer-events-auto max-w-md w-full rounded-2xl bg-card/90 backdrop-blur-md border border-border p-6 shadow-2xl text-center space-y-4 animate-in fade-in-0 zoom-in-95 duration-150">
-                        <div className="w-12 h-12 rounded-2xl bg-secondary border border-border flex items-center justify-center mx-auto text-foreground shadow-sm">
-                          <Workflow className="w-6 h-6 text-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground tracking-tight">Empty Canvas</h3>
-                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                            This workflow doesn&apos;t have any components yet. Click an item in the top toolbar, drag one onto the canvas, or add a starter component below.
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => addNode('agent', { x: 260, y: 180 })}
-                            className="px-3.5 py-2 rounded-xl bg-foreground text-background text-xs font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-sm"
-                          >
-                            <Bot className="w-3.5 h-3.5" />
-                            <span>+ Add Agent Worker</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => addNode('gate', { x: 260, y: 180 })}
-                            className="px-3.5 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            <span>+ Gate</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => addNode('router', { x: 260, y: 180 })}
-                            className="px-3.5 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <GitFork className="w-3.5 h-3.5" />
-                            <span>+ Router</span>
-                          </button>
-                        </div>
-
-                        <div className="pt-3 border-t border-border/80">
-                          <button
-                            type="button"
-                            onClick={loadTriageTemplate}
-                            className="text-xs text-muted-foreground hover:text-foreground font-medium flex items-center justify-center gap-1.5 mx-auto transition-colors cursor-pointer group"
-                          >
-                            <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-                            <span>Load Support Triage Starter Template</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="outline-view"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                  className="flex-1 h-full overflow-hidden"
-                >
-                  <OutlineView />
-                </motion.div>
+            {/* Persistent Canvas View - Kept mounted to prevent DOM destroy / measurement loss */}
+            <div
+              className={cn(
+                'absolute inset-0 w-full h-full',
+                viewMode === 'canvas' ? 'visible pointer-events-auto' : 'invisible pointer-events-none'
               )}
-            </AnimatePresence>
+            >
+              <ReactFlow
+                nodes={flowNodes}
+                edges={flowEdges}
+                nodeTypes={nodeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
+                onNodeClick={(_, node) => selectNode(node.id)}
+                onEdgeClick={(_, edge) => selectEdge(edge.id)}
+                onPaneClick={() => {
+                  selectNode(null);
+                  selectEdge(null);
+                }}
+                fitView
+                fitViewOptions={{ padding: 0.25 }}
+                minZoom={0.15}
+                maxZoom={2.5}
+                proOptions={{ hideAttribution: true }}
+                className="w-full h-full bg-background dark"
+              >
+                <Background
+                  variant={BackgroundVariant.Dots}
+                  gap={24}
+                  size={1.2}
+                  color="rgba(255, 255, 255, 0.08)"
+                />
+                <Controls
+                  showInteractive={false}
+                  className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
+                />
+                <MiniMap
+                  style={{
+                    backgroundColor: '#0c0d12',
+                  }}
+                  nodeColor={(node) => {
+                    switch (node.type) {
+                      case 'agent':
+                        return '#6366f1';
+                      case 'gate':
+                        return '#f59e0b';
+                      case 'router':
+                        return '#06b6d4';
+                      case 'fan_out':
+                      case 'join':
+                        return '#a855f7';
+                      default:
+                        return '#64748b';
+                    }
+                  }}
+                  nodeStrokeColor="transparent"
+                  nodeBorderRadius={4}
+                  maskColor="rgba(9, 10, 13, 0.85)"
+                  className="!bg-card/90 !backdrop-blur-md !border !border-border !rounded-xl !shadow-xl overflow-hidden !m-4"
+                />
+              </ReactFlow>
+
+              {/* Empty Canvas Starter Guide Overlay */}
+              {flowNodes.length === 0 && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-10 p-4">
+                  <div className="pointer-events-auto max-w-md w-full rounded-2xl bg-card/90 backdrop-blur-md border border-border p-6 shadow-2xl text-center space-y-4 animate-in fade-in-0 zoom-in-95 duration-150">
+                    <div className="w-12 h-12 rounded-2xl bg-secondary border border-border flex items-center justify-center mx-auto text-foreground shadow-sm">
+                      <Workflow className="w-6 h-6 text-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground tracking-tight">Empty Canvas</h3>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        This workflow doesn&apos;t have any components yet. Click an item in the top toolbar, drag one onto the canvas, or add a starter component below.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => addNode('agent', { x: 260, y: 180 })}
+                        className="px-3.5 py-2 rounded-xl bg-foreground text-background text-xs font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-sm"
+                      >
+                        <Bot className="w-3.5 h-3.5" />
+                        <span>+ Add Agent Worker</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addNode('gate', { x: 260, y: 180 })}
+                        className="px-3.5 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>+ Gate</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => addNode('router', { x: 260, y: 180 })}
+                        className="px-3.5 py-2 rounded-xl bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <GitFork className="w-3.5 h-3.5" />
+                        <span>+ Router</span>
+                      </button>
+                    </div>
+
+                    <div className="pt-3 border-t border-border/80">
+                      <button
+                        type="button"
+                        onClick={loadTriageTemplate}
+                        className="text-xs text-muted-foreground hover:text-foreground font-medium flex items-center justify-center gap-1.5 mx-auto transition-colors cursor-pointer group"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+                        <span>Load Support Triage Starter Template</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Outline View - Mounted on top when outline mode is active */}
+            {viewMode === 'outline' && (
+              <div className="absolute inset-0 w-full h-full bg-background overflow-y-auto z-20">
+                <OutlineView />
+              </div>
+            )}
           </div>
 
           {/* Diagnostics & Validation Bottom Drawer */}

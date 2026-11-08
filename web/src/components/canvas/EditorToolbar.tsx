@@ -211,7 +211,12 @@ export function EditorToolbar({
       <div className="flex items-center gap-0.5 p-1 rounded-xl bg-secondary/60 border border-border">
         <button
           type="button"
-          onClick={() => handleSetViewMode('canvas')}
+          onClick={() => {
+            handleSetViewMode('canvas');
+            if (reactFlow) {
+              setTimeout(() => reactFlow.fitView({ padding: 0.25, duration: 300 }), 50);
+            }
+          }}
           className={cn(
             'p-1.5 rounded-lg transition-all cursor-pointer',
             currentViewMode === 'canvas'
