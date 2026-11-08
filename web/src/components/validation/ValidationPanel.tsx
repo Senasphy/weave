@@ -12,12 +12,14 @@ import {
 } from 'lucide-react';
 
 export function ValidationPanel() {
-  const [isExpanded, setIsExpanded] = useState(true);
   const { diagnostics, selectNode, selectEdge } = useEditorStore();
 
   const errors = diagnostics.filter((d) => d.severity === 'error');
   const warnings = diagnostics.filter((d) => d.severity === 'warning');
   const isValid = errors.length === 0;
+
+  // Collapse by default unless there are blocking errors
+  const [isExpanded, setIsExpanded] = useState(errors.length > 0);
 
   return (
     <section

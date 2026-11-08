@@ -58,14 +58,19 @@ export function EditorToolbar({
       // Target center of visible canvas area (offsetting slightly left if inspector is open)
       const targetX = rect.left + (selectedNodeId ? rect.width * 0.35 : rect.width * 0.5);
       const targetY = rect.top + rect.height * 0.5;
-      position = reactFlow.screenToFlowPosition({ x: targetX, y: targetY });
+      const converted = reactFlow.screenToFlowPosition({ x: targetX, y: targetY });
+      position = converted && !isNaN(converted.x) && !isNaN(converted.y) ? converted : { x: 250, y: 150 };
     } else if (reactFlow) {
       const vp = reactFlow.getViewport();
-      position = {
-        x: (-vp.x + window.innerWidth / 2) / (vp.zoom || 1),
-        y: (-vp.y + window.innerHeight / 2) / (vp.zoom || 1),
-      };
+      const zoom = vp.zoom || 1;
+      const calcX = (-vp.x + window.innerWidth / 2) / zoom;
+      const calcY = (-vp.y + window.innerHeight / 2) / zoom;
+      position = !isNaN(calcX) && !isNaN(calcY) ? { x: calcX, y: calcY } : { x: 250, y: 150 };
     } else {
+      position = { x: 250, y: 150 };
+    }
+
+    if (!position || isNaN(position.x) || isNaN(position.y)) {
       position = { x: 250, y: 150 };
     }
 
@@ -92,7 +97,7 @@ export function EditorToolbar({
     addNode(type, finalPos);
 
     if (reactFlow) {
-      const currentZoom = reactFlow.getViewport().zoom;
+      const currentZoom = reactFlow.getViewport().zoom || 1;
       reactFlow.setCenter(finalPos.x + 130, finalPos.y + 70, {
         duration: 350,
         zoom: Math.max(currentZoom, 0.8),
