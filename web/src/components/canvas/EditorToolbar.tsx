@@ -10,9 +10,12 @@ import {
   Redo2,
   LayoutGrid,
   ListFilter,
+  GripVertical,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useReactFlow } from '@xyflow/react';
 import { useEditorStore } from '@/store/editorStore';
+import { NodeType } from '@/lib/types';
 import { cn } from '@/lib/cn';
 
 interface EditorToolbarProps {
@@ -31,11 +34,76 @@ export function EditorToolbar({
   const currentViewMode = viewMode ?? storeViewMode;
   const handleSetViewMode = setViewMode ?? storeSetViewMode;
 
+  const graph = useEditorStore((state) => state.graph);
+  const selectedNodeId = useEditorStore((state) => state.selectedNodeId);
   const addNode = useEditorStore((state) => state.addNode);
   const undo = useEditorStore((state) => state.undo);
   const redo = useEditorStore((state) => state.redo);
   const past = useEditorStore((state) => state.past);
   const future = useEditorStore((state) => state.future);
+
+  let reactFlow: ReturnType<typeof useReactFlow> | null = null;
+  try {
+    reactFlow = useReactFlow();
+  } catch {
+    reactFlow = null;
+  }
+
+  const handleAddNode = (type: NodeType) => {
+    let position: { x: number; y: number };
+
+    const canvasEl = document.querySelector('.react-flow');
+    if (canvasEl && reactFlow) {
+      const rect = canvasEl.getBoundingClientRect();
+      // Target center of visible canvas area (offsetting slightly left if inspector is open)
+      const targetX = rect.left + (selectedNodeId ? rect.width * 0.35 : rect.width * 0.5);
+      const targetY = rect.top + rect.height * 0.5;
+      position = reactFlow.screenToFlowPosition({ x: targetX, y: targetY });
+    } else if (reactFlow) {
+      const vp = reactFlow.getViewport();
+      position = {
+        x: (-vp.x + window.innerWidth / 2) / (vp.zoom || 1),
+        y: (-vp.y + window.innerHeight / 2) / (vp.zoom || 1),
+      };
+    } else {
+      position = { x: 250, y: 150 };
+    }
+
+    // Offset slightly if a node already exists within 70px to avoid overlapping cards
+    const existing = graph?.nodes || [];
+    let offsetX = 0;
+    let offsetY = 0;
+    while (
+      existing.some(
+        (n) =>
+          Math.abs((n.position?.x ?? 0) - (position.x + offsetX)) < 70 &&
+          Math.abs((n.position?.y ?? 0) - (position.y + offsetY)) < 70
+      )
+    ) {
+      offsetX += 40;
+      offsetY += 40;
+    }
+
+    const finalPos = {
+      x: Math.round(position.x + offsetX),
+      y: Math.round(position.y + offsetY),
+    };
+
+    addNode(type, finalPos);
+
+    if (reactFlow) {
+      const currentZoom = reactFlow.getViewport().zoom;
+      reactFlow.setCenter(finalPos.x + 130, finalPos.y + 70, {
+        duration: 350,
+        zoom: Math.max(currentZoom, 0.8),
+      });
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, type: NodeType) => {
+    e.dataTransfer.setData('application/reactflow/type', type);
+    e.dataTransfer.effectAllowed = 'move';
+  };
 
   return (
     <motion.div
@@ -53,40 +121,52 @@ export function EditorToolbar({
       <div className="flex items-center gap-1 pr-1">
         <button
           type="button"
-          onClick={() => addNode('agent')}
-          className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-          title="Add Agent Node"
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'agent')}
+          onClick={() => handleAddNode('agent')}
+          className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-grab active:cursor-grabbing"
+          title="Click to add at center, or drag onto canvas"
         >
+          <GripVertical className="w-3 h-3 text-muted-foreground/30 group-hover:text-muted-foreground/80 transition-colors" />
           <Bot className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span className="hidden sm:inline">Agent</span>
         </button>
 
         <button
           type="button"
-          onClick={() => addNode('gate')}
-          className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-          title="Add Human Gate Node"
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'gate')}
+          onClick={() => handleAddNode('gate')}
+          className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-grab active:cursor-grabbing"
+          title="Click to add at center, or drag onto canvas"
         >
+          <GripVertical className="w-3 h-3 text-muted-foreground/30 group-hover:text-muted-foreground/80 transition-colors" />
           <UserCheck className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span className="hidden sm:inline">Gate</span>
         </button>
 
         <button
           type="button"
-          onClick={() => addNode('router')}
-          className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-          title="Add Router Node"
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'router')}
+          onClick={() => handleAddNode('router')}
+          className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-grab active:cursor-grabbing"
+          title="Click to add at center, or drag onto canvas"
         >
+          <GripVertical className="w-3 h-3 text-muted-foreground/30 group-hover:text-muted-foreground/80 transition-colors" />
           <GitFork className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span className="hidden sm:inline">Router</span>
         </button>
 
         <button
           type="button"
-          onClick={() => addNode('fan_out')}
-          className="group flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer"
-          title="Add Fan-Out / Join Nodes"
+          draggable
+          onDragStart={(e) => handleDragStart(e, 'fan_out')}
+          onClick={() => handleAddNode('fan_out')}
+          className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-grab active:cursor-grabbing"
+          title="Click to add at center, or drag onto canvas"
         >
+          <GripVertical className="w-3 h-3 text-muted-foreground/30 group-hover:text-muted-foreground/80 transition-colors" />
           <Network className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
           <span className="hidden sm:inline">Fan-Out</span>
         </button>

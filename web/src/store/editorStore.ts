@@ -176,27 +176,47 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   addNode: (type, pos) => {
     const current = get();
     const id = `${type}_${Date.now().toString(36)}`;
-    const position = pos || { x: 250 + Math.random() * 50, y: 150 + Math.random() * 50 };
+
+    let position = pos;
+    if (!position) {
+      const existing = current.graph?.nodes || [];
+      if (existing.length > 0) {
+        const maxX = Math.max(...existing.map((n) => n.position?.x ?? 0));
+        const lastNode = existing.find((n) => (n.position?.x ?? 0) === maxX);
+        position = { x: maxX + 320, y: lastNode?.position?.y ?? 160 };
+      } else {
+        position = { x: 120, y: 160 };
+      }
+    }
+
+    const defaultLabels: Record<NodeType, string> = {
+      agent: 'Agent Worker',
+      gate: 'Approval Gate',
+      router: 'Decision Router',
+      fan_out: 'Broadcast Query',
+      join: 'Consensus Join',
+    };
 
     let newNode: GraphNode = {
       id,
       type,
-      label: `${type.toUpperCase()} Node`,
+      label: defaultLabels[type] || `${type.toUpperCase()} Node`,
       position,
     };
 
     if (type === 'agent') {
       newNode = {
         ...newNode,
-        model: { provider: 'mock', name: 'mock-llm' },
-        system_prompt: 'You are an agent in the workflow.',
+        model: { provider: 'gemini', name: 'gemini-1.5-flash', temperature: 0.2 },
+        system_prompt: 'You are an intelligent agent in the workflow.',
         output_schema: { type: 'object' },
       };
     } else if (type === 'gate') {
       newNode = {
         ...newNode,
-        prompt: 'Approve or reject action?',
+        prompt: 'Review and approve action before proceeding.',
         timeout_seconds: 86400,
+        allow_edit: true,
       };
     } else if (type === 'router') {
       newNode = {

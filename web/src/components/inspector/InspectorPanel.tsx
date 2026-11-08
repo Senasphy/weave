@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import { useEditorStore } from '@/store/editorStore';
 import { cn } from '@/lib/cn';
 import {
@@ -18,6 +19,8 @@ import {
   ArrowRight,
   Database,
   ShieldAlert,
+  Target,
+  Check,
 } from 'lucide-react';
 import { EdgeKind, NodeType } from '@/lib/types';
 
@@ -101,8 +104,24 @@ export function InspectorPanel() {
 
   const [newToolInput, setNewToolInput] = useState('');
 
+  let reactFlow: ReturnType<typeof useReactFlow> | null = null;
+  try {
+    reactFlow = useReactFlow();
+  } catch {
+    reactFlow = null;
+  }
+
   const selectedNode = (graph?.nodes || []).find((n) => n.id === selectedNodeId);
   const selectedEdge = (graph?.edges || []).find((e) => e.id === selectedEdgeId);
+
+  const handleLocateNode = () => {
+    if (selectedNode?.position && reactFlow) {
+      reactFlow.setCenter(selectedNode.position.x + 130, selectedNode.position.y + 70, {
+        duration: 350,
+        zoom: Math.max(reactFlow.getViewport().zoom, 0.8),
+      });
+    }
+  };
 
   const getNodeBadge = (type: NodeType) => {
     switch (type) {
@@ -193,7 +212,7 @@ export function InspectorPanel() {
       <div className="p-4 border-b border-border flex items-center justify-between bg-card">
         <div className="min-w-0 pr-2">
           {selectedNode ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
               <span
                 className={cn(
                   'inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full border font-mono',
@@ -202,6 +221,10 @@ export function InspectorPanel() {
               >
                 {getNodeBadge(selectedNode.type).icon}
                 {getNodeBadge(selectedNode.type).label}
+              </span>
+              <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Active on Canvas
               </span>
               {selectedNode.is_entry && (
                 <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
@@ -220,6 +243,16 @@ export function InspectorPanel() {
         </div>
 
         <div className="flex items-center gap-1">
+          {selectedNode && (
+            <button
+              type="button"
+              title="Center canvas view on this node"
+              onClick={handleLocateNode}
+              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+            >
+              <Target className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             type="button"
             title="Delete element"
@@ -227,18 +260,18 @@ export function InspectorPanel() {
               if (selectedNodeId) deleteNode(selectedNodeId);
               if (selectedEdgeId) deleteEdge(selectedEdgeId);
             }}
-            className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+            className="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
-            title="Close inspector"
+            title="Done & close inspector"
             onClick={() => {
               selectNode(null);
               selectEdge(null);
             }}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -655,18 +688,30 @@ export function InspectorPanel() {
         )}
       </div>
 
-      {/* Delete Button Footer */}
-      <div className="p-4 border-t border-border bg-card">
+      {/* Footer Actions */}
+      <div className="p-3.5 border-t border-border bg-card flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            selectNode(null);
+            selectEdge(null);
+          }}
+          className="flex-1 py-2 px-3 rounded-xl bg-foreground hover:opacity-90 text-background text-xs font-semibold shadow-sm transition-opacity flex items-center justify-center gap-1.5 cursor-pointer"
+          title="Done configuring and view on canvas"
+        >
+          <Check className="w-3.5 h-3.5" />
+          <span>Done (Keep on Canvas)</span>
+        </button>
         <button
           type="button"
           onClick={() => {
             if (selectedNodeId) deleteNode(selectedNodeId);
             if (selectedEdgeId) deleteEdge(selectedEdgeId);
           }}
-          className="w-full py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 text-xs font-medium transition-all flex items-center justify-center gap-2 group cursor-pointer"
+          className="p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-border/60 transition-colors flex items-center justify-center cursor-pointer"
+          title={selectedNode ? 'Delete Node' : 'Delete Edge'}
         >
-          <Trash2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-          <span>{selectedNode ? 'Delete Node' : 'Delete Edge'}</span>
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     </aside>

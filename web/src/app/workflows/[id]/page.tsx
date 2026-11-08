@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import {
   ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
   Background,
   Controls,
   MiniMap,
@@ -26,11 +28,13 @@ import { EditorToolbar } from '@/components/canvas/EditorToolbar';
 import { InspectorPanel } from '@/components/inspector/InspectorPanel';
 import { ValidationPanel } from '@/components/validation/ValidationPanel';
 import { OutlineView } from '@/components/outline/OutlineView';
+import { NodeType } from '@/lib/types';
 import { cn } from '@/lib/cn';
 
-export default function WorkflowEditorPage() {
+function WorkflowEditorContent() {
   const params = useParams();
   const workflowId = params.id as string;
+  const { screenToFlowPosition } = useReactFlow();
 
   const {
     graph,
@@ -42,6 +46,7 @@ export default function WorkflowEditorPage() {
     selectEdge,
     selectedNodeId,
     selectedEdgeId,
+    addNode,
     viewMode,
   } = useEditorStore();
 
@@ -72,7 +77,7 @@ export default function WorkflowEditorPage() {
     []
   );
 
-  // Convert graph nodes to React Flow nodes
+  // Convert graph nodes to React Flow nodes with explicit selection state
   const flowNodes: FlowNode[] = useMemo(() => {
     const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
     return nodes.map((n) => ({
@@ -80,8 +85,9 @@ export default function WorkflowEditorPage() {
       type: n.type,
       position: n.position || { x: 100, y: 100 },
       data: n as any,
+      selected: n.id === selectedNodeId,
     }));
-  }, [graph?.nodes]);
+  }, [graph?.nodes, selectedNodeId]);
 
   // Convert graph edges to React Flow edges with refined styles
   const flowEdges: FlowEdge[] = useMemo(() => {
@@ -91,6 +97,7 @@ export default function WorkflowEditorPage() {
       source: e.from,
       target: e.to,
       type: 'default',
+      selected: e.id === selectedEdgeId,
       label: e.kind === 'when' ? `when: ${e.expr || ''}` : e.kind !== 'always' ? e.kind : undefined,
       labelStyle: {
         fill: 'rgba(255, 255, 255, 0.75)',
@@ -108,7 +115,32 @@ export default function WorkflowEditorPage() {
       labelBgBorderRadius: 6,
       data: e as any,
     }));
-  }, [graph?.edges]);
+  }, [graph?.edges, selectedEdgeId]);
+
+  // Drag-and-drop node placement from palette onto canvas
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const type = event.dataTransfer.getData('application/reactflow/type') as NodeType;
+      if (!type) return;
+
+      const position = screenToFlowPosition({
+        x: event.clientX - 130, // center the 260px wide node card
+        y: event.clientY - 40,
+      });
+
+      addNode(type, {
+        x: Math.round(position.x),
+        y: Math.round(position.y),
+      });
+    },
+    [screenToFlowPosition, addNode]
+  );
 
   const hasSelection = Boolean(selectedNodeId || selectedEdgeId);
 
@@ -156,13 +188,14 @@ export default function WorkflowEditorPage() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onDragOver={onDragOver}
+                onDrop={onDrop}
                 onNodeClick={(_, node) => selectNode(node.id)}
                 onEdgeClick={(_, edge) => selectEdge(edge.id)}
                 onPaneClick={() => {
                   selectNode(null);
                   selectEdge(null);
                 }}
-                onlyRenderVisibleElements
                 fitView
                 minZoom={0.2}
                 maxZoom={2.0}
@@ -236,5 +269,13 @@ export default function WorkflowEditorPage() {
         <ValidationPanel />
       </div>
     </div>
+  );
+}
+
+export default function WorkflowEditorPage() {
+  return (
+    <ReactFlowProvider>
+      <WorkflowEditorContent />
+    </ReactFlowProvider>
   );
 }
