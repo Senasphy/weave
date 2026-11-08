@@ -3,14 +3,21 @@ import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Weave | Reliable Cloud AI Workflows",
+  title: {
+    default: "Weave | Reliable Cloud AI Workflows",
+    template: "%s | Weave",
+  },
   description:
     "One current, attributable runtime for your business workflows, backed by durable cloud state and hard budget governance.",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/weave-mark.svg", media: "(prefers-color-scheme: light)" },
       { url: "/weave-mark-dark.svg", media: "(prefers-color-scheme: dark)" },
     ],
+    shortcut: ["/favicon.ico"],
+    apple: ["/apple-icon.png"],
   },
 };
 

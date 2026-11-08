@@ -16,16 +16,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Weave Docs",
+  title: {
+    default: "Weave Docs",
+    template: "%s | Weave Docs",
+  },
   description:
     "Documentation for Weave: durable orchestration engine and visual graph editor for multi-agent LLM systems.",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
       { url: "/weave-mark.svg", media: "(prefers-color-scheme: light)" },
       { url: "/weave-mark-dark.svg", media: "(prefers-color-scheme: dark)" },
     ],
-    shortcut: ["/weave-mark.svg"],
-    apple: ["/weave-mark.svg"],
+    shortcut: ["/favicon.ico"],
+    apple: ["/apple-icon.png"],
   },
 };
 

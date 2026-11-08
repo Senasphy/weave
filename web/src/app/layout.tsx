@@ -17,15 +17,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Weave | Orchestration Studio',
+  title: {
+    default: 'Weave | Orchestration Studio',
+    template: '%s | Weave',
+  },
   description: 'Design multi-agent systems visually. Run them with confidence.',
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
       { url: '/weave-mark.svg', media: '(prefers-color-scheme: light)' },
       { url: '/weave-mark-dark.svg', media: '(prefers-color-scheme: dark)' },
     ],
-    shortcut: ['/weave-mark-dark.svg'],
-    apple: ['/weave-mark-dark.svg'],
+    shortcut: ['/favicon.ico'],
+    apple: ['/apple-icon.png'],
   },
 };
 
