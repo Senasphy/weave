@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Dialog from '@radix-ui/react-dialog';
 import { api, API_BASE } from '@/lib/api';
+import { useMobileNav } from '@/components/AppShell';
 import { RunRecord, RunEvent, GateRecord, RunStatus } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
 import { cn } from '@/lib/cn';
@@ -26,16 +27,19 @@ import {
   Check,
   X,
   ArrowLeft,
+  Menu,
 } from 'lucide-react';
 
 export default function RunViewerPage() {
   const params = useParams();
   const runId = params.id as string;
   const queryClient = useQueryClient();
+  const { openMobileNav } = useMobileNav();
 
   const [events, setEvents] = useState<RunEvent[]>([]);
   const [selectedEventSeq, setSelectedEventSeq] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<'timeline' | 'narration'>('timeline');
+  const [mobilePane, setMobilePane] = useState<'timeline' | 'inspector'>('timeline');
 
   // Gate resolve state
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
@@ -200,8 +204,17 @@ export default function RunViewerPage() {
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden select-none bg-background text-foreground">
       {/* Header bar */}
-      <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-3 sm:px-6 select-none shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+      <header className="h-14 bg-card/90 backdrop-blur-md border-b border-border flex items-center justify-between px-2.5 sm:px-6 select-none shrink-0 z-20 sticky top-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={openMobileNav}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors md:hidden shrink-0 cursor-pointer"
+            title="Open menu"
+            aria-label="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <Link
             href="/runs"
             className="text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-secondary transition-colors shrink-0"
@@ -211,7 +224,7 @@ export default function RunViewerPage() {
           </Link>
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-xs font-mono text-muted-foreground hidden sm:inline">Run</span>
-            <span className="font-semibold text-foreground text-xs font-mono truncate max-w-[120px] sm:max-w-none">
+            <span className="font-semibold text-foreground text-xs font-mono truncate max-w-[100px] min-[420px]:max-w-[140px] sm:max-w-none">
               {runId.slice(0, 16)}...
             </span>
             <StatusBadge status={run?.status} />
@@ -396,10 +409,45 @@ export default function RunViewerPage() {
         )}
       </AnimatePresence>
 
+      {/* Mobile Pane Switcher (< lg) */}
+      <div className="lg:hidden px-3 py-2 bg-card border-b border-border flex items-center justify-between shrink-0 select-none">
+        <div className="inline-flex p-1 rounded-xl border border-border bg-secondary/60 gap-1 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setMobilePane('timeline')}
+            className={cn(
+              'flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all text-center',
+              mobilePane === 'timeline'
+                ? 'bg-card text-foreground border border-border shadow-sm font-semibold'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Timeline ({events.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobilePane('inspector')}
+            className={cn(
+              'flex-1 sm:flex-none px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all text-center',
+              mobilePane === 'inspector'
+                ? 'bg-card text-foreground border border-border shadow-sm font-semibold'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Details &amp; Payload
+          </button>
+        </div>
+      </div>
+
       {/* Main split content area */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* Left pane: Timeline and Narration */}
-        <div className="w-full lg:w-1/2 h-1/2 lg:h-full border-b lg:border-b-0 lg:border-r border-border flex flex-col bg-card min-h-0 shrink-0 lg:shrink">
+        <div
+          className={cn(
+            'w-full lg:w-1/2 h-full border-b lg:border-b-0 lg:border-r border-border flex flex-col bg-card min-h-0 shrink-0 lg:shrink',
+            mobilePane === 'timeline' ? 'flex' : 'hidden lg:flex'
+          )}
+        >
           <div className="h-12 px-4 border-b border-border flex items-center justify-between shrink-0 bg-card">
             <div className="inline-flex p-1 rounded-xl border border-border bg-secondary/60 gap-1">
               <button
@@ -454,7 +502,10 @@ export default function RunViewerPage() {
                   return (
                     <div
                       key={ev.seq}
-                      onClick={() => setSelectedEventSeq(ev.seq)}
+                      onClick={() => {
+                        setSelectedEventSeq(ev.seq);
+                        setMobilePane('inspector');
+                      }}
                       className={cn(
                         'py-3 px-4 flex items-start gap-3 cursor-pointer transition-colors group',
                         isSelected
@@ -534,7 +585,23 @@ export default function RunViewerPage() {
         </div>
 
         {/* Right pane: Event detail inspector */}
-        <div className="w-full lg:w-1/2 h-1/2 lg:h-full flex flex-col bg-background overflow-y-auto p-4 sm:p-6 text-xs min-h-0">
+        <div
+          className={cn(
+            'w-full lg:w-1/2 h-full flex flex-col bg-background overflow-y-auto p-4 sm:p-6 text-xs min-h-0',
+            mobilePane === 'inspector' ? 'flex' : 'hidden lg:flex'
+          )}
+        >
+          {/* Back button for mobile */}
+          <div className="lg:hidden pb-3 mb-3 border-b border-border flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setMobilePane('timeline')}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Timeline</span>
+            </button>
+          </div>
           {selectedEvent ? (
             <div className="space-y-5">
               <div className="pb-4 border-b border-border flex items-center justify-between">

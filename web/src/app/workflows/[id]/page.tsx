@@ -217,14 +217,20 @@ export default function WorkflowEditorPage() {
         </AnimatePresence>
 
         {/* Right Inspector Panel */}
-        <div
-          className={cn(
-            'transition-all duration-300 ease-out flex shrink-0',
-            hasSelection ? 'w-full sm:w-80 fixed sm:relative right-0 inset-y-14 sm:inset-auto z-40' : 'w-0'
-          )}
-        >
-          {hasSelection && <InspectorPanel />}
-        </div>
+        {hasSelection && (
+          <>
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-30 sm:hidden"
+              onClick={() => {
+                selectNode(null);
+                selectEdge(null);
+              }}
+            />
+            <div className="w-full sm:w-80 fixed sm:relative right-0 inset-y-14 sm:inset-auto z-40 flex shrink-0 shadow-2xl sm:shadow-none h-[calc(100vh-3.5rem)] sm:h-full">
+              <InspectorPanel />
+            </div>
+          </>
+        )}
 
         {/* Diagnostics & Validation Bottom Drawer */}
         <ValidationPanel />

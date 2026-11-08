@@ -237,8 +237,8 @@ export default function RunsPage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="relative min-w-[260px]">
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap sm:flex-nowrap">
+            <div className="relative w-full sm:w-64 flex-1">
               <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
@@ -277,7 +277,63 @@ export default function RunsPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Mobile Card List (< sm) */}
+            <div className="block sm:hidden divide-y divide-border/60">
+              {filtered.map((run) => {
+                const isSelected = selectedIds.includes(run.id);
+                return (
+                  <div
+                    key={run.id}
+                    className={cn(
+                      'p-4 space-y-3 transition-colors',
+                      isSelected && 'bg-accent/40'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-xl border border-border bg-secondary flex items-center justify-center shrink-0 text-foreground shadow-sm">
+                          <Play className="w-3.5 h-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/runs/${run.id}`}
+                            className="text-xs font-semibold text-foreground hover:underline font-mono transition-colors block truncate"
+                          >
+                            {run.id}
+                          </Link>
+                          <span className="text-[11px] text-muted-foreground font-mono block">
+                            {run.version_id ? `v_${run.version_id.slice(0, 8)}` : 'draft_latest'}
+                          </span>
+                        </div>
+                      </div>
+                      <StatusBadge status={run.status} />
+                    </div>
+
+                    {run.error && (
+                      <p className="text-[11px] text-rose-400 font-mono bg-rose-500/10 border border-rose-500/20 p-2 rounded-lg">
+                        {run.error}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border/40">
+                      <span className="tabular-nums">
+                        {formatTimestamp(run.created_at)} • {formatDateFull(run.created_at)}
+                      </span>
+                      <Link
+                        href={`/runs/${run.id}`}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-foreground hover:underline"
+                      >
+                        <span>Trace</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (>= sm) */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-secondary/40 text-muted-foreground text-[11px] font-mono uppercase tracking-wider select-none">

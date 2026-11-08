@@ -252,7 +252,7 @@ export default function GatesPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border/40">
                           <Link
                             href={`/runs/${g.run_id}`}
                             className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-xl hover:bg-secondary border border-border"

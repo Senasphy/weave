@@ -399,9 +399,9 @@ export default function WorkflowsPage() {
           </div>
 
           {/* Right Controls: Filter Search, Filter, Sort, View Toggle */}
-          <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap sm:flex-nowrap">
             {/* Filter Search Input */}
-            <div className="relative min-w-[260px]">
+            <div className="relative w-full sm:w-64 flex-1">
               <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
@@ -503,7 +503,60 @@ export default function WorkflowsPage() {
         ) : viewMode === 'table' ? (
           /* Table View */
           <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Mobile Card List (< sm) */}
+            <div className="block sm:hidden divide-y divide-border/60">
+              {filtered.map((wf) => {
+                const isSelected = selectedIds.includes(wf.id);
+                return (
+                  <div
+                    key={wf.id}
+                    className={cn(
+                      'p-4 space-y-3 transition-colors',
+                      isSelected && 'bg-accent/40'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-xl border border-border bg-secondary flex items-center justify-center shrink-0 text-foreground font-semibold text-xs shadow-sm">
+                          {wf.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <Link
+                            href={`/workflows/${wf.id}`}
+                            className="text-xs font-semibold text-foreground hover:underline transition-colors block truncate"
+                          >
+                            {wf.name}
+                          </Link>
+                          <span className="text-[11px] text-muted-foreground block truncate">
+                            {wf.description || 'No description provided'}
+                          </span>
+                        </div>
+                      </div>
+                      <StatusBadge status="active" label="Active" pulse={false} />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border/40 font-mono">
+                      <span>
+                        {wf.draft_graph?.nodes?.length ? `${wf.draft_graph.nodes.length} steps` : '5 steps'}
+                      </span>
+                      <span className="tabular-nums font-sans">
+                        {formatDate(wf.updated_at)}
+                      </span>
+                      <Link
+                        href={`/workflows/${wf.id}`}
+                        className="inline-flex items-center gap-1 font-sans text-xs font-medium text-foreground hover:underline"
+                      >
+                        <span>Open</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (>= sm) */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-secondary/40 text-muted-foreground text-[11px] font-mono uppercase tracking-wider select-none">

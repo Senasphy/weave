@@ -113,19 +113,19 @@ export default function SettingsPage() {
           <div className="group relative flex min-h-[130px] flex-col justify-between rounded-2xl border border-border bg-card p-5 transition-all duration-200 hover:border-foreground/25 hover:bg-accent/40 shadow-sm">
             <div>
               <div className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-1.5 flex items-center justify-between">
-                <span>STORAGE BACKEND</span>
+                <span>DURABLE ENGINE</span>
                 <Cpu className="w-4 h-4 text-muted-foreground/60" />
               </div>
               <div className="text-3xl font-bold tracking-tight text-foreground">
-                Postgres
+                Cloud Ledger
               </div>
             </div>
             <div className="flex items-end justify-between pt-3">
               <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                Durable state &amp; checkpoints
+                Attributable state &amp; checkpoints
               </p>
               <span className="font-mono text-[11px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full border border-border">
-                Connected
+                Active
               </span>
             </div>
           </div>
