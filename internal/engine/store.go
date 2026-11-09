@@ -17,23 +17,44 @@ type Store interface {
 	GetGate(ctx context.Context, gateID string) (*GateRecord, error)
 	UpdateGate(ctx context.Context, gateID string, status, resolution, actor string, payload any) error
 	GetPendingGates(ctx context.Context) ([]GateRecord, error)
+	GetVersionGraph(ctx context.Context, versionID string) ([]byte, error)
 }
 
 // MemStore is a thread-safe, in-memory implementation of Store for engine testing.
 type MemStore struct {
-	mu     sync.RWMutex
-	events map[string][]Event      // runID -> events
-	gates  map[string]*GateRecord  // gateID -> gate
-	seqs   map[string]int64        // runID -> currentSeq
+	mu            sync.RWMutex
+	events        map[string][]Event     // runID -> events
+	gates         map[string]*GateRecord // gateID -> gate
+	seqs          map[string]int64       // runID -> currentSeq
+	versionGraphs map[string][]byte      // versionID -> graphJSON
 }
 
 // NewMemStore creates an initialized MemStore.
 func NewMemStore() *MemStore {
 	return &MemStore{
-		events: make(map[string][]Event),
-		gates:  make(map[string]*GateRecord),
-		seqs:   make(map[string]int64),
+		events:        make(map[string][]Event),
+		gates:         make(map[string]*GateRecord),
+		seqs:          make(map[string]int64),
+		versionGraphs: make(map[string][]byte),
 	}
+}
+
+// SaveVersionGraph records graph bytes for a workflow version.
+func (m *MemStore) SaveVersionGraph(versionID string, graphBytes []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.versionGraphs[versionID] = graphBytes
+}
+
+// GetVersionGraph returns graph bytes for a workflow version.
+func (m *MemStore) GetVersionGraph(ctx context.Context, versionID string) ([]byte, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	g, ok := m.versionGraphs[versionID]
+	if !ok {
+		return nil, fmt.Errorf("workflow version '%s' not found in store", versionID)
+	}
+	return g, nil
 }
 
 func (m *MemStore) AppendEvent(ctx context.Context, event Event) error {

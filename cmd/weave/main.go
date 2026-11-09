@@ -255,6 +255,9 @@ func startServer(ctx context.Context, st *store.PostgresStore, port int) {
 		os.Exit(1)
 	}
 
+	// SMELL-2 fix: Run background worker alongside API server to handle queued jobs
+	go startWorkerLoop(ctx, st, eng)
+
 	srv := api.NewServer(eng, st)
 	srv.StartTimeoutScheduler(ctx, 30*time.Second)
 
@@ -282,11 +285,11 @@ func startServer(ctx context.Context, st *store.PostgresStore, port int) {
 	fmt.Println("Server stopped cleanly.")
 }
 
-func startWorkerLoop(ctx context.Context, st *store.PostgresStore) {
+func startWorkerLoop(ctx context.Context, st *store.PostgresStore, eng *engine.Engine) {
 	workerID := fmt.Sprintf("worker-%d", time.Now().UnixNano())
 	fmt.Printf("Starting Weave background worker (%s)...\n", workerID)
 
-	ticker := time.NewTicker(500 * time.Millisecond)
+	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -297,13 +300,51 @@ func startWorkerLoop(ctx context.Context, st *store.PostgresStore) {
 		case <-ticker.C:
 			// Claim job with SELECT ... FOR UPDATE SKIP LOCKED
 			job, err := st.ClaimJob(ctx, workerID, 30*time.Second)
-			if err != nil {
+			if err != nil || job == nil {
 				continue
 			}
-			if job != nil {
-				fmt.Printf("[%s] Claimed job %s (step: %s)\n", workerID, job.ID, job.StepID)
-				_ = st.CompleteJob(ctx, job.ID)
-			}
+
+			fmt.Printf("[%s] Claimed job %s (kind: %s, run: %s, step: %s)\n", workerID, job.ID, job.Kind, job.RunID, job.StepID)
+
+			// SMELL-2 fix: Execute claimed job durably with heartbeating
+			go func(j *store.JobRecord) {
+				jobCtx, jobCancel := context.WithCancel(ctx)
+				defer jobCancel()
+
+				hbTicker := time.NewTicker(10 * time.Second)
+				defer hbTicker.Stop()
+				go func() {
+					for {
+						select {
+						case <-jobCtx.Done():
+							return
+						case <-hbTicker.C:
+							_ = st.HeartbeatJob(jobCtx, j.ID, workerID, 30*time.Second)
+						}
+					}
+				}()
+
+				var execErr error
+				switch j.Kind {
+				case "run_start":
+					execErr = eng.StartRun(jobCtx, j.RunID)
+				case "step_execution":
+					execErr = eng.ExecuteStep(jobCtx, j.RunID, j.StepID)
+				default:
+					if j.StepID != "" {
+						execErr = eng.ExecuteStep(jobCtx, j.RunID, j.StepID)
+					} else {
+						execErr = eng.StartRun(jobCtx, j.RunID)
+					}
+				}
+
+				if execErr != nil {
+					fmt.Fprintf(os.Stderr, "[%s] Job %s failed: %v\n", workerID, j.ID, execErr)
+					_ = st.FailJob(context.Background(), j.ID, execErr.Error())
+				} else {
+					_ = st.CompleteJob(context.Background(), j.ID)
+				}
+			}(job)
 		}
 	}
 }
@@ -334,6 +375,17 @@ func runWorker(args []string) {
 	}
 	defer st.Close()
 
+	llmProvider := llm.NewMultiProvider()
+	toolRunner := tools.NewDefaultToolRunner("")
+	clock := engine.RealClock{}
+	idGen := engine.DefaultIDGen{}
+
+	eng, err := engine.NewEngine(st, llmProvider, toolRunner, clock, idGen)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Engine init error: %v\n", err)
+		os.Exit(1)
+	}
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
@@ -342,7 +394,7 @@ func runWorker(args []string) {
 		cancel()
 	}()
 
-	startWorkerLoop(ctx, st)
+	startWorkerLoop(ctx, st, eng)
 }
 
 func runAll(args []string) {
@@ -357,9 +409,6 @@ func runAll(args []string) {
 	}
 	defer st.Close()
 
-	// Share single PostgresStore pool with background worker
-	go startWorkerLoop(ctx, st)
-
-	// Run server with the same store
+	// Run server with embedded background worker
 	startServer(ctx, st, port)
 }

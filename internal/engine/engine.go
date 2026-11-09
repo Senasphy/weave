@@ -68,14 +68,35 @@ func (e *Engine) RegisterGraph(runID string, g *graph.WorkflowGraph) {
 	e.graphs[runID] = g
 }
 
-func (e *Engine) getGraph(runID string) (*graph.WorkflowGraph, error) {
+func (e *Engine) getGraph(ctx context.Context, runID string) (*graph.WorkflowGraph, error) {
 	e.mu.Lock()
-	defer e.mu.Unlock()
 	g, ok := e.graphs[runID]
-	if !ok {
-		return nil, fmt.Errorf("graph for run '%s' not registered", runID)
+	e.mu.Unlock()
+	if ok && g != nil {
+		return g, nil
 	}
-	return g, nil
+
+	// SMELL-3 fix: Hydrate graph from database if not present in memory (e.g. after restart or gate resolution)
+	state, err := e.store.GetRunState(ctx, runID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get run state for run '%s': %w", runID, err)
+	}
+	if state.VersionID == "" {
+		return nil, fmt.Errorf("graph for run '%s' not registered and version_id missing", runID)
+	}
+
+	graphBytes, err := e.store.GetVersionGraph(ctx, state.VersionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch graph for version '%s': %w", state.VersionID, err)
+	}
+
+	var hydrated graph.WorkflowGraph
+	if err := json.Unmarshal(graphBytes, &hydrated); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal graph for version '%s': %w", state.VersionID, err)
+	}
+
+	e.RegisterGraph(runID, &hydrated)
+	return &hydrated, nil
 }
 
 // CreateRun initializes an event-sourced run record and returns its initial state.
@@ -86,6 +107,13 @@ func (e *Engine) CreateRun(ctx context.Context, g *graph.WorkflowGraph, versionI
 // CreateRunWithID initializes an event-sourced run with an existing pre-allocated runID.
 func (e *Engine) CreateRunWithID(ctx context.Context, runID string, g *graph.WorkflowGraph, versionID string, input any) (*RunState, error) {
 	e.RegisterGraph(runID, g)
+
+	// Persist to MemStore if in test environment
+	if gBytes, err := json.Marshal(g); err == nil && versionID != "" {
+		if memStore, ok := e.store.(*MemStore); ok {
+			memStore.SaveVersionGraph(versionID, gBytes)
+		}
+	}
 
 	payloadBytes, err := json.Marshal(map[string]any{
 		"version_id": versionID,
@@ -112,7 +140,7 @@ func (e *Engine) CreateRunWithID(ctx context.Context, runID string, g *graph.Wor
 
 // StartRun kicks off execution of the entry node in the graph.
 func (e *Engine) StartRun(ctx context.Context, runID string) error {
-	g, err := e.getGraph(runID)
+	g, err := e.getGraph(ctx, runID)
 	if err != nil {
 		return err
 	}
@@ -185,7 +213,7 @@ func (e *Engine) StartRun(ctx context.Context, runID string) error {
 
 // ExecuteStep runs a single step attempt and proceeds down outgoing edges.
 func (e *Engine) ExecuteStep(ctx context.Context, runID string, stepID string) error {
-	g, err := e.getGraph(runID)
+	g, err := e.getGraph(ctx, runID)
 	if err != nil {
 		return err
 	}

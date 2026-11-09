@@ -750,3 +750,28 @@ func (p *PostgresStore) HeartbeatJob(ctx context.Context, jobID, leaseOwner stri
 	}
 	return nil
 }
+
+func (p *PostgresStore) FailJob(ctx context.Context, jobID string, errorMsg string) error {
+	_, err := p.pool.Exec(ctx, `
+		UPDATE jobs
+		SET status = 'failed'
+		WHERE id = $1
+	`, jobID)
+	return err
+}
+
+func (p *PostgresStore) GetVersionGraph(ctx context.Context, versionID string) ([]byte, error) {
+	var graphJSON []byte
+	err := p.pool.QueryRow(ctx, `
+		SELECT graph
+		FROM workflow_versions
+		WHERE id = $1
+	`, versionID).Scan(&graphJSON)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("workflow version '%s' not found", versionID)
+		}
+		return nil, err
+	}
+	return graphJSON, nil
+}

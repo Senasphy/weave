@@ -86,7 +86,7 @@ func (e *Engine) ResolveGate(ctx context.Context, gateID string, resolution stri
 		return err
 	}
 
-	g, err := e.getGraph(gate.RunID)
+	g, err := e.getGraph(ctx, gate.RunID)
 	if err != nil {
 		return err
 	}

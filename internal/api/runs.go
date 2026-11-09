@@ -74,6 +74,11 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// SMELL-2 fix: Persist execution job to durable worker queue
+	if s.store != nil {
+		_ = s.store.EnqueueJob(r.Context(), runState.RunID, "", "run_start", nil)
+	}
+
 	// Kick off run execution asynchronously
 	go func(runID string, graphCopy graph.WorkflowGraph) {
 		s.engine.RegisterGraph(runID, &graphCopy)

@@ -737,5 +737,51 @@ func TestEngine_FanOutAndJoin_AggregationAndConcurrency(t *testing.T) {
 	}
 }
 
+func TestEngine_GraphHydration_FromStoreOnRestart(t *testing.T) {
+	eng, store, fakeLLM, _, _ := setupTestEngine(t)
+	g := loadTestGraph(t, "testdata/validator/valid_triage.json")
+
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"category": "refund", "amount": 10}`,
+	})
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"status": "ok"}`,
+	})
+
+	ctx := context.Background()
+	runState, err := eng.CreateRun(ctx, g, "v1", map[string]any{"ticket_id": "T-HYDRATE"})
+	if err != nil {
+		t.Fatalf("CreateRun failed: %v", err)
+	}
+
+	// Simulate crash / restart: Evict graph from in-memory cache
+	eng.mu.Lock()
+	delete(eng.graphs, runState.RunID)
+	eng.mu.Unlock()
+
+	// Ensure graph is gone from memory
+	eng.mu.Lock()
+	_, inMemory := eng.graphs[runState.RunID]
+	eng.mu.Unlock()
+	if inMemory {
+		t.Fatalf("expected graph to be evicted from in-memory cache")
+	}
+
+	// StartRun should now automatically hydrate graph from store.GetVersionGraph
+	if err := eng.StartRun(ctx, runState.RunID); err != nil {
+		t.Fatalf("StartRun failed to hydrate graph: %v", err)
+	}
+
+	finalState, err := store.GetRunState(ctx, runState.RunID)
+	if err != nil {
+		t.Fatalf("GetRunState failed: %v", err)
+	}
+
+	if finalState.Status != RunStatusSucceeded {
+		t.Fatalf("expected run status %s, got %s (error: %s)", RunStatusSucceeded, finalState.Status, finalState.Error)
+	}
+}
+
+
 
 
