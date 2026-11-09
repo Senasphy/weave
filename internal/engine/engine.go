@@ -25,6 +25,7 @@ type Engine struct {
 	clock       Clock
 	idGen       IDGen
 	celCompiler *graph.CELCompiler
+	broker      *EventBroker
 
 	mu       sync.Mutex
 	graphs   map[string]*graph.WorkflowGraph // runID -> graph
@@ -56,9 +57,26 @@ func NewEngine(store Store, llm LLM, toolRunner ToolRunner, clock Clock, idGen I
 		clock:       clock,
 		idGen:       idGen,
 		celCompiler: compiler,
+		broker:      NewEventBroker(),
 		graphs:      make(map[string]*graph.WorkflowGraph),
 		stepWork:    make(chan stepJob, 500),
 	}, nil
+}
+
+// AppendEvent persists the event to the store and publishes it to real-time subscribers.
+func (e *Engine) AppendEvent(ctx context.Context, ev Event) error {
+	if err := e.store.AppendEvent(ctx, ev); err != nil {
+		return err
+	}
+	if e.broker != nil {
+		e.broker.Publish(ev)
+	}
+	return nil
+}
+
+// Subscribe registers a real-time event listener for a run.
+func (e *Engine) Subscribe(runID string) (<-chan Event, func()) {
+	return e.broker.Subscribe(runID)
 }
 
 // RegisterGraph associates an in-memory graph with a run.
@@ -131,7 +149,7 @@ func (e *Engine) CreateRunWithID(ctx context.Context, runID string, g *graph.Wor
 		Payload:   payloadBytes,
 	}
 
-	if err := e.store.AppendEvent(ctx, event); err != nil {
+	if err := e.AppendEvent(ctx, event); err != nil {
 		return nil, fmt.Errorf("failed to append EventRunCreated: %w", err)
 	}
 
@@ -153,7 +171,7 @@ func (e *Engine) StartRun(ctx context.Context, runID string) error {
 		Type:      EventRunStarted,
 		Payload:   json.RawMessage("{}"),
 	}
-	if err := e.store.AppendEvent(ctx, startEv); err != nil {
+	if err := e.AppendEvent(ctx, startEv); err != nil {
 		return err
 	}
 
@@ -203,7 +221,7 @@ func (e *Engine) StartRun(ctx context.Context, runID string) error {
 		Type:      EventStepReady,
 		Payload:   stepReadyPayload,
 	}
-	if err := e.store.AppendEvent(ctx, stepReadyEv); err != nil {
+	if err := e.AppendEvent(ctx, stepReadyEv); err != nil {
 		return err
 	}
 
@@ -260,7 +278,7 @@ func (e *Engine) ExecuteStep(ctx context.Context, runID string, stepID string) e
 		Type:      EventStepStarted,
 		Payload:   json.RawMessage("{}"),
 	}
-	if err := e.store.AppendEvent(ctx, startedEv); err != nil {
+	if err := e.AppendEvent(ctx, startedEv); err != nil {
 		return err
 	}
 
@@ -295,7 +313,7 @@ func (e *Engine) CancelRun(ctx context.Context, runID string) error {
 		Type:      EventRunCancelled,
 		Payload:   json.RawMessage("{}"),
 	}
-	return e.store.AppendEvent(ctx, cancelEv)
+	return e.AppendEvent(ctx, cancelEv)
 }
 
 func (e *Engine) terminateBudgetExceeded(ctx context.Context, runID string, reason string) error {
@@ -307,7 +325,7 @@ func (e *Engine) terminateBudgetExceeded(ctx context.Context, runID string, reas
 		Type:      EventBudgetExceeded,
 		Payload:   exceededPayload,
 	}
-	_ = e.store.AppendEvent(ctx, ev1)
+	_ = e.AppendEvent(ctx, ev1)
 
 	ev2 := Event{
 		ID:        e.idGen.NewID(),
@@ -316,7 +334,7 @@ func (e *Engine) terminateBudgetExceeded(ctx context.Context, runID string, reas
 		Type:      EventRunBudgetExceeded,
 		Payload:   exceededPayload,
 	}
-	return e.store.AppendEvent(ctx, ev2)
+	return e.AppendEvent(ctx, ev2)
 }
 
 func (e *Engine) checkPostCallRunBudgets(ctx context.Context, runID string, g *graph.WorkflowGraph) error {

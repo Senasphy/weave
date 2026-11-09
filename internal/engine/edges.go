@@ -20,7 +20,7 @@ func (e *Engine) executeRouterNode(ctx context.Context, g *graph.WorkflowGraph, 
 		Type:      EventStepSucceeded,
 		Payload:   succPayload,
 	}
-	if err := e.store.AppendEvent(ctx, succEv); err != nil {
+	if err := e.AppendEvent(ctx, succEv); err != nil {
 		return err
 	}
 
@@ -38,7 +38,7 @@ func (e *Engine) executeFanOutNode(ctx context.Context, g *graph.WorkflowGraph, 
 		Type:      EventStepSucceeded,
 		Payload:   succPayload,
 	}
-	if err := e.store.AppendEvent(ctx, succEv); err != nil {
+	if err := e.AppendEvent(ctx, succEv); err != nil {
 		return err
 	}
 
@@ -56,7 +56,7 @@ func (e *Engine) executeJoinNode(ctx context.Context, g *graph.WorkflowGraph, ru
 		Type:      EventStepSucceeded,
 		Payload:   succPayload,
 	}
-	if err := e.store.AppendEvent(ctx, succEv); err != nil {
+	if err := e.AppendEvent(ctx, succEv); err != nil {
 		return err
 	}
 
@@ -205,7 +205,7 @@ func (e *Engine) progressOutgoingEdges(ctx context.Context, g *graph.WorkflowGra
 			Type:      EventStepReady,
 			Payload:   readyPayload,
 		}
-		if err := e.store.AppendEvent(ctx, readyEv); err != nil {
+		if err := e.AppendEvent(ctx, readyEv); err != nil {
 			return err
 		}
 
@@ -277,7 +277,7 @@ func recordEdgeEvaluation(e *Engine, ctx context.Context, runID, stepID, edgeID 
 		"fired":   fired,
 		"error":   errMsg,
 	})
-	_ = e.store.AppendEvent(ctx, Event{
+	_ = e.AppendEvent(ctx, Event{
 		ID:        e.idGen.NewID(),
 		RunID:     runID,
 		StepID:    stepID,
@@ -388,5 +388,5 @@ func (e *Engine) checkRunCompletion(ctx context.Context, runID string, finalOutp
 		Type:      EventRunSucceeded,
 		Payload:   succPayload,
 	}
-	return e.store.AppendEvent(ctx, succEv)
+	return e.AppendEvent(ctx, succEv)
 }

@@ -208,32 +208,62 @@ func (s *Server) handleStreamRunEvents(w http.ResponseWriter, r *http.Request) {
 		lastSeq, _ = strconv.ParseInt(q, 10, 64)
 	}
 
-	ticker := time.NewTicker(250 * time.Millisecond)
-	defer ticker.Stop()
+	// SMELL-9 fix: Subscribe to real-time pub/sub broker before fetching backlog to avoid missing events
+	eventCh, unsubscribe := s.engine.Subscribe(runID)
+	defer unsubscribe()
+
+	// Initial catch-up from persistent store (single database read)
+	events, err := s.store.GetEvents(r.Context(), runID, lastSeq)
+	if err == nil && len(events) > 0 {
+		for _, ev := range events {
+			evJSON, _ := json.Marshal(ev)
+			fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", ev.Seq, ev.Type, evJSON)
+			if ev.Seq > lastSeq {
+				lastSeq = ev.Seq
+			}
+		}
+		flusher.Flush()
+	}
+
+	// Check if run already concluded
+	currentRun, err := s.store.GetRunRecord(r.Context(), runID)
+	if err == nil {
+		st := engine.RunStatus(currentRun.Status)
+		if st.IsTerminal() {
+			return
+		}
+	}
+
+	// Stream live events directly from in-memory pub-sub broker (0 DB polling)
+	heartbeat := time.NewTicker(15 * time.Second)
+	defer heartbeat.Stop()
 
 	for {
 		select {
 		case <-r.Context().Done():
 			return
-		case <-ticker.C:
-			events, err := s.store.GetEvents(r.Context(), runID, lastSeq)
-			if err == nil && len(events) > 0 {
-				for _, ev := range events {
-					evJSON, _ := json.Marshal(ev)
-					fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", ev.Seq, ev.Type, evJSON)
-					lastSeq = ev.Seq
-				}
-				flusher.Flush()
+
+		case ev, ok := <-eventCh:
+			if !ok {
+				return
+			}
+			if ev.Seq <= lastSeq {
+				continue
+			}
+			evJSON, _ := json.Marshal(ev)
+			fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", ev.Seq, ev.Type, evJSON)
+			flusher.Flush()
+			lastSeq = ev.Seq
+
+			if ev.Type == engine.EventRunSucceeded || ev.Type == engine.EventRunFailed ||
+				ev.Type == engine.EventRunCancelled || ev.Type == engine.EventRunBudgetExceeded {
+				return
 			}
 
-			// Check if run is in terminal state
-			currentRun, err := s.store.GetRunRecord(r.Context(), runID)
-			if err == nil {
-				st := engine.RunStatus(currentRun.Status)
-				if st.IsTerminal() && (len(events) == 0) {
-					return
-				}
-			}
+		case <-heartbeat.C:
+			// Periodic keepalive comment to prevent reverse proxies and cloud gateways from closing idle SSE
+			fmt.Fprintf(w, ":ping\n\n")
+			flusher.Flush()
 		}
 	}
 }

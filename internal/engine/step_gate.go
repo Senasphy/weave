@@ -47,7 +47,7 @@ func (e *Engine) executeGateNode(ctx context.Context, g *graph.WorkflowGraph, ru
 		Payload:   gateOpenedPayload,
 	}
 
-	return e.store.AppendEvent(ctx, openedEv)
+	return e.AppendEvent(ctx, openedEv)
 }
 
 // ResolveGate handles human approval, rejection, or edit-and-approval of a gate.
@@ -82,7 +82,7 @@ func (e *Engine) ResolveGate(ctx context.Context, gateID string, resolution stri
 		Type:      EventGateResolved,
 		Payload:   resPayload,
 	}
-	if err := e.store.AppendEvent(ctx, resolvedEv); err != nil {
+	if err := e.AppendEvent(ctx, resolvedEv); err != nil {
 		return err
 	}
 
@@ -119,7 +119,7 @@ func (e *Engine) ResolveGate(ctx context.Context, gateID string, resolution stri
 			Type:      EventStepSucceeded,
 			Payload:   succPayload,
 		}
-		if err := e.store.AppendEvent(ctx, succEv); err != nil {
+		if err := e.AppendEvent(ctx, succEv); err != nil {
 			return err
 		}
 
@@ -137,7 +137,7 @@ func (e *Engine) ResolveGate(ctx context.Context, gateID string, resolution stri
 		Type:      EventStepFailed,
 		Payload:   failPayload,
 	}
-	_ = e.store.AppendEvent(ctx, failEv)
+	_ = e.AppendEvent(ctx, failEv)
 
 	return e.handleStepFailure(ctx, g, gate.RunID, gate.StepID, node, &StepState{
 		StepID:  gate.StepID,
@@ -167,7 +167,7 @@ func (e *Engine) CheckTimeouts(ctx context.Context) error {
 				Type:      EventGateTimedOut,
 				Payload:   json.RawMessage(fmt.Sprintf(`{"gate_id": %q}`, gate.GateID)),
 			}
-			_ = e.store.AppendEvent(ctx, timeoutEv)
+			_ = e.AppendEvent(ctx, timeoutEv)
 
 			// Terminate run with timeout failure
 			runFailPayload, _ := json.Marshal(map[string]any{
@@ -181,7 +181,7 @@ func (e *Engine) CheckTimeouts(ctx context.Context) error {
 				Type:      EventRunFailed,
 				Payload:   runFailPayload,
 			}
-			_ = e.store.AppendEvent(ctx, runFailEv)
+			_ = e.AppendEvent(ctx, runFailEv)
 		}
 	}
 	return nil

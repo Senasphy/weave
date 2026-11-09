@@ -73,7 +73,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 			"model":  modelCfg.Name,
 			"prompt": node.SystemPrompt,
 		})
-		_ = e.store.AppendEvent(ctx, Event{
+		_ = e.AppendEvent(ctx, Event{
 			ID:        e.idGen.NewID(),
 			RunID:     runID,
 			StepID:    stepID,
@@ -100,7 +100,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 			"content":       resp.Content,
 			"tool_calls":    resp.ToolCalls,
 		})
-		_ = e.store.AppendEvent(ctx, Event{
+		_ = e.AppendEvent(ctx, Event{
 			ID:        e.idGen.NewID(),
 			RunID:     runID,
 			StepID:    stepID,
@@ -126,7 +126,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 			for _, tc := range resp.ToolCalls {
 				// Tool requested event
 				tReqPayload, _ := json.Marshal(tc)
-				_ = e.store.AppendEvent(ctx, Event{
+				_ = e.AppendEvent(ctx, Event{
 					ID:        e.idGen.NewID(),
 					RunID:     runID,
 					StepID:    stepID,
@@ -151,7 +151,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 						"name":    tc.ToolName,
 						"error":   unauthMsg,
 					})
-					_ = e.store.AppendEvent(ctx, Event{
+					_ = e.AppendEvent(ctx, Event{
 						ID:        e.idGen.NewID(),
 						RunID:     runID,
 						StepID:    stepID,
@@ -207,7 +207,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					"error":   toolErrStr,
 					"cost":    toolCost,
 				})
-				_ = e.store.AppendEvent(ctx, Event{
+				_ = e.AppendEvent(ctx, Event{
 					ID:        e.idGen.NewID(),
 					RunID:     runID,
 					StepID:    stepID,
@@ -248,7 +248,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					"output": parsedOutput,
 					"schema": string(node.OutputSchema),
 				})
-				_ = e.store.AppendEvent(ctx, Event{
+				_ = e.AppendEvent(ctx, Event{
 					ID:        e.idGen.NewID(),
 					RunID:     runID,
 					StepID:    stepID,
@@ -294,7 +294,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					"key":   writeKey,
 					"value": newVal,
 				})
-				_ = e.store.AppendEvent(ctx, Event{
+				_ = e.AppendEvent(ctx, Event{
 					ID:        e.idGen.NewID(),
 					RunID:     runID,
 					StepID:    stepID,
@@ -318,7 +318,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 		Type:      EventStepSucceeded,
 		Payload:   succPayload,
 	}
-	if err := e.store.AppendEvent(ctx, succEv); err != nil {
+	if err := e.AppendEvent(ctx, succEv); err != nil {
 		return err
 	}
 
@@ -470,7 +470,7 @@ func (e *Engine) handleStepFailure(ctx context.Context, g *graph.WorkflowGraph, 
 			Type:      EventStepRetried,
 			Payload:   json.RawMessage(fmt.Sprintf(`{"attempt": %d, "error": %q}`, step.Attempt, errMsg)),
 		}
-		_ = e.store.AppendEvent(ctx, retryEv)
+		_ = e.AppendEvent(ctx, retryEv)
 
 		// Create new step ready attempt
 		nextStepID := e.idGen.NewID()
@@ -488,7 +488,7 @@ func (e *Engine) handleStepFailure(ctx context.Context, g *graph.WorkflowGraph, 
 			Type:      EventStepReady,
 			Payload:   readyPayload,
 		}
-		_ = e.store.AppendEvent(ctx, readyEv)
+		_ = e.AppendEvent(ctx, readyEv)
 
 		return e.ExecuteStep(ctx, runID, nextStepID)
 	}
@@ -507,7 +507,7 @@ func (e *Engine) handleStepFailure(ctx context.Context, g *graph.WorkflowGraph, 
 		Type:      EventStepFailed,
 		Payload:   failPayload,
 	}
-	_ = e.store.AppendEvent(ctx, failEv)
+	_ = e.AppendEvent(ctx, failEv)
 
 	// Check on_failure edges
 	hasFailureEdge := false
@@ -535,5 +535,5 @@ func (e *Engine) handleStepFailure(ctx context.Context, g *graph.WorkflowGraph, 
 		Type:      EventRunFailed,
 		Payload:   runFailPayload,
 	}
-	return e.store.AppendEvent(ctx, runFailEv)
+	return e.AppendEvent(ctx, runFailEv)
 }
