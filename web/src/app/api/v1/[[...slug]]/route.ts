@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverStore } from '@/lib/server-store';
 import { auth } from '@/lib/auth';
+import { getSessionCookie } from 'better-auth/cookies';
 
 function getCorsHeaders(req?: Request): HeadersInit {
   const allowed = [
@@ -19,7 +20,7 @@ function getCorsHeaders(req?: Request): HeadersInit {
 
   const origin = req?.headers.get('origin');
   const headers: Record<string, string> = {
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Workspace-ID',
     'Vary': 'Origin',
   };
@@ -62,18 +63,31 @@ async function proxyToBackend(req: NextRequest, slug: string[]): Promise<Respons
   const query = req.nextUrl.search;
   const targetUrl = `${backendBase}/${path}${query}`;
 
-  const headers = new Headers(req.headers);
-  headers.delete('host');
+  const headers = new Headers();
+  for (const [key, value] of req.headers.entries()) {
+    const lower = key.toLowerCase();
+    if (
+      lower !== 'host' &&
+      lower !== 'connection' &&
+      lower !== 'keep-alive' &&
+      lower !== 'transfer-encoding' &&
+      lower !== 'content-length'
+    ) {
+      headers.set(key, value);
+    }
+  }
 
   try {
     const session = await auth.api.getSession({ headers: req.headers }).catch(() => null);
-    if (session?.user && !headers.has('Authorization')) {
-      const token = req.cookies.get('better-auth.session_token')?.value ||
-                    req.cookies.get('__Secure-better-auth.session_token')?.value ||
-                    req.cookies.get('session_token')?.value;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
+    let token = (session?.session as { token?: string })?.token;
+    if (!token) {
+      const rawCookie = getSessionCookie(req);
+      if (rawCookie) {
+        token = rawCookie.startsWith('s:') ? rawCookie.slice(2).split('.')[0] : rawCookie.split('.')[0];
       }
+    }
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
     }
   } catch {}
 
@@ -131,10 +145,8 @@ export async function GET(
   const path = slug.join('/');
 
   // Proxy to real Go backend first
-  if (path !== 'me') {
-    const proxied = await proxyToBackend(req, slug);
-    if (proxied) return proxied;
-  }
+  const proxied = await proxyToBackend(req, slug);
+  if (proxied) return proxied;
 
   const searchParams = req.nextUrl.searchParams;
 
@@ -368,5 +380,25 @@ export async function PUT(
     return json({ status: 'saved' });
   }
 
+  return error('Not found', 404);
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug?: string[] }> }
+) {
+  const { slug = [] } = await params;
+  const proxied = await proxyToBackend(req, slug);
+  if (proxied) return proxied;
+  return error('Not found', 404);
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug?: string[] }> }
+) {
+  const { slug = [] } = await params;
+  const proxied = await proxyToBackend(req, slug);
+  if (proxied) return proxied;
   return error('Not found', 404);
 }

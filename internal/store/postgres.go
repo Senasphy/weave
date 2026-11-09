@@ -70,7 +70,7 @@ func (p *PostgresStore) VerifySession(ctx context.Context, token string) (*AuthS
 	}
 
 	query := `
-		SELECT s."userId", COALESCE(s."activeOrganizationId", ''), u.name, u.email, s."expiresAt",
+		SELECT s."userId", COALESCE(s."activeOrganizationId", ''), COALESCE(u.name, ''), COALESCE(u.email, ''), s."expiresAt",
 		       COALESCE(o.name, '')
 		FROM session s
 		JOIN "user" u ON u.id = s."userId"

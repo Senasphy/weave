@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	"strings"
@@ -113,6 +114,19 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 				token = cookie.Value
 			} else if cookie, err := r.Cookie("session_token"); err == nil && cookie.Value != "" {
 				token = cookie.Value
+			}
+		}
+
+		if token != "" {
+			token = strings.Trim(token, "\"")
+			if unescaped, err := url.QueryUnescape(token); err == nil && unescaped != "" {
+				token = unescaped
+			}
+			if strings.HasPrefix(token, "s:") {
+				parts := strings.Split(strings.TrimPrefix(token, "s:"), ".")
+				if len(parts) > 0 {
+					token = parts[0]
+				}
 			}
 		}
 

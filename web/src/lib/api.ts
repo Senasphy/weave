@@ -10,17 +10,27 @@ import {
 } from './types';
 
 export function resolveApiBase(): string {
-  const customUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (customUrl) {
-    let raw = customUrl.replace(/\/+$/, '');
+  // In the browser, always use the same-origin Next.js proxy route /api/v1.
+  // Better Auth sessions are stored in HttpOnly cookies, which browser JavaScript
+  // cannot read and browsers cannot send cross-origin to weave-backend.
+  // The Next.js API proxy receives HttpOnly credentials and forwards the
+  // Authorization: Bearer token directly to the Go backend.
+  if (typeof window !== 'undefined') {
+    return '/api/v1';
+  }
+
+  // Server-side (SSR / Node / Docker): communicate directly with the Go backend
+  const backendUrl =
+    process.env.BACKEND_URL?.trim() ||
+    process.env.API_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim();
+
+  if (backendUrl) {
+    let raw = backendUrl.replace(/\/+$/, '');
     if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
       raw = `https://${raw}`;
     }
     return raw.endsWith('/v1') ? raw : `${raw}/v1`;
-  }
-
-  if (typeof window !== 'undefined') {
-    return '/api/v1';
   }
 
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {

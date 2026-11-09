@@ -35,8 +35,17 @@ services:
     buildCommand: pnpm install && pnpm build
     startCommand: pnpm start
     envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: weave-backend
+          property: host
       - key: NEXT_PUBLIC_API_URL
         fromService:
           type: web
           name: weave-backend
           property: host
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
