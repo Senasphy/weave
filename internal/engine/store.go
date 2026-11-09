@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sync"
+
+	"weave/internal/redact"
 )
 
 // Store defines persistence operations required by the execution engine.
@@ -37,6 +39,9 @@ func NewMemStore() *MemStore {
 func (m *MemStore) AppendEvent(ctx context.Context, event Event) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	// Redact secrets and enforce 64KB max event payload size
+	event.Payload = redact.SanitizePayload(event.Payload)
 
 	runID := event.RunID
 	currentSeq := m.seqs[runID]

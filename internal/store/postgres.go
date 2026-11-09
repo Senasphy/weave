@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"weave/internal/engine"
 	"weave/internal/graph"
+	"weave/internal/redact"
 )
 
 // PostgresStore implements engine.Store and all Weave persistence operations.
@@ -125,6 +126,9 @@ func (p *PostgresStore) VerifySession(ctx context.Context, token string) (*AuthS
 // -------------------------------------------------------------
 
 func (p *PostgresStore) AppendEvent(ctx context.Context, ev engine.Event) error {
+	// Redact secrets and enforce 64KB max event payload size (ADR-007)
+	ev.Payload = redact.SanitizePayload(ev.Payload)
+
 	tx, err := p.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -286,12 +290,14 @@ func (p *PostgresStore) GetGate(ctx context.Context, gateID string) (*engine.Gat
 	var g engine.GateRecord
 	var pld []byte
 	var resolvedBy, resolution *string
+	var wsID string
 
 	err := p.pool.QueryRow(ctx, `
-		SELECT id, run_id, step_id, node_id, prompt, status, expires_at, resolved_by, resolution, payload
-		FROM gates
-		WHERE id = $1
-	`, gateID).Scan(&g.GateID, &g.RunID, &g.StepID, &g.NodeID, &g.Prompt, &g.Status, &g.ExpiresAt, &resolvedBy, &resolution, &pld)
+		SELECT g.id, g.run_id, g.step_id, g.node_id, g.prompt, g.status, g.expires_at, g.resolved_by, g.resolution, g.payload, r.workspace_id
+		FROM gates g
+		JOIN runs r ON r.id = g.run_id
+		WHERE g.id = $1
+	`, gateID).Scan(&g.GateID, &g.RunID, &g.StepID, &g.NodeID, &g.Prompt, &g.Status, &g.ExpiresAt, &resolvedBy, &resolution, &pld, &wsID)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, fmt.Errorf("gate '%s' not found", gateID)
@@ -299,6 +305,7 @@ func (p *PostgresStore) GetGate(ctx context.Context, gateID string) (*engine.Gat
 		return nil, err
 	}
 
+	g.WorkspaceID = wsID
 	if resolvedBy != nil {
 		g.ResolvedBy = *resolvedBy
 	}
@@ -329,9 +336,10 @@ func (p *PostgresStore) UpdateGate(ctx context.Context, gateID string, status, r
 
 func (p *PostgresStore) GetPendingGates(ctx context.Context) ([]engine.GateRecord, error) {
 	rows, err := p.pool.Query(ctx, `
-		SELECT id, run_id, step_id, node_id, prompt, status, expires_at
-		FROM gates
-		WHERE status = 'waiting'
+		SELECT g.id, g.run_id, g.step_id, g.node_id, g.prompt, g.status, g.expires_at, r.workspace_id
+		FROM gates g
+		JOIN runs r ON r.id = g.run_id
+		WHERE g.status = 'waiting'
 	`)
 	if err != nil {
 		return nil, err
@@ -341,7 +349,32 @@ func (p *PostgresStore) GetPendingGates(ctx context.Context) ([]engine.GateRecor
 	var gates []engine.GateRecord
 	for rows.Next() {
 		var g engine.GateRecord
-		if err := rows.Scan(&g.GateID, &g.RunID, &g.StepID, &g.NodeID, &g.Prompt, &g.Status, &g.ExpiresAt); err != nil {
+		if err := rows.Scan(&g.GateID, &g.RunID, &g.StepID, &g.NodeID, &g.Prompt, &g.Status, &g.ExpiresAt, &g.WorkspaceID); err != nil {
+			return nil, err
+		}
+		gates = append(gates, g)
+	}
+	return gates, rows.Err()
+}
+
+// GetPendingGatesByWorkspace retrieves pending gates strictly scoped to the caller's workspace.
+func (p *PostgresStore) GetPendingGatesByWorkspace(ctx context.Context, workspaceID string) ([]engine.GateRecord, error) {
+	rows, err := p.pool.Query(ctx, `
+		SELECT g.id, g.run_id, g.step_id, g.node_id, g.prompt, g.status, g.expires_at, r.workspace_id
+		FROM gates g
+		JOIN runs r ON r.id = g.run_id
+		WHERE g.status = 'waiting' AND r.workspace_id = $1
+		ORDER BY g.created_at DESC
+	`, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var gates []engine.GateRecord
+	for rows.Next() {
+		var g engine.GateRecord
+		if err := rows.Scan(&g.GateID, &g.RunID, &g.StepID, &g.NodeID, &g.Prompt, &g.Status, &g.ExpiresAt, &g.WorkspaceID); err != nil {
 			return nil, err
 		}
 		gates = append(gates, g)

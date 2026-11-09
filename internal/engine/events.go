@@ -113,16 +113,17 @@ type StepState struct {
 
 // GateRecord tracks a pending or resolved human gate.
 type GateRecord struct {
-	GateID     string    `json:"gate_id"`
-	RunID      string    `json:"run_id"`
-	StepID     string    `json:"step_id"`
-	NodeID     string    `json:"node_id"`
-	Prompt     string    `json:"prompt"`
-	Status     string    `json:"status"` // "waiting", "approved", "rejected", "timed_out"
-	ResolvedBy string    `json:"resolved_by,omitempty"`
-	Resolution string    `json:"resolution,omitempty"` // "approve", "reject", "edit"
-	Payload    any       `json:"payload,omitempty"`
-	ExpiresAt  time.Time `json:"expires_at"`
+	GateID      string    `json:"gate_id"`
+	RunID       string    `json:"run_id"`
+	WorkspaceID string    `json:"workspace_id,omitempty"`
+	StepID      string    `json:"step_id"`
+	NodeID      string    `json:"node_id"`
+	Prompt      string    `json:"prompt"`
+	Status      string    `json:"status"` // "waiting", "approved", "rejected", "timed_out"
+	ResolvedBy  string    `json:"resolved_by,omitempty"`
+	Resolution  string    `json:"resolution,omitempty"` // "approve", "reject", "edit"
+	Payload     any       `json:"payload,omitempty"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 // RunState is the folded in-memory representation of a run derived purely from events.
