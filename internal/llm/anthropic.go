@@ -103,7 +103,7 @@ func (p *AnthropicProvider) Call(ctx context.Context, req engine.LLMRequest) (*e
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := io.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
 	if err != nil {
 		return nil, err
 	}

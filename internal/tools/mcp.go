@@ -57,7 +57,8 @@ func (m *MCPClient) Execute(ctx context.Context, req engine.ToolRequest) (*engin
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := io.ReadAll(resp.Body)
+	// Read with 5MB limit to prevent memory exhaustion DoS
+	respBytes, err := io.ReadAll(io.LimitReader(resp.Body, 5*1024*1024))
 	if err != nil {
 		return nil, err
 	}

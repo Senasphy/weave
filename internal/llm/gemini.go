@@ -148,7 +148,7 @@ func (p *GeminiProvider) Call(ctx context.Context, req engine.LLMRequest) (*engi
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := io.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024))
 	if err != nil {
 		return nil, err
 	}
