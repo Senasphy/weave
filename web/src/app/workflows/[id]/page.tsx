@@ -212,7 +212,7 @@ function WorkflowEditorContent() {
         initialHeight: 140,
       };
     });
-  }, [graph?.nodes, selectedNodeId]);
+  }, [graph, selectedNodeId]);
 
   // Convert graph edges to React Flow edges with safety checks
   const flowEdges: FlowEdge[] = useMemo(() => {
@@ -246,7 +246,7 @@ function WorkflowEditorContent() {
       labelBgBorderRadius: 6,
       data: e as any,
     }));
-  }, [graph?.nodes, graph?.edges, selectedEdgeId]);
+  }, [graph, selectedEdgeId]);
 
   // Auto fit-view to center all nodes when nodes load or when switching back to canvas
   useEffect(() => {

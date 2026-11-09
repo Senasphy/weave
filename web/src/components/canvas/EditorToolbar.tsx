@@ -42,12 +42,7 @@ export function EditorToolbar({
   const past = useEditorStore((state) => state.past);
   const future = useEditorStore((state) => state.future);
 
-  let reactFlow: ReturnType<typeof useReactFlow> | null = null;
-  try {
-    reactFlow = useReactFlow();
-  } catch {
-    reactFlow = null;
-  }
+  const reactFlow = useReactFlow();
 
   const handleAddNode = (type: NodeType) => {
     let position: { x: number; y: number };

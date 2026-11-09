@@ -47,16 +47,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [isSessionPending, session, isAuthPage, pathname, router]);
 
   useEffect(() => {
-    if (isWorkflowCanvas || (typeof window !== 'undefined' && window.innerWidth < 768)) {
-      setCollapsed(true);
-    } else {
-      setCollapsed(false);
-    }
+    const shouldCollapse = isWorkflowCanvas || (typeof window !== 'undefined' && window.innerWidth < 768);
+    const timer = setTimeout(() => {
+      setCollapsed(shouldCollapse);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [isWorkflowCanvas]);
 
   // Close mobile drawer on route navigation
   useEffect(() => {
-    setMobileNavOpen(false);
+    const timer = setTimeout(() => {
+      setMobileNavOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [pathname]);
 
   // Global ⌘K / Ctrl+K shortcut to open command menu / search

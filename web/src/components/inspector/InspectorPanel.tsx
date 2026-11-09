@@ -104,12 +104,7 @@ export function InspectorPanel() {
 
   const [newToolInput, setNewToolInput] = useState('');
 
-  let reactFlow: ReturnType<typeof useReactFlow> | null = null;
-  try {
-    reactFlow = useReactFlow();
-  } catch {
-    reactFlow = null;
-  }
+  const reactFlow = useReactFlow();
 
   const selectedNode = (graph?.nodes || []).find((n) => n.id === selectedNodeId);
   const selectedEdge = (graph?.edges || []).find((e) => e.id === selectedEdgeId);

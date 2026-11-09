@@ -47,7 +47,7 @@ export default function RunViewerPage() {
   const [copiedPayload, setCopiedPayload] = useState(false);
 
   // Live timer for elapsed wall clock when running
-  const [now, setNow] = useState<number>(Date.now());
+  const [now, setNow] = useState<number>(() => Date.now());
 
   // Fetch initial run record
   const { data: run } = useQuery<RunRecord>({

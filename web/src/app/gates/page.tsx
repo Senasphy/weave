@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,9 +41,11 @@ export default function GatesPage() {
     },
   });
 
+  const [currentTime] = useState<number>(() => Date.now());
+
   const formatExpiry = (isoString?: string) => {
     if (!isoString) return null;
-    const diff = new Date(isoString).getTime() - Date.now();
+    const diff = new Date(isoString).getTime() - currentTime;
     if (diff <= 0) return 'Expired';
     const hours = Math.floor(diff / 3600000);
     const mins = Math.floor((diff % 3600000) / 60000);
