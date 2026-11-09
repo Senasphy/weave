@@ -51,8 +51,20 @@ func TestHTTP_SSRFProtection(t *testing.T) {
 	if !IsPrivateOrForbiddenIP(net.ParseIP("127.0.0.1")) {
 		t.Fatalf("expected 127.0.0.1 to be forbidden")
 	}
+	if !IsPrivateOrForbiddenIP(net.ParseIP("::1")) {
+		t.Fatalf("expected ::1 to be forbidden")
+	}
+	if !IsPrivateOrForbiddenIP(net.ParseIP("::ffff:127.0.0.1")) {
+		t.Fatalf("expected IPv4-mapped loopback to be forbidden")
+	}
 	if !IsPrivateOrForbiddenIP(net.ParseIP("10.0.0.5")) {
 		t.Fatalf("expected 10.0.0.5 to be forbidden")
+	}
+	if !IsPrivateOrForbiddenIP(net.ParseIP("100.64.0.1")) {
+		t.Fatalf("expected CGNAT 100.64.0.1 to be forbidden")
+	}
+	if !IsPrivateOrForbiddenIP(net.ParseIP("192.0.2.1")) {
+		t.Fatalf("expected documentation IP 192.0.2.1 to be forbidden")
 	}
 	if !IsPrivateOrForbiddenIP(net.ParseIP("169.254.169.254")) {
 		t.Fatalf("expected metadata IP 169.254.169.254 to be forbidden")
