@@ -16,12 +16,22 @@ import (
 )
 
 func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
+
 	wfID := chi.URLParam(r, "id")
 	nStr := chi.URLParam(r, "n")
 	n, err := strconv.Atoi(nStr)
 	if err != nil {
 		WriteProblem(w, http.StatusBadRequest, "bad_request", "Invalid version number", err.Error())
+		return
+	}
+
+	// Verify workflow ownership before creating run (BOLA protection)
+	if _, err := s.store.GetWorkflow(r.Context(), wsID, wfID); err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Workflow Not Found", err.Error())
 		return
 	}
 
@@ -64,7 +74,7 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Kick off run execution asynchronously in background worker
+	// Kick off run execution asynchronously
 	go func(runID string, graphCopy graph.WorkflowGraph) {
 		s.engine.RegisterGraph(runID, &graphCopy)
 		_ = s.engine.StartRun(context.Background(), runID)
@@ -80,9 +90,12 @@ func (s *Server) handleCreateRun(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListRuns(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
-	status := r.URL.Query().Get("status")
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 
+	status := r.URL.Query().Get("status")
 	runs, err := s.store.ListRuns(r.Context(), wsID, status)
 	if err != nil {
 		WriteProblem(w, http.StatusInternalServerError, "internal_error", "Failed to list runs", err.Error())
@@ -95,17 +108,45 @@ func (s *Server) handleListRuns(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetRun(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
+
 	id := chi.URLParam(r, "id")
 	rec, err := s.store.GetRunRecord(r.Context(), id)
 	if err != nil {
 		WriteProblem(w, http.StatusNotFound, "not_found", "Run Not Found", err.Error())
 		return
 	}
+
+	if rec.WorkspaceID != "" && rec.WorkspaceID != wsID {
+		WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", "Run belongs to another workspace")
+		return
+	}
+
 	WriteJSON(w, http.StatusOK, rec)
 }
 
 func (s *Server) handleGetRunEvents(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+
+	rec, err := s.store.GetRunRecord(r.Context(), id)
+	if err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Run Not Found", err.Error())
+		return
+	}
+
+	if rec.WorkspaceID != "" && rec.WorkspaceID != wsID {
+		WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", "Run belongs to another workspace")
+		return
+	}
+
 	afterSeqStr := r.URL.Query().Get("after_seq")
 	var afterSeq int64 = 0
 	if afterSeqStr != "" {
@@ -124,18 +165,28 @@ func (s *Server) handleGetRunEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleStreamRunEvents(w http.ResponseWriter, r *http.Request) {
-	flusher, ok := w.(http.Flusher)
+	wsID, ok := s.resolveWorkspace(w, r)
 	if !ok {
+		return
+	}
+
+	flusher, okFlush := w.(http.Flusher)
+	if !okFlush {
 		WriteProblem(w, http.StatusInternalServerError, "sse_unsupported", "Streaming not supported", "")
 		return
 	}
 
 	runID := chi.URLParam(r, "id")
 
-	// Verify run exists
-	_, err := s.store.GetRunRecord(r.Context(), runID)
+	// Verify run exists and belongs to caller's workspace (BOLA protection)
+	runRec, err := s.store.GetRunRecord(r.Context(), runID)
 	if err != nil {
 		WriteProblem(w, http.StatusNotFound, "not_found", "Run Not Found", err.Error())
+		return
+	}
+
+	if runRec.WorkspaceID != "" && runRec.WorkspaceID != wsID {
+		WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", "Run belongs to another workspace")
 		return
 	}
 
@@ -171,11 +222,10 @@ func (s *Server) handleStreamRunEvents(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Check if run is in terminal state
-			runRec, err := s.store.GetRunRecord(r.Context(), runID)
+			currentRun, err := s.store.GetRunRecord(r.Context(), runID)
 			if err == nil {
-				st := engine.RunStatus(runRec.Status)
+				st := engine.RunStatus(currentRun.Status)
 				if st.IsTerminal() && (len(events) == 0) {
-					// Stream can terminate gracefully
 					return
 				}
 			}
@@ -184,7 +234,24 @@ func (s *Server) handleStreamRunEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCancelRun(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
+
 	id := chi.URLParam(r, "id")
+
+	runRec, err := s.store.GetRunRecord(r.Context(), id)
+	if err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Run Not Found", err.Error())
+		return
+	}
+
+	if runRec.WorkspaceID != "" && runRec.WorkspaceID != wsID {
+		WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", "Run belongs to another workspace")
+		return
+	}
+
 	if err := s.engine.CancelRun(r.Context(), id); err != nil {
 		WriteProblem(w, http.StatusInternalServerError, "cancel_failed", "Failed to cancel run", err.Error())
 		return
@@ -193,12 +260,27 @@ func (s *Server) handleCancelRun(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleReplayRun(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
+
 	originalRunID := chi.URLParam(r, "id")
 
-	// Fetch original events to replay state
+	runRec, err := s.store.GetRunRecord(r.Context(), originalRunID)
+	if err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Original run not found", err.Error())
+		return
+	}
+
+	if runRec.WorkspaceID != "" && runRec.WorkspaceID != wsID {
+		WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", "Run belongs to another workspace")
+		return
+	}
+
 	events, err := s.store.GetEvents(r.Context(), originalRunID, 0)
 	if err != nil || len(events) == 0 {
-		WriteProblem(w, http.StatusNotFound, "not_found", "Original run not found or has no events", "")
+		WriteProblem(w, http.StatusNotFound, "not_found", "Original run has no events", "")
 		return
 	}
 

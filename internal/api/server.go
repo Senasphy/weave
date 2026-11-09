@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,17 +21,24 @@ const authSessionContextKey contextKey = "weave_auth_session"
 
 // Server coordinates HTTP handlers and engine operations.
 type Server struct {
-	router *chi.Mux
-	engine *engine.Engine
-	store  *store.PostgresStore
+	router       *chi.Mux
+	engine       *engine.Engine
+	store        *store.PostgresStore
+	authRequired bool
 }
 
 // NewServer initializes routes, middleware, and dependencies.
 func NewServer(eng *engine.Engine, st *store.PostgresStore) *Server {
+	authReq := true
+	if env := os.Getenv("WEAVE_AUTH_REQUIRED"); env == "false" || env == "0" {
+		authReq = false
+	}
+
 	s := &Server{
-		router: chi.NewRouter(),
-		engine: eng,
-		store:  st,
+		router:       chi.NewRouter(),
+		engine:       eng,
+		store:        st,
+		authRequired: authReq,
 	}
 
 	s.setupMiddleware()
@@ -38,22 +47,45 @@ func NewServer(eng *engine.Engine, st *store.PostgresStore) *Server {
 	return s
 }
 
+// SetAuthRequired explicitly enables or disables auth enforcement (useful for tests).
+func (s *Server) SetAuthRequired(required bool) {
+	s.authRequired = required
+}
+
 func (s *Server) setupMiddleware() {
 	s.router.Use(middleware.RequestID)
 	s.router.Use(middleware.RealIP)
 	s.router.Use(middleware.Logger)
 	s.router.Use(middleware.Recoverer)
-	s.router.Use(middleware.Timeout(60 * time.Second))
+
+	// Body size limiter: 10MB max request body to prevent DoS memory exhaustion
+	s.router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
+			next.ServeHTTP(w, r)
+		})
+	})
+
+	// Configure strict CORS with explicit allowed origins
+	allowedOrigins := []string{
+		"http://localhost:3000",
+		"http://localhost:8080",
+		"http://127.0.0.1:3000",
+	}
+	if custom := os.Getenv("ALLOWED_ORIGINS"); custom != "" {
+		for _, o := range strings.Split(custom, ",") {
+			trimmed := strings.TrimSpace(o)
+			if trimmed != "" {
+				allowedOrigins = append(allowedOrigins, trimmed)
+			}
+		}
+	}
+	if appURL := os.Getenv("NEXT_PUBLIC_APP_URL"); appURL != "" {
+		allowedOrigins = append(allowedOrigins, strings.TrimRight(strings.TrimSpace(appURL), "/"))
+	}
 
 	s.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{
-			"https://weave-orchestrator-main.vercel.app",
-			"https://weave-orchestrator.vercel.app",
-			"https://weave-documentation.vercel.app",
-			"http://localhost:3000",
-			"http://127.0.0.1:3000",
-		},
-		AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "Last-Event-ID", "X-Workspace-ID"},
 		ExposedHeaders:   []string{"Link", "Last-Event-ID"},
@@ -96,6 +128,49 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// requireAuth rejects unauthenticated requests with 401 Unauthorized when auth is active.
+func (s *Server) requireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !s.authRequired {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		sess, ok := r.Context().Value(authSessionContextKey).(*store.AuthSession)
+		if !ok || sess == nil {
+			WriteProblem(w, http.StatusUnauthorized, "unauthorized", "Unauthorized", "Authentication required to access this resource")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// resolveWorkspace extracts and validates the workspace for the current caller.
+func (s *Server) resolveWorkspace(w http.ResponseWriter, r *http.Request) (string, bool) {
+	if sess, ok := r.Context().Value(authSessionContextKey).(*store.AuthSession); ok && sess != nil {
+		wsHeader := r.Header.Get("X-Workspace-ID")
+		if wsHeader != "" && wsHeader != sess.WorkspaceID {
+			WriteProblem(w, http.StatusForbidden, "forbidden", "Access Denied", fmt.Sprintf("User does not have access to workspace '%s'", wsHeader))
+			return "", false
+		}
+		if sess.WorkspaceID != "" {
+			return sess.WorkspaceID, true
+		}
+	}
+
+	if !s.authRequired {
+		ws := r.Header.Get("X-Workspace-ID")
+		if ws != "" {
+			return ws, true
+		}
+		return defaultWorkspaceID, true
+	}
+
+	WriteProblem(w, http.StatusUnauthorized, "unauthorized", "Unauthorized", "Authentication required to access this workspace")
+	return "", false
+}
+
 func (s *Server) setupRoutes() {
 	// Liveness and health
 	s.router.Get("/healthz", s.handleHealthz)
@@ -104,35 +179,40 @@ func (s *Server) setupRoutes() {
 
 	// v1 API routes
 	s.router.Route("/v1", func(r chi.Router) {
-		// Identity and session inspection
-		r.Get("/me", s.handleMe)
-
-		// Workflows
-		r.Get("/workflows", s.handleListWorkflows)
-		r.Post("/workflows", s.handleCreateWorkflow)
-		r.Get("/workflows/{id}", s.handleGetWorkflow)
-		r.Get("/workflows/{id}/draft", s.handleGetWorkflowDraft)
-		r.Put("/workflows/{id}/draft", s.handleUpdateWorkflowDraft)
-		r.Post("/workflows/{id}/validate", s.handleValidateWorkflow)
-		r.Post("/workflows/{id}/publish", s.handlePublishWorkflow)
-		r.Get("/workflows/{id}/versions", s.handleListWorkflowVersions)
-		r.Get("/workflows/{id}/versions/{n}", s.handleGetWorkflowVersion)
-		r.Post("/workflows/{id}/versions/{n}/runs", s.handleCreateRun)
-
-		// Runs
-		r.Get("/runs", s.handleListRuns)
-		r.Get("/runs/{id}", s.handleGetRun)
-		r.Get("/runs/{id}/events", s.handleGetRunEvents)
-		r.Get("/runs/{id}/stream", s.handleStreamRunEvents)
-		r.Post("/runs/{id}/cancel", s.handleCancelRun)
-		r.Post("/runs/{id}/replay", s.handleReplayRun)
-
-		// Gates
-		r.Get("/gates", s.handleListGates)
-		r.Post("/gates/{id}/resolve", s.handleResolveGate)
-
-		// Models & Tools
+		// Public metadata
 		r.Get("/models", s.handleListModels)
+
+		// Protected endpoints
+		r.Group(func(authGroup chi.Router) {
+			authGroup.Use(s.requireAuth)
+
+			// Identity and session inspection
+			authGroup.Get("/me", s.handleMe)
+
+			// Workflows
+			authGroup.Get("/workflows", s.handleListWorkflows)
+			authGroup.Post("/workflows", s.handleCreateWorkflow)
+			authGroup.Get("/workflows/{id}", s.handleGetWorkflow)
+			authGroup.Get("/workflows/{id}/draft", s.handleGetWorkflowDraft)
+			authGroup.Put("/workflows/{id}/draft", s.handleUpdateWorkflowDraft)
+			authGroup.Post("/workflows/{id}/validate", s.handleValidateWorkflow)
+			authGroup.Post("/workflows/{id}/publish", s.handlePublishWorkflow)
+			authGroup.Get("/workflows/{id}/versions", s.handleListWorkflowVersions)
+			authGroup.Get("/workflows/{id}/versions/{n}", s.handleGetWorkflowVersion)
+			authGroup.Post("/workflows/{id}/versions/{n}/runs", s.handleCreateRun)
+
+			// Runs
+			authGroup.Get("/runs", s.handleListRuns)
+			authGroup.Get("/runs/{id}", s.handleGetRun)
+			authGroup.Get("/runs/{id}/events", s.handleGetRunEvents)
+			authGroup.Get("/runs/{id}/stream", s.handleStreamRunEvents)
+			authGroup.Post("/runs/{id}/cancel", s.handleCancelRun)
+			authGroup.Post("/runs/{id}/replay", s.handleReplayRun)
+
+			// Gates
+			authGroup.Get("/gates", s.handleListGates)
+			authGroup.Post("/gates/{id}/resolve", s.handleResolveGate)
+		})
 	})
 }
 

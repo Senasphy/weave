@@ -240,3 +240,81 @@ func TestAPI_AuthMe(t *testing.T) {
 		t.Fatalf("expected default workspace id, got %v", res["workspace_id"])
 	}
 }
+
+func TestAPI_CORS_Rejection(t *testing.T) {
+	fakeLLM := llm.NewMockProvider()
+	fakeTools := tools.NewMockToolRunner()
+	memStore := engine.NewMemStore()
+	eng, _ := engine.NewEngine(memStore, fakeLLM, fakeTools, engine.RealClock{}, engine.DefaultIDGen{})
+	srv := NewServer(eng, nil)
+
+	// Disallowed evil origin
+	req := httptest.NewRequest(http.MethodOptions, "/v1/workflows", nil)
+	req.Header.Set("Origin", "https://evil-attacker.com")
+	req.Header.Set("Access-Control-Request-Method", "POST")
+	rec := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec, req)
+
+	allowOrigin := rec.Header().Get("Access-Control-Allow-Origin")
+	if allowOrigin == "https://evil-attacker.com" || allowOrigin == "*" {
+		t.Fatalf("CORS vulnerability: evil origin was allowed: %s", allowOrigin)
+	}
+
+	// Allowed localhost origin
+	req2 := httptest.NewRequest(http.MethodOptions, "/v1/workflows", nil)
+	req2.Header.Set("Origin", "http://localhost:3000")
+	req2.Header.Set("Access-Control-Request-Method", "GET")
+	rec2 := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec2, req2)
+
+	if rec2.Header().Get("Access-Control-Allow-Origin") != "http://localhost:3000" {
+		t.Fatalf("expected http://localhost:3000 to be allowed by CORS, got %s", rec2.Header().Get("Access-Control-Allow-Origin"))
+	}
+}
+
+func TestAPI_Auth_Enforcement(t *testing.T) {
+	fakeLLM := llm.NewMockProvider()
+	fakeTools := tools.NewMockToolRunner()
+	memStore := engine.NewMemStore()
+	eng, _ := engine.NewEngine(memStore, fakeLLM, fakeTools, engine.RealClock{}, engine.DefaultIDGen{})
+	srv := NewServer(eng, nil)
+	srv.SetAuthRequired(true)
+
+	// Unauthenticated request to /v1/workflows -> must return 401 Unauthorized
+	req := httptest.NewRequest(http.MethodGet, "/v1/workflows", nil)
+	rec := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 Unauthorized for unauthenticated request, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestAPI_Workspace_Tampering_Forbidden(t *testing.T) {
+	fakeLLM := llm.NewMockProvider()
+	fakeTools := tools.NewMockToolRunner()
+	memStore := engine.NewMemStore()
+	eng, _ := engine.NewEngine(memStore, fakeLLM, fakeTools, engine.RealClock{}, engine.DefaultIDGen{})
+	srv := NewServer(eng, nil)
+	srv.SetAuthRequired(true)
+
+	// Authenticated session for Workspace A
+	userSess := &store.AuthSession{
+		UserID:      "usr_123",
+		WorkspaceID: "ws_alpha_1111",
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/workflows", nil)
+	// Inject session into request context
+	ctx := context.WithValue(req.Context(), authSessionContextKey, userSess)
+	// Tampering attempt: caller tries to specify Workspace B in header
+	req = req.WithContext(ctx)
+	req.Header.Set("X-Workspace-ID", "ws_beta_2222")
+
+	rec := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected 403 Forbidden when tampering with X-Workspace-ID, got %d: %s", rec.Code, rec.Body.String())
+	}
+}

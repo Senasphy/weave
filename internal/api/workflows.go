@@ -28,7 +28,10 @@ func (s *Server) getWorkspaceID(r *http.Request) string {
 }
 
 func (s *Server) handleListWorkflows(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	list, err := s.store.ListWorkflows(r.Context(), wsID)
 	if err != nil {
 		WriteProblem(w, http.StatusInternalServerError, "internal_error", "Database Error", err.Error())
@@ -41,7 +44,10 @@ func (s *Server) handleListWorkflows(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCreateWorkflow(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	var req struct {
 		Name         string                `json:"name"`
 		Description  string                `json:"description"`
@@ -67,7 +73,10 @@ func (s *Server) handleCreateWorkflow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetWorkflow(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
 
 	wf, err := s.store.GetWorkflow(r.Context(), wsID, id)
@@ -80,7 +89,10 @@ func (s *Server) handleGetWorkflow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGetWorkflowDraft(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
 
 	wf, err := s.store.GetWorkflow(r.Context(), wsID, id)
@@ -100,7 +112,10 @@ func (s *Server) handleGetWorkflowDraft(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Server) handleUpdateWorkflowDraft(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
 
 	var rawDraft json.RawMessage
@@ -118,7 +133,10 @@ func (s *Server) handleUpdateWorkflowDraft(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *Server) handleValidateWorkflow(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
 
 	var g graph.WorkflowGraph
@@ -175,7 +193,10 @@ func (s *Server) handleValidateWorkflow(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Server) handlePublishWorkflow(w http.ResponseWriter, r *http.Request) {
-	wsID := s.getWorkspaceID(r)
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
 
 	wf, err := s.store.GetWorkflow(r.Context(), wsID, id)
@@ -218,8 +239,17 @@ func (s *Server) handlePublishWorkflow(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	createdBy := "developer"
+	if sess, ok := r.Context().Value(authSessionContextKey).(*store.AuthSession); ok && sess != nil {
+		if sess.UserEmail != "" {
+			createdBy = sess.UserEmail
+		} else if sess.UserName != "" {
+			createdBy = sess.UserName
+		}
+	}
+
 	hash, _ := graph.SemanticHash(&g)
-	version, err := s.store.PublishWorkflowVersion(r.Context(), wsID, id, wf.DraftGraph, hash, "developer")
+	version, err := s.store.PublishWorkflowVersion(r.Context(), wsID, id, wf.DraftGraph, hash, createdBy)
 	if err != nil {
 		WriteProblem(w, http.StatusInternalServerError, "publish_failed", "Failed to publish version", err.Error())
 		return
@@ -229,7 +259,18 @@ func (s *Server) handlePublishWorkflow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleListWorkflowVersions(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
+
+	// Ensure workflow belongs to workspace
+	if _, err := s.store.GetWorkflow(r.Context(), wsID, id); err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Workflow Not Found", err.Error())
+		return
+	}
+
 	versions, err := s.store.ListWorkflowVersions(r.Context(), id)
 	if err != nil {
 		WriteProblem(w, http.StatusInternalServerError, "internal_error", "Failed to list versions", err.Error())
@@ -242,7 +283,18 @@ func (s *Server) handleListWorkflowVersions(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *Server) handleGetWorkflowVersion(w http.ResponseWriter, r *http.Request) {
+	wsID, ok := s.resolveWorkspace(w, r)
+	if !ok {
+		return
+	}
 	id := chi.URLParam(r, "id")
+
+	// Ensure workflow belongs to workspace
+	if _, err := s.store.GetWorkflow(r.Context(), wsID, id); err != nil {
+		WriteProblem(w, http.StatusNotFound, "not_found", "Workflow Not Found", err.Error())
+		return
+	}
+
 	nStr := chi.URLParam(r, "n")
 	n, err := strconv.Atoi(nStr)
 	if err != nil {
