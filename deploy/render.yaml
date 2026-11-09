@@ -15,7 +15,7 @@ services:
       - key: WEAVE_ENV
         value: production
       - key: ALLOWED_ORIGINS
-        value: "*"
+        sync: false # Comma-separated list of your frontend URLs (e.g. https://your-app.vercel.app,https://weave-web.onrender.com)
       # Optional: set default API keys if you want shared keys
       - key: GEMINI_API_KEY
         sync: false
