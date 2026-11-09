@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -251,8 +252,32 @@ func (s *Server) handleMe(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleMetrics(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("# HELP weave_runs_total Total number of runs\n# TYPE weave_runs_total counter\nweave_runs_total 0\n"))
+
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	numGoroutines := runtime.NumGoroutine()
+
+	var totalRuns, activeRuns, succeededRuns, failedRuns, waitingGates, queuedJobs int64
+	if s.store != nil {
+		if metrics, err := s.store.GetSystemMetrics(r.Context()); err == nil && metrics != nil {
+			totalRuns = metrics.TotalRuns
+			activeRuns = metrics.ActiveRuns
+			succeededRuns = metrics.SucceededRuns
+			failedRuns = metrics.FailedRuns
+			waitingGates = metrics.WaitingGates
+			queuedJobs = metrics.QueuedJobs
+		}
+	}
+
+	fmt.Fprintf(w, "# HELP weave_runs_total Total number of runs in the system\n# TYPE weave_runs_total gauge\nweave_runs_total %d\n\n", totalRuns)
+	fmt.Fprintf(w, "# HELP weave_runs_active Runs currently active or waiting\n# TYPE weave_runs_active gauge\nweave_runs_active %d\n\n", activeRuns)
+	fmt.Fprintf(w, "# HELP weave_runs_by_status Total runs partitioned by terminal status\n# TYPE weave_runs_by_status gauge\nweave_runs_by_status{status=\"succeeded\"} %d\nweave_runs_by_status{status=\"failed\"} %d\n\n", succeededRuns, failedRuns)
+	fmt.Fprintf(w, "# HELP weave_gates_waiting Pending human review gates\n# TYPE weave_gates_waiting gauge\nweave_gates_waiting %d\n\n", waitingGates)
+	fmt.Fprintf(w, "# HELP weave_jobs_queued Background worker jobs queued\n# TYPE weave_jobs_queued gauge\nweave_jobs_queued %d\n\n", queuedJobs)
+	fmt.Fprintf(w, "# HELP weave_goroutines Active goroutines in runtime\n# TYPE weave_goroutines gauge\nweave_goroutines %d\n\n", numGoroutines)
+	fmt.Fprintf(w, "# HELP weave_memory_alloc_bytes Heap bytes allocated and currently in use\n# TYPE weave_memory_alloc_bytes gauge\nweave_memory_alloc_bytes %d\n", mem.Alloc)
 }
 
 // Background scheduler tick for checking gate timeouts

@@ -46,6 +46,76 @@ function error(detail: string, status = 400, req?: Request) {
   });
 }
 
+function getBackendBase(): string {
+  const backend = process.env.BACKEND_URL || process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  let raw = backend.replace(/\/+$/, '');
+  if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+    raw = `http://${raw}`;
+  }
+  return raw.endsWith('/v1') ? raw : `${raw}/v1`;
+}
+
+// SMELL-1 fix: Proxy Next.js API requests directly to the real Go backend orchestrator
+async function proxyToBackend(req: NextRequest, slug: string[]): Promise<Response | null> {
+  const backendBase = getBackendBase();
+  const path = slug.join('/');
+  const query = req.nextUrl.search;
+  const targetUrl = `${backendBase}/${path}${query}`;
+
+  const headers = new Headers(req.headers);
+  headers.delete('host');
+
+  try {
+    const session = await auth.api.getSession({ headers: req.headers }).catch(() => null);
+    if (session?.user && !headers.has('Authorization')) {
+      const token = req.cookies.get('better-auth.session_token')?.value ||
+                    req.cookies.get('__Secure-better-auth.session_token')?.value ||
+                    req.cookies.get('session_token')?.value;
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+    }
+  } catch {}
+
+  try {
+    let body: BodyInit | undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      body = await req.arrayBuffer();
+    }
+
+    const backendRes = await fetch(targetUrl, {
+      method: req.method,
+      headers,
+      body,
+      // @ts-expect-error duplex required for streaming bodies in Node
+      duplex: 'half',
+    });
+
+    const resHeaders = new Headers(backendRes.headers);
+    const cors = getCorsHeaders(req);
+    Object.entries(cors).forEach(([k, v]) => {
+      if (typeof v === 'string') resHeaders.set(k, v);
+    });
+
+    return new Response(backendRes.body, {
+      status: backendRes.status,
+      statusText: backendRes.statusText,
+      headers: resHeaders,
+    });
+  } catch {
+    if (process.env.NODE_ENV === 'production' || process.env.DISABLE_MOCK_FALLBACK === 'true') {
+      return NextResponse.json(
+        {
+          error: 'Bad Gateway',
+          detail: `Weave Go backend service unreachable at ${backendBase}. Please ensure weave-backend is running and healthy.`,
+        },
+        { status: 502, headers: getCorsHeaders(req) }
+      );
+    }
+    return null;
+  }
+}
+
 export async function OPTIONS(req: NextRequest) {
   return new Response(null, {
     status: 204,
@@ -59,6 +129,13 @@ export async function GET(
 ) {
   const { slug = [] } = await params;
   const path = slug.join('/');
+
+  // Proxy to real Go backend first
+  if (path !== 'me') {
+    const proxied = await proxyToBackend(req, slug);
+    if (proxied) return proxied;
+  }
+
   const searchParams = req.nextUrl.searchParams;
 
   // GET /api/v1/healthz
@@ -186,6 +263,9 @@ export async function POST(
   const { slug = [] } = await params;
   const path = slug.join('/');
 
+  const proxied = await proxyToBackend(req, slug);
+  if (proxied) return proxied;
+
   let body: any = {};
   try {
     body = await req.json();
@@ -270,6 +350,9 @@ export async function PUT(
   { params }: { params: Promise<{ slug?: string[] }> }
 ) {
   const { slug = [] } = await params;
+
+  const proxied = await proxyToBackend(req, slug);
+  if (proxied) return proxied;
 
   let body: any = {};
   try {

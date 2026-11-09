@@ -15,7 +15,7 @@ import (
 func getTestDatabaseURL() string {
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
-		url = "postgres://postgres@localhost:5433/weave?sslmode=disable"
+		url = "postgres://postgres@localhost:5432/weave?sslmode=disable"
 	}
 	return url
 }

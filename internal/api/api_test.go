@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,7 +21,7 @@ import (
 func getTestDatabaseURL() string {
 	url := os.Getenv("DATABASE_URL")
 	if url == "" {
-		url = "postgres://postgres@localhost:5433/weave?sslmode=disable"
+		url = "postgres://postgres@localhost:5432/weave?sslmode=disable"
 	}
 	return url
 }
@@ -318,3 +319,32 @@ func TestAPI_Workspace_Tampering_Forbidden(t *testing.T) {
 		t.Fatalf("expected 403 Forbidden when tampering with X-Workspace-ID, got %d: %s", rec.Code, rec.Body.String())
 	}
 }
+
+func TestAPI_Metrics_PrometheusFormat(t *testing.T) {
+	fakeLLM := llm.NewMockProvider()
+	fakeTools := tools.NewMockToolRunner()
+	memStore := engine.NewMemStore()
+	eng, _ := engine.NewEngine(memStore, fakeLLM, fakeTools, engine.RealClock{}, engine.DefaultIDGen{})
+	srv := NewServer(eng, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/metrics", nil)
+	rec := httptest.NewRecorder()
+	srv.Router().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 OK for /metrics, got %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	for _, expectedMetric := range []string{
+		"weave_runs_total",
+		"weave_runs_active",
+		"weave_goroutines",
+		"weave_memory_alloc_bytes",
+	} {
+		if !strings.Contains(body, expectedMetric) {
+			t.Fatalf("expected /metrics output to contain %q, got:\n%s", expectedMetric, body)
+		}
+	}
+}
+

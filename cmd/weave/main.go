@@ -225,7 +225,7 @@ func getDBURL() string {
 			fmt.Fprintln(os.Stderr, "========================================================================")
 			os.Exit(1)
 		}
-		url = "postgres://postgres@localhost:5433/weave?sslmode=disable"
+		url = "postgres://postgres@localhost:5432/weave?sslmode=disable"
 	}
 	return url
 }

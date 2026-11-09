@@ -775,3 +775,31 @@ func (p *PostgresStore) GetVersionGraph(ctx context.Context, versionID string) (
 	}
 	return graphJSON, nil
 }
+
+// SystemMetrics encapsulates operational statistics for monitoring and Prometheus metrics.
+type SystemMetrics struct {
+	TotalRuns     int64 `json:"total_runs"`
+	ActiveRuns    int64 `json:"active_runs"`
+	SucceededRuns int64 `json:"succeeded_runs"`
+	FailedRuns    int64 `json:"failed_runs"`
+	WaitingGates  int64 `json:"waiting_gates"`
+	QueuedJobs    int64 `json:"queued_jobs"`
+}
+
+// GetSystemMetrics queries aggregate runtime counts in a single round-trip.
+func (p *PostgresStore) GetSystemMetrics(ctx context.Context) (*SystemMetrics, error) {
+	var m SystemMetrics
+	row := p.pool.QueryRow(ctx, `
+		SELECT
+			(SELECT COUNT(*) FROM runs) AS total_runs,
+			(SELECT COUNT(*) FROM runs WHERE status IN ('pending', 'running', 'waiting_human')) AS active_runs,
+			(SELECT COUNT(*) FROM runs WHERE status = 'succeeded') AS succeeded_runs,
+			(SELECT COUNT(*) FROM runs WHERE status = 'failed') AS failed_runs,
+			(SELECT COUNT(*) FROM gates WHERE status = 'waiting') AS waiting_gates,
+			(SELECT COUNT(*) FROM jobs WHERE status = 'queued') AS queued_jobs
+	`)
+	if err := row.Scan(&m.TotalRuns, &m.ActiveRuns, &m.SucceededRuns, &m.FailedRuns, &m.WaitingGates, &m.QueuedJobs); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
