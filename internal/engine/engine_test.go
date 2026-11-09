@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -472,4 +473,159 @@ func TestEngine_EventFoldReplay(t *testing.T) {
 		t.Fatalf("expected ticket.id == '123', got %v", ticketMap["id"])
 	}
 }
+
+func TestEngine_ToolRunnerNilResponse_NoErrorPanic(t *testing.T) {
+	eng, store, fakeLLM, fakeTools, _ := setupTestEngine(t)
+	g := loadTestGraph(t, "testdata/validator/valid_triage.json")
+
+	// Register tool handler returning nil, error
+	fakeTools.Register("kb_search", func(req ToolRequest) (*ToolResponse, error) {
+		return nil, fmt.Errorf("tool service unreachable")
+	})
+
+	// 1. Classifier calls kb_search
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: "Searching...",
+		ToolCalls: []ToolCall{
+			{ID: "call_fail", ToolName: "kb_search", Arguments: `{"query": "test"}`},
+		},
+	})
+	// 2. Classifier handles tool error and produces final output
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"category": "refund", "amount": 10}`,
+	})
+	// 3. standard_reply completes
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"status": "ok"}`,
+	})
+
+	ctx := context.Background()
+	runState, err := eng.CreateRun(ctx, g, "v1", map[string]any{"ticket_id": "T-FAIL"})
+	if err != nil {
+		t.Fatalf("CreateRun failed: %v", err)
+	}
+
+	if err := eng.StartRun(ctx, runState.RunID); err != nil {
+		t.Fatalf("StartRun failed: %v", err)
+	}
+
+	finalState, err := store.GetRunState(ctx, runState.RunID)
+	if err != nil {
+		t.Fatalf("GetRunState failed: %v", err)
+	}
+	if finalState.Status != RunStatusSucceeded {
+		t.Fatalf("expected success after handling tool error gracefully, got %s: %s", finalState.Status, finalState.Error)
+	}
+}
+
+func TestEngine_UnauthorizedToolInvocation_Rejected(t *testing.T) {
+	eng, store, fakeLLM, fakeTools, _ := setupTestEngine(t)
+	g := loadTestGraph(t, "testdata/validator/valid_triage.json")
+
+	// 1. Classifier hallucinates / tries to call an unauthorized tool 'system_shell'
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: "Running command...",
+		ToolCalls: []ToolCall{
+			{ID: "call_unauth", ToolName: "system_shell", Arguments: `{"cmd": "rm -rf /"}`},
+		},
+	})
+	// 2. Classifier receives unauth tool response, recovers, and returns valid output
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"category": "refund", "amount": 20}`,
+	})
+	// 3. standard_reply completes
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"status": "handled"}`,
+	})
+
+	ctx := context.Background()
+	runState, err := eng.CreateRun(ctx, g, "v1", map[string]any{"ticket_id": "T-UNAUTH"})
+	if err != nil {
+		t.Fatalf("CreateRun failed: %v", err)
+	}
+
+	if err := eng.StartRun(ctx, runState.RunID); err != nil {
+		t.Fatalf("StartRun failed: %v", err)
+	}
+
+	// Verify fakeTools was never called for system_shell
+	for _, req := range fakeTools.requests {
+		if req.ToolName == "system_shell" {
+			t.Fatalf("unauthorized tool 'system_shell' was executed by runner!")
+		}
+	}
+
+	finalState, err := store.GetRunState(ctx, runState.RunID)
+	if err != nil {
+		t.Fatalf("GetRunState failed: %v", err)
+	}
+	if finalState.Status != RunStatusSucceeded {
+		t.Fatalf("expected run status %s, got %s", RunStatusSucceeded, finalState.Status)
+	}
+}
+
+func TestEngine_OutputSchemaValidation_TypesAndEnums(t *testing.T) {
+	schema := []byte(`{
+		"type": "object",
+		"required": ["status", "count", "items"],
+		"properties": {
+			"status": {"type": "string", "enum": ["active", "archived"]},
+			"count": {"type": "integer"},
+			"items": {
+				"type": "array",
+				"items": {"type": "string"}
+			}
+		}
+	}`)
+
+	// Valid payload
+	valid := map[string]any{
+		"status": "active",
+		"count":  float64(5),
+		"items":  []any{"item1", "item2"},
+	}
+	if !isOutputSchemaSatisfied(valid, schema) {
+		t.Fatalf("expected valid payload to satisfy schema")
+	}
+
+	// Missing required property
+	missingReq := map[string]any{
+		"count": float64(5),
+		"items": []any{"item1"},
+	}
+	if isOutputSchemaSatisfied(missingReq, schema) {
+		t.Fatalf("expected missing required property to fail validation")
+	}
+
+	// Invalid enum value
+	invalidEnum := map[string]any{
+		"status": "unknown_status",
+		"count":  float64(5),
+		"items":  []any{"item1"},
+	}
+	if isOutputSchemaSatisfied(invalidEnum, schema) {
+		t.Fatalf("expected invalid enum to fail validation")
+	}
+
+	// Type mismatch (integer is float with decimal)
+	invalidInt := map[string]any{
+		"status": "active",
+		"count":  5.5,
+		"items":  []any{"item1"},
+	}
+	if isOutputSchemaSatisfied(invalidInt, schema) {
+		t.Fatalf("expected float 5.5 to fail integer check")
+	}
+
+	// Array items type mismatch (expect string, got number)
+	invalidItems := map[string]any{
+		"status": "active",
+		"count":  float64(1),
+		"items":  []any{123},
+	}
+	if isOutputSchemaSatisfied(invalidItems, schema) {
+		t.Fatalf("expected item type mismatch to fail validation")
+	}
+}
+
 

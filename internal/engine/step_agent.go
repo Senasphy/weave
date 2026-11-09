@@ -136,8 +136,45 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					Payload:   tReqPayload,
 				})
 
+				// SMELL-7 fix: Verify tool is authorized on this node
+				toolAllowed := false
+				for _, allowedTool := range node.Tools {
+					if allowedTool == tc.ToolName {
+						toolAllowed = true
+						break
+					}
+				}
+				if !toolAllowed {
+					unauthMsg := fmt.Sprintf("tool '%s' is not declared or permitted for node '%s'", tc.ToolName, node.ID)
+					unauthPayload, _ := json.Marshal(map[string]any{
+						"tool_id": tc.ID,
+						"name":    tc.ToolName,
+						"error":   unauthMsg,
+					})
+					_ = e.store.AppendEvent(ctx, Event{
+						ID:        e.idGen.NewID(),
+						RunID:     runID,
+						StepID:    stepID,
+						NodeID:    node.ID,
+						Timestamp: e.clock.Now(),
+						Type:      EventToolResponded,
+						Payload:   unauthPayload,
+					})
+					history = append(history, LLMMessage{
+						Role:       "tool",
+						Content:    fmt.Sprintf(`{"error": %q}`, unauthMsg),
+						ToolCallID: tc.ID,
+					})
+					continue
+				}
+
 				var args map[string]any
-				_ = json.Unmarshal([]byte(tc.Arguments), &args)
+				if tc.Arguments != "" {
+					_ = json.Unmarshal([]byte(tc.Arguments), &args)
+				}
+				if args == nil {
+					args = make(map[string]any)
+				}
 
 				toolResp, toolErr := e.toolRunner.Execute(ctx, ToolRequest{
 					RunID:          runID,
@@ -147,12 +184,28 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					IdempotencyKey: fmt.Sprintf("%s-%s-%s", runID, stepID, tc.ID),
 				})
 
+				// SMELL-6 fix: Guard against nil toolResp to prevent panic on tool failure
+				var toolOutput any
+				var toolCost float64
+				var toolErrStr string
+				if toolErr != nil {
+					toolErrStr = toolErr.Error()
+				}
+				if toolResp != nil {
+					toolOutput = toolResp.Output
+					toolCost = toolResp.CostUSD
+				} else {
+					toolOutput = map[string]any{"error": toolErrStr}
+				}
+
+				stepCostUSD += toolCost
+
 				tRespPayload, _ := json.Marshal(map[string]any{
 					"tool_id": tc.ID,
 					"name":    tc.ToolName,
-					"output":  toolResp.Output,
-					"error":   toolErr,
-					"cost":    toolResp.CostUSD,
+					"output":  toolOutput,
+					"error":   toolErrStr,
+					"cost":    toolCost,
 				})
 				_ = e.store.AppendEvent(ctx, Event{
 					ID:        e.idGen.NewID(),
@@ -164,9 +217,7 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 					Payload:   tRespPayload,
 				})
 
-				stepCostUSD += toolResp.CostUSD
-
-				outStr, _ := json.Marshal(toolResp.Output)
+				outStr, _ := json.Marshal(toolOutput)
 				history = append(history, LLMMessage{
 					Role:       "tool",
 					Content:    string(outStr),
@@ -275,23 +326,129 @@ func (e *Engine) executeAgentNode(ctx context.Context, g *graph.WorkflowGraph, r
 	return e.progressOutgoingEdges(ctx, g, runID, stepID, node, lastOutput, true)
 }
 
+// isOutputSchemaSatisfied performs recursive validation of the output value against the declared JSON Schema.
 func isOutputSchemaSatisfied(output any, schemaBytes []byte) bool {
 	var schemaMap map[string]any
 	if err := json.Unmarshal(schemaBytes, &schemaMap); err != nil {
-		return true
+		return true // If schema is malformed, don't block execution
 	}
+	return validateValueAgainstSchema(output, schemaMap)
+}
 
-	outMap, isMap := output.(map[string]any)
-	if required, ok := schemaMap["required"].([]any); ok && isMap {
-		for _, req := range required {
-			reqStr, ok := req.(string)
-			if ok {
-				if _, exists := outMap[reqStr]; !exists {
+func validateValueAgainstSchema(val any, schema map[string]any) bool {
+	// 1. Validate Type
+	if typeDecl, ok := schema["type"].(string); ok {
+		switch strings.ToLower(typeDecl) {
+		case "object":
+			m, isMap := val.(map[string]any)
+			if !isMap {
+				return false
+			}
+			// Check required keys
+			if required, ok := schema["required"].([]any); ok {
+				for _, req := range required {
+					if reqStr, ok := req.(string); ok {
+						if _, exists := m[reqStr]; !exists {
+							return false
+						}
+					}
+				}
+			}
+			// Check properties recursively
+			if props, ok := schema["properties"].(map[string]any); ok {
+				for propName, propSchema := range props {
+					if propSchemaMap, ok := propSchema.(map[string]any); ok {
+						if propVal, exists := m[propName]; exists {
+							if !validateValueAgainstSchema(propVal, propSchemaMap) {
+								return false
+							}
+						}
+					}
+				}
+			}
+
+		case "array":
+			arr, isArr := val.([]any)
+			if !isArr {
+				return false
+			}
+			// Check items schema
+			if itemSchema, ok := schema["items"].(map[string]any); ok {
+				for _, item := range arr {
+					if !validateValueAgainstSchema(item, itemSchema) {
+						return false
+					}
+				}
+			}
+
+		case "string":
+			s, isStr := val.(string)
+			if !isStr {
+				return false
+			}
+			if minL, ok := schema["minLength"].(float64); ok && float64(len(s)) < minL {
+				return false
+			}
+			if maxL, ok := schema["maxLength"].(float64); ok && float64(len(s)) > maxL {
+				return false
+			}
+
+		case "number":
+			switch val.(type) {
+			case float64, float32, int, int64, int32:
+				// valid number
+			default:
+				return false
+			}
+
+		case "integer":
+			switch v := val.(type) {
+			case int, int64, int32:
+				// valid integer
+			case float64:
+				if v != float64(int64(v)) {
 					return false
 				}
+			default:
+				return false
+			}
+
+		case "boolean":
+			if _, isBool := val.(bool); !isBool {
+				return false
+			}
+		}
+	} else {
+		// If no type specified, but required fields present, check them if value is object
+		if required, ok := schema["required"].([]any); ok {
+			if m, isMap := val.(map[string]any); isMap {
+				for _, req := range required {
+					if reqStr, ok := req.(string); ok {
+						if _, exists := m[reqStr]; !exists {
+							return false
+						}
+					}
+				}
+			} else {
+				return false
 			}
 		}
 	}
+
+	// 2. Validate Enum
+	if enumVals, ok := schema["enum"].([]any); ok {
+		matched := false
+		for _, ev := range enumVals {
+			if fmt.Sprintf("%v", ev) == fmt.Sprintf("%v", val) {
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			return false
+		}
+	}
+
 	return true
 }
 
