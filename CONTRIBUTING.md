@@ -100,4 +100,4 @@ pnpm dev
 
 - **Bug Reports**: Open an issue detailing your OS, Go version, steps to reproduce, and relevant logs.
 - **Feature Requests**: Open an issue or discussion explaining the use case and proposed design.
-- **Security Vulnerabilities**: Please review [SECURITY.md](SECURITY.md) and report vulnerabilities privately.
+- **Security Vulnerabilities**: Please report vulnerabilities privately to the maintainers via GitHub Security Advisories.
