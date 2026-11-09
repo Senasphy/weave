@@ -628,4 +628,114 @@ func TestEngine_OutputSchemaValidation_TypesAndEnums(t *testing.T) {
 	}
 }
 
+func TestEngine_FanOutAndJoin_AggregationAndConcurrency(t *testing.T) {
+	eng, store, fakeLLM, _, _ := setupTestEngine(t)
+
+	// Create Fan-Out -> [AgentA, AgentB] -> Join graph
+	g := &graph.WorkflowGraph{
+		SchemaVersion: "weave/v1",
+		Name:          "Fan Out Join Test",
+		Budgets: &graph.Budgets{
+			MaxWallSeconds: 300,
+			MaxCostUSD:     1.0,
+			MaxSteps:       20,
+		},
+		Nodes: []graph.Node{
+			{
+				ID:      "entry_fan",
+				Label:   "Entry Fan Out",
+				Type:    graph.NodeTypeFanOut,
+				IsEntry: true,
+			},
+			{
+				ID:    "agent_a",
+				Label: "Agent A",
+				Type:  graph.NodeTypeAgent,
+				Model: &graph.ModelConfig{
+					Provider: "mock",
+					Name:     "mock-model",
+				},
+				Prompt: "Process branch A",
+			},
+			{
+				ID:    "agent_b",
+				Label: "Agent B",
+				Type:  graph.NodeTypeAgent,
+				Model: &graph.ModelConfig{
+					Provider: "mock",
+					Name:     "mock-model",
+				},
+				Prompt: "Process branch B",
+			},
+			{
+				ID:         "join_node",
+				Label:      "Join Branches",
+				Type:       graph.NodeTypeJoin,
+				JoinPolicy: graph.JoinPolicyWaitAll,
+			},
+		},
+		Edges: []graph.Edge{
+			{ID: "e_fan_a", From: "entry_fan", To: "agent_a", Kind: graph.EdgeKindAlways},
+			{ID: "e_fan_b", From: "entry_fan", To: "agent_b", Kind: graph.EdgeKindAlways},
+			{ID: "e_a_join", From: "agent_a", To: "join_node", Kind: graph.EdgeKindAlways},
+			{ID: "e_b_join", From: "agent_b", To: "join_node", Kind: graph.EdgeKindAlways},
+		},
+	}
+
+	// Enqueue agent responses (one for agent_a, one for agent_b)
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"score_a": 95}`,
+	})
+	fakeLLM.Enqueue(&LLMResponse{
+		Content: `{"score_b": 88}`,
+	})
+
+	ctx := context.Background()
+	runState, err := eng.CreateRun(ctx, g, "v1", map[string]any{"initial": "data"})
+	if err != nil {
+		t.Fatalf("CreateRun failed: %v", err)
+	}
+
+	if err := eng.StartRun(ctx, runState.RunID); err != nil {
+		t.Fatalf("StartRun failed: %v", err)
+	}
+
+	finalState, err := store.GetRunState(ctx, runState.RunID)
+	if err != nil {
+		t.Fatalf("GetRunState failed: %v", err)
+	}
+
+	if finalState.Status != RunStatusSucceeded {
+		t.Fatalf("expected run status %s, got %s (error: %s)", RunStatusSucceeded, finalState.Status, finalState.Error)
+	}
+
+	// Find the join node step in finalState
+	var joinStep *StepState
+	for _, s := range finalState.Steps {
+		if s.NodeID == "join_node" {
+			joinStep = s
+			break
+		}
+	}
+	if joinStep == nil {
+		t.Fatalf("expected join_node step to have executed")
+	}
+
+	// Verify both branch outputs were aggregated into joinStep input
+	joinInput, ok := joinStep.Input.(map[string]any)
+	if !ok {
+		t.Fatalf("expected joinStep input to be map[string]any, got %T: %+v", joinStep.Input, joinStep.Input)
+	}
+
+	branches, hasBranches := joinInput["branches"].(map[string]any)
+	if !hasBranches {
+		t.Fatalf("expected 'branches' map in join input, got: %+v", joinInput)
+	}
+
+	if branches["agent_a"] == nil || branches["agent_b"] == nil {
+		t.Fatalf("expected branches to contain outputs for agent_a and agent_b, got: %+v", branches)
+	}
+}
+
+
 

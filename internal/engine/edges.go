@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"sort"
+	"sync"
 
 	"weave/internal/graph"
 )
@@ -151,6 +152,12 @@ func (e *Engine) progressOutgoingEdges(ctx context.Context, g *graph.WorkflowGra
 		return e.checkRunCompletion(ctx, runID, output)
 	}
 
+	type readyStep struct {
+		runID  string
+		stepID string
+	}
+	var readySteps []readyStep
+
 	// For each fired edge, prepare target node input and fire step
 	for _, edge := range firedEdges {
 		targetInput := output
@@ -175,7 +182,7 @@ func (e *Engine) progressOutgoingEdges(ctx context.Context, g *graph.WorkflowGra
 
 		// Check if target is a join node
 		if targetNode.Type == graph.NodeTypeJoin {
-			ready, combinedInput := e.checkJoinReadiness(g, state, targetNode, targetInput)
+			ready, combinedInput := e.checkJoinReadiness(ctx, g, runID, targetNode, targetInput)
 			if !ready {
 				continue
 			}
@@ -202,8 +209,38 @@ func (e *Engine) progressOutgoingEdges(ctx context.Context, g *graph.WorkflowGra
 			return err
 		}
 
-		// Execute target step synchronously or via scheduler
-		if err := e.ExecuteStep(ctx, runID, stepID); err != nil {
+		readySteps = append(readySteps, readyStep{runID: runID, stepID: stepID})
+	}
+
+	if len(readySteps) == 0 {
+		return e.checkRunCompletion(ctx, runID, output)
+	}
+
+	// SMELL-5 fix: Prevent unbounded stack recursion by executing step on a fresh goroutine stack frame
+	if len(readySteps) == 1 {
+		errCh := make(chan error, 1)
+		go func() {
+			errCh <- e.ExecuteStep(ctx, readySteps[0].runID, readySteps[0].stepID)
+		}()
+		return <-errCh
+	}
+
+	// SMELL-4 fix: Concurrent fan-out step execution
+	var wg sync.WaitGroup
+	errCh := make(chan error, len(readySteps))
+	for _, s := range readySteps {
+		wg.Add(1)
+		go func(step readyStep) {
+			defer wg.Done()
+			if err := e.ExecuteStep(ctx, step.runID, step.stepID); err != nil {
+				errCh <- err
+			}
+		}(s)
+	}
+	wg.Wait()
+	close(errCh)
+	for err := range errCh {
+		if err != nil {
 			return err
 		}
 	}
@@ -250,7 +287,22 @@ func recordEdgeEvaluation(e *Engine, ctx context.Context, runID, stepID, edgeID 
 	})
 }
 
-func (e *Engine) checkJoinReadiness(g *graph.WorkflowGraph, state *RunState, joinNode *graph.Node, currentBranchInput any) (bool, any) {
+// checkJoinReadiness verifies incoming edge traversal counts and aggregates inputs from all completed branches (SMELL-4 fix).
+func (e *Engine) checkJoinReadiness(ctx context.Context, g *graph.WorkflowGraph, runID string, joinNode *graph.Node, currentBranchInput any) (bool, any) {
+	// Re-fetch fresh run state to observe concurrent branch completions
+	state, err := e.store.GetRunState(ctx, runID)
+	if err != nil {
+		return false, nil
+	}
+
+	// Count how many times join node has already been scheduled or completed
+	joinExecutions := 0
+	for _, s := range state.Steps {
+		if s.NodeID == joinNode.ID {
+			joinExecutions++
+		}
+	}
+
 	// Find all incoming edges to this join node
 	var incomingEdges []*graph.Edge
 	for i := range g.Edges {
@@ -259,10 +311,10 @@ func (e *Engine) checkJoinReadiness(g *graph.WorkflowGraph, state *RunState, joi
 		}
 	}
 
-	// For wait_all: verify every incoming edge has fired at least once
+	// For wait_all: verify every incoming edge has fired for this iteration
 	allFired := true
 	for _, inEdge := range incomingEdges {
-		if state.EdgeTraversals[inEdge.ID] == 0 {
+		if state.EdgeTraversals[inEdge.ID] <= joinExecutions {
 			allFired = false
 			break
 		}
@@ -272,13 +324,49 @@ func (e *Engine) checkJoinReadiness(g *graph.WorkflowGraph, state *RunState, joi
 		return false, nil
 	}
 
-	return true, currentBranchInput
+	// SMELL-4 fix: Aggregate branch outputs across all incoming edges instead of dropping them
+	aggregated := make(map[string]any)
+	for _, inEdge := range incomingEdges {
+		var latestOutput any
+		for _, s := range state.Steps {
+			if s.NodeID == inEdge.From && (s.Status == StepStatusSucceeded || s.Status == StepStatusRunning) {
+				latestOutput = s.Output
+			}
+		}
+		if latestOutput != nil {
+			aggregated[inEdge.From] = latestOutput
+			aggregated[inEdge.ID] = latestOutput
+		}
+	}
+
+	result := make(map[string]any)
+	result["branches"] = aggregated
+	for k, v := range aggregated {
+		result[k] = v
+	}
+	if currentBranchInput != nil {
+		if m, ok := currentBranchInput.(map[string]any); ok {
+			for k, v := range m {
+				if _, exists := result[k]; !exists {
+					result[k] = v
+				}
+			}
+		}
+	}
+
+	return true, result
 }
 
 func (e *Engine) checkRunCompletion(ctx context.Context, runID string, finalOutput any) error {
 	state, err := e.store.GetRunState(ctx, runID)
 	if err != nil {
 		return err
+	}
+
+	// If run has already reached terminal status, do not re-emit completion
+	if state.Status == RunStatusSucceeded || state.Status == RunStatusFailed ||
+		state.Status == RunStatusCancelled || state.Status == RunStatusBudgetExceeded {
+		return nil
 	}
 
 	// If there are any pending or running steps or waiting gates, run is not complete yet
