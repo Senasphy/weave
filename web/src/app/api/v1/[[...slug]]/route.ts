@@ -2,30 +2,54 @@ import { NextRequest, NextResponse } from 'next/server';
 import { serverStore } from '@/lib/server-store';
 import { auth } from '@/lib/auth';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Workspace-ID',
-};
+function getCorsHeaders(req?: Request): HeadersInit {
+  const allowed = [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://127.0.0.1:3000',
+  ];
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    allowed.push(process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, ''));
+  }
+  if (process.env.ALLOWED_ORIGINS) {
+    for (const o of process.env.ALLOWED_ORIGINS.split(',')) {
+      if (o.trim()) allowed.push(o.trim());
+    }
+  }
 
-function json(data: unknown, status = 200) {
+  const origin = req?.headers.get('origin');
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Workspace-ID',
+    'Vary': 'Origin',
+  };
+
+  if (origin && allowed.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers['Access-Control-Allow-Credentials'] = 'true';
+  }
+
+  return headers;
+}
+
+function json(data: unknown, status = 200, req?: Request) {
   return NextResponse.json(data, {
     status,
-    headers: corsHeaders,
+    headers: getCorsHeaders(req),
   });
 }
 
-function error(detail: string, status = 400) {
+function error(detail: string, status = 400, req?: Request) {
   return NextResponse.json({ detail }, {
     status,
-    headers: corsHeaders,
+    headers: getCorsHeaders(req),
   });
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(req: NextRequest) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders,
+    headers: getCorsHeaders(req),
   });
 }
 
@@ -144,7 +168,7 @@ export async function GET(
           'Content-Type': 'text/event-stream',
           'Cache-Control': 'no-cache, no-transform',
           'Connection': 'keep-alive',
-          ...corsHeaders,
+          ...getCorsHeaders(req),
         },
       });
     }

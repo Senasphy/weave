@@ -29,7 +29,7 @@ export function resolveApiBase(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}/api/v1`;
   }
-  return 'https://weave-orchestrator-main.vercel.app/api/v1';
+  return 'http://localhost:8080/v1';
 }
 
 export const API_BASE = resolveApiBase();

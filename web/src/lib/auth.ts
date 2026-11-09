@@ -16,9 +16,13 @@ const isLocal =
   connectionString.includes('127.0.0.1') ||
   connectionString.includes('sslmode=disable');
 
+// In production, rejectUnauthorized defaults to true for secure TLS connections.
+// Override with PG_SSL_REJECT_UNAUTHORIZED=false ONLY if connecting to local self-signed dev certificates.
+const rejectUnauthorized = process.env.PG_SSL_REJECT_UNAUTHORIZED !== 'false';
+
 const pool = new Pool({
-  connectionString: connectionString || 'postgres://postgres:postgres@localhost:5433/weave',
-  ssl: isLocal ? undefined : { rejectUnauthorized: false },
+  connectionString: connectionString || 'postgres://postgres:postgres@localhost:5432/weave',
+  ssl: isLocal ? undefined : { rejectUnauthorized },
 });
 
 const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
@@ -37,7 +41,21 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   };
 }
 
-const defaultAppUrl = 'https://weave-orchestrator-main.vercel.app';
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+const betterAuthSecret = process.env.BETTER_AUTH_SECRET?.trim();
+if (!betterAuthSecret) {
+  if (process.env.NODE_ENV === 'production' && !isBuildPhase) {
+    throw new Error(
+      '[Better Auth] FATAL: BETTER_AUTH_SECRET environment variable is missing in production! ' +
+      'Generate a secure 32+ character random secret and configure it in your environment dashboard.'
+    );
+  }
+  if (!isBuildPhase) {
+    console.warn('[Better Auth] WARNING: BETTER_AUTH_SECRET is not set. Using dev secret. DO NOT USE IN PRODUCTION.');
+  }
+}
+
+const defaultAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || 'http://localhost:3000';
 
 const rawBaseURL =
   process.env.BETTER_AUTH_URL ||
@@ -51,10 +69,6 @@ if (!process.env.BETTER_AUTH_URL) {
 }
 
 const staticOrigins = [
-  'https://weave-orchestrator-main.vercel.app',
-  'https://weave-orchestrator.vercel.app',
-  'https://weave-documentation.vercel.app',
-  'https://*.vercel.app',
   'http://localhost:3000',
   'http://localhost:3456',
   'http://localhost:8080',
@@ -63,12 +77,16 @@ const staticOrigins = [
 ];
 if (baseURL && !staticOrigins.includes(baseURL)) staticOrigins.push(baseURL);
 if (process.env.NEXT_PUBLIC_APP_URL) staticOrigins.push(process.env.NEXT_PUBLIC_APP_URL.trim().replace(/\/+$/, ''));
-if (process.env.VERCEL_URL) staticOrigins.push(`https://${process.env.VERCEL_URL.trim().replace(/\/+$/, '')}`);
-if (process.env.VERCEL_PROJECT_PRODUCTION_URL) staticOrigins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.trim().replace(/\/+$/, '')}`);
+if (process.env.ALLOWED_ORIGINS) {
+  for (const o of process.env.ALLOWED_ORIGINS.split(',')) {
+    const trimmed = o.trim().replace(/\/+$/, '');
+    if (trimmed && !staticOrigins.includes(trimmed)) staticOrigins.push(trimmed);
+  }
+}
 
 export const auth = betterAuth({
   database: pool,
-  secret: process.env.BETTER_AUTH_SECRET || 'weave-insecure-dev-secret-replace-in-production',
+  secret: betterAuthSecret || 'weave-insecure-dev-secret-replace-in-production',
   baseURL,
   trustedOrigins: async (request?: Request) => {
     const origins = [...staticOrigins];
@@ -78,9 +96,7 @@ export const auth = betterAuth({
         try {
           const originUrl = new URL(originHeader);
           if (
-            originUrl.hostname === 'weave-orchestrator-main.vercel.app' ||
-            originUrl.hostname === 'weave-orchestrator.vercel.app' ||
-            originUrl.hostname.endsWith('.vercel.app') ||
+            originUrl.origin === baseURL ||
             originUrl.hostname === 'localhost' ||
             originUrl.hostname === '127.0.0.1'
           ) {
